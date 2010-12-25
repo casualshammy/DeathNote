@@ -1,0 +1,19 @@
+﻿## Interface: 40000
+## Title: DeathNote
+## Notes: Death analysis tool
+## Author: Slaren
+## Version: @project-version@
+## OptionalDeps: Ace3
+## SavedVariables: DeathNoteDB, DeathNoteData
+## LoadManagers: AddonLoader
+## X-LoadOn-Always: delayed
+
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
+#@no-lib-strip@
+#@end-no-lib-strip@
+
+DeathNote.lua
+DataCapture.lua
+UI.lua
+Format.lua
