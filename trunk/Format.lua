@@ -242,9 +242,9 @@ function DeathNote:FormatEntry(entry)
 	local amount, spell, source
 	
 	if formatter and formatter[1] then
-		amount, spell = formatter[1](unpack(entry, 11))
+		amount, spell, source = formatter[1](unpack(entry, 11))
 	else
-		amount, spell = "No handler", event
+		amount, spell, source = "No handler", event, nil
 		return nil
 	end
 	
@@ -268,7 +268,7 @@ function DeathNote:FormatChatTimestamp(entry)
 end
 
 function DeathNote:FormatChatHealth(entry)
-	return FormatHealth[self.settings.display.health](entry[1], entry[2])
+	return FormatHealth[5](entry[1], entry[2])
 end
 
 function DeathNote:FormatChatAmount(entry)
@@ -276,6 +276,7 @@ function DeathNote:FormatChatAmount(entry)
 	text = gsub(text, "(|c........)", "")
 	text = gsub(text, "(|r)", "")
 	text = gsub(text, "(|Hunit.-|h(.-)|h)", "%2")
+	text = gsub(text, "(|Hicon.-|h.-|h)", "")
 	text = gsub(text, "(|Hspell:(.-):.-|h.-|h)", function(_, id) return GetSpellLink(id) end)
 	-- TODO: item links
 	return text

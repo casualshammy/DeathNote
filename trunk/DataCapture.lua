@@ -36,8 +36,8 @@ local event_handler_table = {
 	["SPELL_AURA_BROKEN_SPELL"]	= true,
 	
 	["SPELL_CAST_START"]		= true,
-	["SPELL_CAST_FAILED"]		= true,
-	["SPELL_CAST_SUCCESS"]		= true,	
+	-- ["SPELL_CAST_FAILED"]		= true,
+	-- ["SPELL_CAST_SUCCESS"]		= true,	
 	
 	["SPELL_DISPEL"]			= true,
 	["SPELL_DISPEL_FAILED"]		= true,
@@ -50,7 +50,11 @@ local event_handler_table = {
 
 function DeathNote:DataCapture_Initialize()
 	if not DeathNoteData then
-		DeathNoteData = { log = {}, deaths = {} }
+		DeathNoteData = {
+			log = {},
+			deaths = {},
+			keep_data = true,
+		}
 	end
 	
 	log = DeathNoteData.log
@@ -62,7 +66,6 @@ function DeathNote:ResetData()
 	wipe(log)
 	wipe(deaths)
 	self:UpdateNameList()
-	print("Data reset")
 end
 
 function DeathNote:CanEraseTimestamp(timestamp)
@@ -110,7 +113,16 @@ function DeathNote:PLAYER_REGEN_ENABLED()
 	self.clean_timer = self:ScheduleTimer("CleanData", 5)
 end
 
+function DeathNote:PLAYER_FLAGS_CHANGED(_, unitid)
+	if unitid == "player" and UnitIsAFK("player") then
+		self:CleanData()
+	end
+end
+
 function DeathNote:PLAYER_LOGOUT()
+	if not DeathNoteData.keep_data then
+		self:ResetData()
+	end
 end
 
 function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
@@ -131,7 +143,7 @@ function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, sourceGUID, 
 	end
 	
 	if event == "UNIT_DIED" then
-		if destName and not UnitIsFeignDeath(destName) then
+		if destName and not UnitIsFeignDeath(destName) and not UnitBuff(destName, "Spirit of Redemption") then
 			tinsert(deaths, { timestamp, destGUID, destName, destFlags })
 			
 			-- UpdateNameList does nothing when the frame is hidden
