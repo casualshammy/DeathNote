@@ -58,8 +58,16 @@ FormatHealth[5] = function(hp, hpmax)
 	end
 end
 
-local function GetUnitColor(unit, flags)
-	local c = unit and RAID_CLASS_COLORS[select(2, UnitClass(unit))]
+local function GetUnitColor(guid, unit, flags)
+	local c
+	
+	if guid then
+		c = RAID_CLASS_COLORS[select(2, GetPlayerInfoByGUID(guid))]
+	end
+	
+	if not c and unit then
+		c = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
+	end
 	
 	if c then
 		return string.format("|c%s", CombatLog_Color_FloatToText(c.r, c.g, c.b, 1))
@@ -68,15 +76,15 @@ local function GetUnitColor(unit, flags)
 	end
 end
 
-local function FormatUnit(name, flags)
+local function FormatUnit(guid, name, flags)
 	if not name then
 		return ""
 	end
 	
 	if bit.band(flags, COMBATLOG_OBJECT_RAIDTARGET_MASK) > 0 then
-		return string.format("%s%s%s", CombatLog_String_GetIcon(flags, "dest"), GetUnitColor(name, flags), name)
+		return string.format("%s%s%s", CombatLog_String_GetIcon(flags, "dest"), GetUnitColor(guid, name, flags), name)
 	else
-		return string.format("%s%s", GetUnitColor(name, flags), name)
+		return string.format("%s%s", GetUnitColor(guid, name, flags), name)
 	end
 end
 
@@ -253,13 +261,13 @@ function DeathNote:FormatEntry(entry)
 		FormatHealth[self.settings.display.health](entry[1], entry[2]),
 		amount,
 		spell, 
-		source or FormatUnit(entry[6], entry[7]),
+		source or FormatUnit(entry[5], entry[6], entry[7]),
 	}
 end
 
 -- Name List
 function DeathNote:FormatNameListEntry(v)
-	return string.format("[%s] %s", date("%X", v[1]), FormatUnit(v[3], v[4]))
+	return string.format("[%s] %s", date("%X", v[1]), FormatUnit(v[2], v[3], v[4]))
 end
 
 -- Chat
@@ -294,7 +302,7 @@ function DeathNote:FormatChatSpell(entry)
 end
 
 function DeathNote:FormatChatSource(entry)
-	return FormatUnit(entry[6], entry[7])
+	return FormatUnit(entry[5], entry[6], entry[7])
 end
 
 -- Tooltip

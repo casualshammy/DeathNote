@@ -1,8 +1,73 @@
 local tinsert, tremove = table.insert, table.remove
 local floor = math.floor
+local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax
+local UnitIsFeignDeath = UnitIsFeignDeath
+local bit_bor, bit_band = bit.bor, bit.band
 
 local log
 local deaths
+
+local unit_filters = {}
+
+local SPELLID_LIFETAP = 1454
+local SPELLID_SOR = 27827
+
+local SorSkipTable = {}
+
+local function SpellAuraRemovedFilter(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
+	if spellId == SPELLID_SOR then
+		-- Ignore next UNIT_DIED for sourceGUID
+		SorSkipTable[sourceGUID] = timestamp
+	end
+end
+
+local function SpellCastSuccessFilter(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool)
+	if spellId == SPELLID_LIFETAP then
+		-- Generate fake SPELL_DAMAGE with the Life Tap damage
+		local hpmax = UnitHealthMax(sourceName) or 0
+		local amount = floor(hpmax * 0.15 + 0.5)
+		
+		DeathNote:COMBAT_LOG_EVENT_UNFILTERED(
+			"COMBAT_LOG_EVENT_UNFILTERED",
+			timestamp,
+			"SPELL_DAMAGE",
+			sourceGUID,
+			sourceName,
+			sourceFlags,
+			sourceGUID,
+			sourceName,
+			sourceFlags,
+			spellId,
+			spellName,
+			spellSchool,
+			amount,
+			-1,
+			spellSchool)
+	end
+end
+
+local function UnitDiedFilter(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags)
+	if not destName then
+		return
+	end
+	
+	if UnitIsFeignDeath(destName) then
+		return
+	end
+	
+	local t = SorSkipTable[destGUID]
+	if t then
+		SorSkipTable[destGUID] = nil
+		if (timestamp - t)  < 2  then
+			return
+		end
+	end
+	
+	tinsert(deaths, { timestamp, destGUID, destName, destFlags })
+	
+	-- UpdateNameList does nothing when the frame is hidden
+	DeathNote:UpdateNameList()
+end
 
 local event_handler_table = {
 	["SPELL_DAMAGE"] 			= true,
@@ -28,7 +93,7 @@ local event_handler_table = {
 	["SPELL_BUILDING_HEAL"] 	= true,
 	
 	["SPELL_AURA_APPLIED"]		= true,
-	["SPELL_AURA_REMOVED"]		= true,
+	["SPELL_AURA_REMOVED"]		= SpellAuraRemovedFilter,
 	["SPELL_AURA_APPLIED_DOSE"]	= true,
 	["SPELL_AURA_REMOVED_DOSE"]	= true,
 	["SPELL_AURA_REFRESH"]		= true,
@@ -36,8 +101,7 @@ local event_handler_table = {
 	["SPELL_AURA_BROKEN_SPELL"]	= true,
 	
 	["SPELL_CAST_START"]		= true,
-	-- ["SPELL_CAST_FAILED"]		= true,
-	-- ["SPELL_CAST_SUCCESS"]		= true,	
+	["SPELL_CAST_SUCCESS"]		= SpellCastSuccessFilter,
 	
 	["SPELL_DISPEL"]			= true,
 	["SPELL_DISPEL_FAILED"]		= true,
@@ -45,7 +109,7 @@ local event_handler_table = {
 	
 	["SPELL_INTERRUPT"] 		= true,
 
-	["UNIT_DIED"] 				= true,
+	["UNIT_DIED"] 				= UnitDiedFilter,
 }
 
 function DeathNote:DataCapture_Initialize()
@@ -60,46 +124,51 @@ function DeathNote:DataCapture_Initialize()
 	log = DeathNoteData.log
 	deaths = DeathNoteData.deaths	
 	self.captured_events = 0
+	self:UpdateUnitFilters()
 end
 
-function DeathNote:ResetData()
+function DeathNote:ResetData(silent)
 	wipe(log)
 	wipe(deaths)
+	collectgarbage("collect")
 	self:UpdateNameList()
-end
-
---[[
-function DeathNote:CanEraseTimestamp(timestamp)
-	local death_time = self.settings.death_time
 	
-	for i, d in ipairs(deaths) do
-		local diff = d[1] - timestamp
-		
-		if diff >= 0 and diff <= death_time then
-			return false
-		end
+	if not silent then
+		self:Print("Data has been reset")
 	end
-	
-	return true
 end
-]]
 
 function DeathNote:CleanData()
-	debugprofilestart()
+	if self.settings.debugging then debugprofilestart() end
 
-	while #deaths > self.settings.max_deaths do
-		tremove(deaths, 1)
+	if not self.frame or not self.frame:IsShown() then
+		while #deaths > self.settings.max_deaths do
+			tremove(deaths, 1)
+		end
 	end
 
 	self:UpdateNameList()
 
-	local min_time = deaths[1] and (deaths[1][1] - self.settings.death_time) or 0
-	local max_time = time() - self.settings.death_time
-	
-	local num_cleared = 0
-	
-
 	local death_time = self.settings.death_time
+	local min_time = deaths[1] and (deaths[1][1] - death_time) or 0
+	local max_time = time() - death_time
+	
+	local keep = {}
+	for i = 1, #deaths do
+		local timestamp = floor(deaths[i][1])
+		for t = timestamp - death_time, timestamp do
+			keep[t] = true
+		end
+	end
+
+	local t  = next(log)
+	while t do
+		if t < max_time and (t < min_time or not keep[t]) then
+			log[t] = nil
+		end
+		t = next(log, t)
+	end
+	--[[
 	local function CanEraseTimestamp(timestamp)		
 		for i = 1, #deaths do
 			local diff = deaths[i][1] - timestamp
@@ -111,19 +180,72 @@ function DeathNote:CleanData()
 		
 		return true
 	end
-
+	
 	local t  = next(log)
 	while t do
-		if t < max_time then
-			if t < min_time or CanEraseTimestamp(t) then
-				num_cleared = num_cleared + #log[t]
-				log[t] = nil
-			end
+		if t < max_time and (t < min_time or CanEraseTimestamp(t)) then
+			log[t] = nil
 		end
 		t = next(log, t)
 	end
+	]]
 	
-	print(string.format("DeathNote: %i entries freed in %.02f ms", num_cleared, debugprofilestop()))
+	if self.settings.debugging then self:Debug(string.format("Data cleaned in %.02f ms", debugprofilestop())) end
+end
+
+function DeathNote:SetUnitFilter(filter, value)
+	self.settings.unit_filters[filter] = value
+	self:UpdateUnitFilters()
+end
+
+function DeathNote:UpdateUnitFilters()
+	local f = self.settings.unit_filters
+
+	wipe(unit_filters)
+
+	if f.group then
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_AFFILIATION_MINE, COMBATLOG_OBJECT_TYPE_PLAYER))
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_AFFILIATION_PARTY, COMBATLOG_OBJECT_TYPE_PLAYER))
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_AFFILIATION_RAID, COMBATLOG_OBJECT_TYPE_PLAYER))
+	end
+	
+	if f.my_pet then
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_AFFILIATION_MINE, COMBATLOG_OBJECT_TYPE_PET))
+	end
+	
+	if f.friendly_players then
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_TYPE_PLAYER, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+	end
+	
+	if f.enemy_players then
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_TYPE_PLAYER, COMBATLOG_OBJECT_REACTION_HOSTILE))
+	end
+
+	if f.friendly_npcs then
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_TYPE_NPC, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+	end
+
+	if f.enemy_npcs then
+		tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_TYPE_NPC, COMBATLOG_OBJECT_REACTION_HOSTILE))
+	end
+
+	if f.other_pets then
+		if f.friendly_players then
+			tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET))
+		end
+		
+		if f.enemy_players then
+			tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_REACTION_HOSTILE, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET))
+		end
+
+		if f.friendly_npcs then
+			tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_NPC, COMBATLOG_OBJECT_TYPE_PET))
+		end
+
+		if f.enemy_npcs then
+			tinsert(unit_filters, bit_bor(COMBATLOG_OBJECT_REACTION_HOSTILE, COMBATLOG_OBJECT_CONTROL_NPC, COMBATLOG_OBJECT_TYPE_PET))
+		end
+	end
 end
 
 function DeathNote:PLAYER_REGEN_DISABLED()
@@ -142,33 +264,42 @@ end
 
 function DeathNote:PLAYER_LOGOUT()
 	if not DeathNoteData.keep_data then
-		self:ResetData()
+		self:ResetData(true)
 	end
 end
 
-function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
-	if event_handler_table[event] then
-		local hp = destName and UnitHealth(destName) or 0
-		local hpmax = destName and UnitHealthMax(destName) or 0
-		local entry = { hp, hpmax, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ... }
-		
-		local t = floor(timestamp)
-		
-		if not log[t] then
-			log[t] = {}
+local function IsFiltered(sourceFlags, destFlags)
+	for i = 1, #unit_filters do
+		local f = unit_filters[i]
+		if bit_band(f, sourceFlags) == f or bit_band(f, destFlags) == f then
+			return true
 		end
-		
-		tinsert(log[t], entry)
-		
-		self.captured_events = self.captured_events + 1
 	end
 	
-	if event == "UNIT_DIED" then
-		if destName and not UnitIsFeignDeath(destName) and not UnitBuff(destName, "Spirit of Redemption") then
-			tinsert(deaths, { timestamp, destGUID, destName, destFlags })
+	return false
+end
+
+function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+	if IsFiltered(sourceFlags, destFlags) then
+		local handler = event_handler_table[event]
+		if handler then
+			local hp = destName and UnitHealth(destName) or 0
+			local hpmax = destName and UnitHealthMax(destName) or 0
+			local entry = { hp, hpmax, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ... }
 			
-			-- UpdateNameList does nothing when the frame is hidden
-			self:UpdateNameList()
+			local t = floor(timestamp)
+			
+			if not log[t] then
+				log[t] = {}
+			end
+			
+			tinsert(log[t], entry)
+			
+			self.captured_events = self.captured_events + 1
+			
+			if handler ~= true then
+				handler(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+			end
 		end
 	end
 end
