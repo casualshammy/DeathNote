@@ -116,7 +116,6 @@ function DeathNote:Show()
 		
 		-- name list
 		local name_list_border = CreateFrame("Frame", nil, frame)
-		--name_list_border:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -100)
 		name_list_border:SetPoint("TOPLEFT", filters, "BOTTOMLEFT", 0, 0)
 		name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 220, 10)
 		
@@ -293,6 +292,10 @@ function DeathNote:Show()
 	self:UpdateNameList()
 end
 
+------------------------------------------------------------------------------
+-- UnitPopup hook
+------------------------------------------------------------------------------
+
 function DeathNote:ShowUnit(name)
 	self:Show()
 	
@@ -300,8 +303,7 @@ function DeathNote:ShowUnit(name)
 		if self.name_items[i]:IsShown() then
 			local userdata = self.name_items[i].userdata
 			if userdata[3] == name then
-				self.name_scroll:SetValue((i - 1) * 18)
-				-- self:ShowDeath(userdata)
+				self.name_scroll:SetValue((i - 3) * 18)
 				self.name_items[i]:Click()
 				return
 			end
@@ -309,8 +311,40 @@ function DeathNote:ShowUnit(name)
 	end
 end
 
+function DeathNote:AddToUnitPopup()
+	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET", "PLAYER", "FRIEND" }
+	
+	for i, v in ipairs(types) do
+		tinsert(UnitPopupMenus[v], #UnitPopupMenus[v], "SHOW_DEATH_NOTE")
+	end
+	
+	self:SecureHook("UnitPopup_ShowMenu")
+end
+
+function DeathNote:RemoveFromUnitPopup()
+	for mtype in pairs(UnitPopupMenus) do
+		for i = 1, #UnitPopupMenus[mtype] do
+			if UnitPopupMenus[mtype][i] == "SHOW_DEATH_NOTE" then
+				tremove(UnitPopupMenus[mtype], i)
+				break
+			end
+		end
+	end
+end
+
+
 function DeathNote.UnitPopupClick()
-	DeathNote:ShowUnit(UnitName(UIDROPDOWNMENU_INIT_MENU.unit))
+	local name, server = UnitName(UIDROPDOWNMENU_INIT_MENU.unit or UIDROPDOWNMENU_INIT_MENU.name)
+	
+	if not name then
+		return
+	end
+	
+	if server then
+		name = name .. "-" .. server
+	end
+	
+	DeathNote:ShowUnit(name)
 end
 
 function DeathNote:UnitPopup_ShowMenu(dropdownMenu, which, unit, name, userData, ...)
@@ -329,7 +363,7 @@ function DeathNote.LogFrameDropDownInitialize(self, level)
 	if not level then return end
 
 	if level == 1 then
-		info.text = "Report from this line"
+		info.text = "Send report from this line"
 		info.hasArrow = 1
 		info.value = "REPORT"
 		info.notCheckable = 1
@@ -380,7 +414,10 @@ function DeathNote:ShowDropDownMenu(line)
 	ToggleDropDownMenu(1, nil, self.dropdownframe, "cursor")
 end
 
--- NameList stuff
+------------------------------------------------------------------------------
+-- Name list
+------------------------------------------------------------------------------
+
 function DeathNote:NameList_SizeChanged()
 	local content_height = self.name_content:GetHeight()
 	local height = self.name_list:GetHeight()
@@ -408,6 +445,45 @@ local function NameList_OnClick(frame, button)
 	elseif button == "RightButton" then
 		DeathNote:CycleNameListDisplay()
 		DeathNote:UpdateNameList()
+		DeathNote:ScrollNameListToCurrentDeath()
+	end
+end
+
+local function NameList_OnEnter(frame)
+	GameTooltip:SetOwner(frame, "ANCHOR_NONE")
+	GameTooltip:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT")
+
+	local have_tip = false
+
+	local entry = DeathNote:GetKillingBlow(frame.userdata)
+	
+	if entry then
+		have_tip = DeathNote:FormatTooltipAmount(entry)
+	end
+		
+	if have_tip then
+		GameTooltip:Show()
+	end
+end
+
+local function NameList_OnLeave(frame)
+	GameTooltip:Hide()
+end
+
+function DeathNote:ScrollNameListToCurrentDeath()
+	if not self.current_death then
+		self.name_scroll:SetValue(0)
+		return
+	end
+	
+	for i = 1, #self.name_items do
+		if self.name_items[i]:IsShown() then
+			local userdata = self.name_items[i].userdata
+			if userdata == self.current_death then
+				self.name_scroll:SetValue((i - 3) * 18)
+				return
+			end
+		end
 	end
 end
 
@@ -461,13 +537,12 @@ function DeathNote:UpdateNameList()
 			button:SetHighlightFontObject(GameFontHighlight)
 
 			button:SetScript("OnClick", NameList_OnClick)
-			
+			button:SetScript("OnEnter", NameList_OnEnter)
+			button:SetScript("OnLeave", NameList_OnLeave)
+			button:SetScript("OnDoubleClick", nil)
+						
 			button:SetPoint("TOPLEFT", 0, -18 * (i - 1))
 			button:SetPoint("RIGHT")
-			
-			button:SetScript("OnDoubleClick", nil)
-			button:SetScript("OnEnter", nil) -- ttip
-			button:SetScript("OnLeave", nil)
 			
 			self.name_items[i] = button
 		end
@@ -490,14 +565,127 @@ function DeathNote:UpdateNameList()
 end
 
 ------------------------------------------------------------------------------
+-- ShowDeath
+------------------------------------------------------------------------------
+
+local function SpellDamageOverkill(spellId, spellName, spellSchool, amount, overkill)
+	return overkill
+end
+
+local function SwingDamageOverkill(amount, overkill)
+	return overkill
+end
+
+local function EnvironmentalDamageOverkill(environmentalType, amount, overkill)
+	return overkill
+end
+
+local damage_event_table = {
+	["SPELL_DAMAGE"] 			= SpellDamageOverkill,
+	["SPELL_PERIODIC_DAMAGE"] 	= SpellDamageOverkill,
+	["SPELL_BUILDING_DAMAGE"] 	= SpellDamageOverkill,
+	["RANGE_DAMAGE"] 			= SpellDamageOverkill,
+	["DAMAGE_SHIELD"] 			= SpellDamageOverkill,
+	["DAMAGE_SPLIT"] 			= SpellDamageOverkill,
+	["SWING_DAMAGE"] 			= SwingDamageOverkill,
+	["ENVIRONMENTAL_DAMAGE"] 	= EnvironmentalDamageOverkill,
+}
+
+function DeathNote:GetKillingBlow(death)
+	local guid = death[2]
+	local timestamp = floor(death[1])
+	local t = timestamp
+	local death_found = 0
+	
+	while t >= (timestamp - 3) and death_found <= 1 do
+		local l = DeathNoteData.log[t]
+		if l then
+			for i = #l, 1, -1 do
+				local entry = l[i]
+				if entry[8] == guid and entry[3] <= death[1] then
+					if entry[4] == "UNIT_DIED" then
+						death_found = death_found + 1
+						if death_found > 1 then
+							break
+						end
+					end
+					
+					if damage_event_table[entry[4]] and damage_event_table[entry[4]](unpack(entry, 11)) > 0 then
+						return entry
+					end
+				end
+			end
+		end
+		t = t - 1
+	end
+	
+	return nil
+end
+
+function DeathNote:ShowDeath(death)
+	if self.settings.debugging then debugprofilestart() end
+
+	self.logframe:ClearAllLines()
+
+	self.current_death = death
+	
+	local guid = death[2]
+	local timestamp = floor(death[1])
+	local t = timestamp
+	local death_found = 0
+	
+	while t >= (timestamp - self.settings.death_time) and death_found <= 1 do
+		local l = DeathNoteData.log[t]
+		if l then
+			for i = #l, 1, -1 do
+				local entry = l[i]
+				if entry[8] == guid and entry[3] <= death[1] then
+					if entry[4] == "UNIT_DIED" then
+						death_found = death_found + 1
+						if death_found > 1 then
+							break
+						end
+					end
+					
+					self:AddDeathEntry(entry)
+				end
+			end
+		end
+		t = t - 1
+	end
+	
+	self.logframe:UpdateComplete()
+	self.logframe:ScrollToBottom()
+	
+	if self.settings.debugging then self:Debug(string.format("Death shown in %.02f ms", debugprofilestop())) end
+end
+
+function DeathNote:AddDeathEntry(entry)
+	local line = self:FormatEntry(entry)
+	
+	if line then
+		self.logframe:AddLine(line, entry)
+	end
+end
+
+function DeathNote:RefreshDeath()
+	local count = self.logframe:GetLineCount()
+	
+	for i = 1, count do
+		self.logframe:UpdateLine(i, self:FormatEntry(self.logframe:GetLineUserdata(i)))
+	end
+end
+
+------------------------------------------------------------------------------
 -- ListBox
 ------------------------------------------------------------------------------
+
 local function ListBox_Column_Dragger_OnLeave(frame)
-	frame:SetBackdropColor(1, 1, 1, 0.8)
+	frame.background:SetTexture(0.7, 0.7, 0.7, 0.8)
 end
 
 local function ListBox_Column_Dragger_OnEnter(frame)
-	frame:SetBackdropColor(1, 1, 1, 1)
+	frame.background:SetTexture(1, 1, 1, 1)
 end
 
 local function ListBox_Column_Dragger_OnMouseDown(frame)
@@ -668,7 +856,7 @@ function ListBox_UpdateComplete(self)
 		end
 	end
 
-	ListBox_OnSizeChanged(self.frame)
+	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
 
 	for nline = 1, #self.lines do
 		self.lines[nline]:Show()
@@ -684,7 +872,7 @@ local function ListBox_ClearAllLines(self)
 	wipe(self.lines)
 end
 
-function ListBox_OnSizeChanged(frame, width, height)
+function ListBox_ScrollFrame_OnSizeChanged(frame, width, height)
 	local self = frame.obj
 	
 	-- Update Scrollbar	
@@ -802,6 +990,7 @@ function DeathNote:CreateListBox(parent)
 	scrollframe:SetPoint("BOTTOMRIGHT", -8, 8)
 	scrollframe:EnableMouseWheel(true)
 	scrollframe:SetScript("OnMouseWheel", ListBox_ScrollFrame_OnMouseWheel)
+	scrollframe:SetScript("OnSizeChanged", ListBox_ScrollFrame_OnSizeChanged)
 		
 	local scrollbar = CreateFrame("Slider", nil, scrollframe, "UIPanelScrollBarTemplate")
 	scrollbar:SetPoint("BOTTOMRIGHT",  0, 16)
@@ -840,7 +1029,6 @@ function DeathNote:CreateListBox(parent)
 	--local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 	--close:SetPoint("TOPRIGHT", 0, 0)
 	
-	frame:SetScript("OnSizeChanged", ListBox_OnSizeChanged)
 	
 	local listbox = {
 		AddColumn = ListBox_AddColumn,
@@ -866,64 +1054,9 @@ function DeathNote:CreateListBox(parent)
 	}
 	
 	frame.obj = listbox
+	iframe.obj = listbox
 	scrollbar.obj = listbox
 	scrollframe.obj = listbox
 	
 	return listbox
-end
-
----------------------------------------------------------------
-
-function DeathNote:ShowDeath(death)
-	debugprofilestart()
-
-	self.logframe:ClearAllLines()
-
-	self.current_death = death
-	
-	local guid = death[2]
-	local timestamp = floor(death[1])
-	local t = timestamp
-	local death_found = 0
-	
-	while t >= (timestamp - self.settings.death_time) and death_found <= 1 do
-		local l = DeathNoteData.log[t]
-		if l then
-			for i = #l, 1, -1 do
-				local entry = l[i]
-				if entry[8] == guid and entry[3] <= death[1] then
-					if entry[4] == "UNIT_DIED" then
-						death_found = death_found + 1
-						if death_found > 1 then
-							break
-						end
-					end
-					
-					self:AddEntry(entry)
-				end
-			end
-		end
-		t = t - 1
-	end
-	
-	self.logframe:UpdateComplete()
-	self.logframe:ScrollToBottom()
-	
-	print(string.format("DeathNote: Death shown in %.02f ms", debugprofilestop()))
-end
-
-function DeathNote:AddEntry(entry)
-	local line = self:FormatEntry(entry)
-	
-	if line then
-		self.logframe:AddLine(line, entry)
-	end
-end
-
-function DeathNote:RefreshDeath()
-	local count = self.logframe:GetLineCount()
-	
-	for i = 1, count do
-		self.logframe:UpdateLine(i, self:FormatEntry(self.logframe:GetLineUserdata(i)))
-	end
 end

@@ -20,7 +20,7 @@ DeathNote.Options = {
 				
 				death_time = {
 					order = 2,
-					name = "Time to keep",
+					name = "Time to keep before each death (seconds)",
 					type = "range",
 					min = 10,
 					max = 120,
@@ -39,51 +39,58 @@ DeathNote.Options = {
 						group = {
 							order = 1,
 							type = "toggle",
-							name = "Group members",
+							name = "Group players",
 							width = "full",
-							-- COMBATLOG_OBJECT_AFFILIATION_PARTY or COMBATLOG_OBJECT_AFFILIATION_RAID
+							get = function() return DeathNote.settings.unit_filters.group end,
+							set = function(_, v) DeathNote:SetUnitFilter("group", v) end,
 						},
 						
-						friendly_players = {
-							order = 4,
-							type = "toggle",
-							name = "Friendly players",
-							-- COMBATLOG_OBJECT_TYPE_PLAYER and COMBATLOG_OBJECT_REACTION_FRIENDLY
-						},
-						
-						enemy_players = {
-							order = 5,
-							type = "toggle",
-							name = "Enemy players",
-							-- COMBATLOG_OBJECT_TYPE_PLAYER and COMBATLOG_OBJECT_REACTION_HOSTILE
-						},
-
 						your_pet = {
 							order = 2,
 							type = "toggle",
 							name = "Your pet",
-							-- COMBATLOG_OBJECT_AFFILIATION_MINE and COMBATLOG_OBJECT_TYPE_PET
+							get = function() return DeathNote.settings.unit_filters.my_pet end,
+							set = function(_, v) DeathNote:SetUnitFilter("my_pet", v) end,
 						},
 						
 						other_pets = {
 							order = 3,
 							type = "toggle",
 							name = "Other pets",
-							-- group/friendly/enemy/fnpc/enpc and COMBATLOG_OBJECT_TYPE_PET
+							get = function() return DeathNote.settings.unit_filters.other_pets end,
+							set = function(_, v) DeathNote:SetUnitFilter("other_pets", v) end,
 						},
 						
+						friendly_players = {
+							order = 4,
+							type = "toggle",
+							name = "Friendly players",
+							get = function() return DeathNote.settings.unit_filters.friendly_players end,
+							set = function(_, v) DeathNote:SetUnitFilter("friendly_players", v) end,
+						},
+						
+						enemy_players = {
+							order = 5,
+							type = "toggle",
+							name = "Enemy players",
+							get = function() return DeathNote.settings.unit_filters.enemy_players end,
+							set = function(_, v) DeathNote:SetUnitFilter("enemy_players", v) end,
+						},
+
 						friendly_npcs = {
 							order = 6,
 							type = "toggle",
 							name = "Friendly NPCs",
-							-- COMBATLOG_OBJECT_REACTION_FRIENDLY and COMBATLOG_OBJECT_TYPE_NPC
+							get = function() return DeathNote.settings.unit_filters.friendly_npcs end,
+							set = function(_, v) DeathNote:SetUnitFilter("friendly_npcs", v) end,
 						},
 						
 						enemy_npcs = {
 							order = 7,
 							type = "toggle",
 							name = "Enemy NPCs",
-							-- COMBATLOG_OBJECT_REACTION_HOSTILE and COMBATLOG_OBJECT_TYPE_NPC
+							get = function() return DeathNote.settings.unit_filters.enemy_npcs end,
+							set = function(_, v) DeathNote:SetUnitFilter("enemy_npcs", v) end,
 						},
 					},
 				},

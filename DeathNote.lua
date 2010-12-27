@@ -1,11 +1,22 @@
-DeathNote = LibStub("AceAddon-3.0"):NewAddon("DeathNote", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0")
+DeathNote = LibStub("AceAddon-3.0"):NewAddon("DeathNote", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0", "AceConsole-3.0")
 
 function DeathNote:OnInitialize()
 	-- AceDB options
 	self.db = LibStub("AceDB-3.0"):New("DeathNoteDB", {
 		profile = {
+			debugging = false,
 			max_deaths = 50,
 			death_time = 60,
+			
+			unit_filters = {
+				group = true,
+				my_pet = true,
+				other_pets = false,
+				friendly_players = false,
+				enemy_players = false,
+				friendly_npcs = false,
+				enemy_npcs = false,
+			},
 			
 			display = {
 				namelist = 1,
@@ -63,28 +74,21 @@ function DeathNote:OnEnable()
 	self:ScheduleRepeatingTimer("UpdateLDB", 5)
 end
 
-function DeathNote:AddToUnitPopup()
-	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET", "PLAYER" }
-	
-	for i, v in ipairs(types) do
-		tinsert(UnitPopupMenus[v], #UnitPopupMenus[v], "SHOW_DEATH_NOTE")
-	end
-	
-	self:SecureHook("UnitPopup_ShowMenu")
+function DeathNote:OnDisable()
+	self:RemoveFromUnitPopup()
+	self:UnregisterAllEvents()
 end
 
-function DeathNote:OnDisable()
-	-- TODO: remove from UnitPopup
-	self:UnregisterAllEvents()
+function DeathNote:Debug(...)
+	if self.settings.debugging then
+		self:Print(...)
+	end
 end
 
 local lt = GetTime()
 function DeathNote:UpdateLDB()
 	UpdateAddOnMemoryUsage()
-	--self.ldb.value = floor(GetAddOnMemoryUsage("DeathNote") + 0.5)
-	--self.ldb.suffix = "KB"
 	self.ldb.text = string.format("%i KB - %i E/S", floor(GetAddOnMemoryUsage("DeathNote") + 0.5), floor(self.captured_events / (GetTime() - lt) + 0.5))
-	-- self.ldb.text = string.format("%i E/s", floor(self.captured_events / (GetTime() - lt) + 0.5))
 	
 	lt = GetTime()
 	
@@ -92,27 +96,25 @@ function DeathNote:UpdateLDB()
 end
 
 function DeathNote:SendReport(channel)
-	-- TODO: ChatThrottleLib
-	local target
-	
+	local max_lines = 10
+
+	local target	
 	if channel == "WHISPER" then
 		target = UnitName("target")
 	end
 	
+	if self.dropdown_line > max_lines then
+		self:Print(string.format("Limiting report to %i lines", max_lines))
+	end
+
 	local msg  = string.format("DeathNote: Death report for %s at %s", self.current_death[3], date("%X", self.current_death[1]))
-	SendChatMessage(msg, channel, nil, target)
+	ChatThrottleLib:SendChatMessage("BULK", "DeathNote", msg, channel, nil, target)
 	
-	for i = self.dropdown_line, 1, -1 do
+	for i = self.dropdown_line, math.max(1, self.dropdown_line - max_lines + 1), -1 do
 		local entry = self.logframe:GetLineUserdata(i)
 		local timestamp = entry[3]
 	
 		local msg = string.format("[%.01f s] %s", floor((timestamp - self.current_death[1]) * 10 + 0.05) / 10, self:FormatChatAmount(entry))
-		SendChatMessage(msg, channel, nil, target)
+		ChatThrottleLib:SendChatMessage("BULK", "DeathNote", msg, channel, nil, target)
 	end	
-end
-
-function DeathNote:UnitPopup_OnClick(f)
-	if f.value == "SHOW_DEATH_NOTE" then
-		self:Show()
-	end
 end
