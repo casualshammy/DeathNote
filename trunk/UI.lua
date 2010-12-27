@@ -309,6 +309,20 @@ function DeathNote:ShowUnit(name)
 	end
 end
 
+function DeathNote.UnitPopupClick()
+	DeathNote:ShowUnit(UnitName(UIDROPDOWNMENU_INIT_MENU.unit))
+end
+
+function DeathNote:UnitPopup_ShowMenu(dropdownMenu, which, unit, name, userData, ...)
+	local button
+	for i=1, UIDROPDOWNMENU_MAXBUTTONS do
+		button = _G["DropDownList"..UIDROPDOWNMENU_MENU_LEVEL.."Button"..i];
+		if button.value == "SHOW_DEATH_NOTE" then
+		    button.func = DeathNote.UnitPopupClick
+		end
+	end
+end
+
 function DeathNote.LogFrameDropDownInitialize(self, level)
 	local info = {}
 	
@@ -364,26 +378,6 @@ function DeathNote:ShowDropDownMenu(line)
 	end
 	
 	ToggleDropDownMenu(1, nil, self.dropdownframe, "cursor")
-end
-
-function DeathNote:SendReport(channel)
-	-- TODO: ChatThrottleLib
-	local target
-	
-	if channel == "WHISPER" then
-		target = UnitName("target")
-	end
-	
-	local msg  = string.format("DeathNote: Death report for %s at %s", self.current_death[3], date("%X", self.current_death[1]))
-	SendChatMessage(msg, channel, nil, target)
-	
-	for i = self.dropdown_line, 1, -1 do
-		local entry = self.logframe:GetLineUserdata(i)
-		local timestamp = entry[3]
-	
-		local msg = string.format("[%.01f s] %s", floor((timestamp - self.current_death[1]) * 10 + 0.05) / 10, self:FormatChatAmount(entry))
-		SendChatMessage(msg, channel, nil, target)
-	end	
 end
 
 -- NameList stuff
