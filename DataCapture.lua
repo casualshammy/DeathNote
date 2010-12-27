@@ -68,22 +68,29 @@ function DeathNote:ResetData()
 	self:UpdateNameList()
 end
 
+--[[
 function DeathNote:CanEraseTimestamp(timestamp)
+	local death_time = self.settings.death_time
+	
 	for i, d in ipairs(deaths) do
 		local diff = d[1] - timestamp
 		
-		if diff >= 0 and diff <= self.settings.death_time then
+		if diff >= 0 and diff <= death_time then
 			return false
 		end
 	end
 	
 	return true
 end
+]]
 
 function DeathNote:CleanData()
+	debugprofilestart()
+
 	while #deaths > self.settings.max_deaths do
 		tremove(deaths, 1)
 	end
+
 	self:UpdateNameList()
 
 	local min_time = deaths[1] and (deaths[1][1] - self.settings.death_time) or 0
@@ -91,15 +98,29 @@ function DeathNote:CleanData()
 	
 	local num_cleared = 0
 	
-	debugprofilestart()
-	
-	for t, v in pairs(log) do
+
+	local death_time = self.settings.death_time
+	local function CanEraseTimestamp(timestamp)		
+		for i = 1, #deaths do
+			local diff = deaths[i][1] - timestamp
+			
+			if diff >= 0 and diff <= death_time then
+				return false
+			end
+		end
+		
+		return true
+	end
+
+	local t  = next(log)
+	while t do
 		if t < max_time then
-			if t < min_time or self:CanEraseTimestamp(t) then
+			if t < min_time or CanEraseTimestamp(t) then
 				num_cleared = num_cleared + #log[t]
 				log[t] = nil
 			end
 		end
+		t = next(log, t)
 	end
 	
 	print(string.format("DeathNote: %i entries freed in %.02f ms", num_cleared, debugprofilestop()))
