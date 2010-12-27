@@ -102,7 +102,14 @@ DeathNote.Options = {
 					width = "full",
 					get = function() return DeathNoteData.keep_data end,
 					set = function(_, v) DeathNoteData.keep_data = v end,
-				},				
+				},
+				
+				reset_data = {
+					order = 5,
+					name = "Reset data",
+					type = "execute",
+					func = function() DeathNote:ResetData() end
+				},
 			},
 		},
 	},
