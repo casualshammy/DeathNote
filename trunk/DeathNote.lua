@@ -44,10 +44,10 @@ function DeathNote:OnInitialize()
 				if IsShiftKeyDown() then
 					DeathNote:CleanData(true)
 					collectgarbage("collect")
-					self:UpdateLDB()
+					DeathNote:UpdateLDB()
 				elseif IsControlKeyDown() then
 					DeathNote:ResetData()
-					self:UpdateLDB()
+					DeathNote:UpdateLDB()
 				else
 					DeathNote:Show()
 				end
