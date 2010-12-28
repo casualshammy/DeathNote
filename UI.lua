@@ -322,6 +322,8 @@ function DeathNote:AddToUnitPopup()
 end
 
 function DeathNote:RemoveFromUnitPopup()
+	self:UnhookAll()
+	
 	for mtype in pairs(UnitPopupMenus) do
 		for i = 1, #UnitPopupMenus[mtype] do
 			if UnitPopupMenus[mtype][i] == "SHOW_DEATH_NOTE" then
@@ -331,7 +333,6 @@ function DeathNote:RemoveFromUnitPopup()
 		end
 	end
 end
-
 
 function DeathNote.UnitPopupClick()
 	local name, server = UnitName(UIDROPDOWNMENU_INIT_MENU.unit or UIDROPDOWNMENU_INIT_MENU.name)

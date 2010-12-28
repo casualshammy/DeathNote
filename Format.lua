@@ -61,13 +61,13 @@ end
 local function GetUnitColor(guid, unit, flags)
 	local c
 	
-	if guid then
-		c = RAID_CLASS_COLORS[select(2, GetPlayerInfoByGUID(guid))]
-	end
-	
-	if not c and unit then
+	if unit then
 		c = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
 	end
+	
+	if not c and guid then
+		c = RAID_CLASS_COLORS[select(2, GetPlayerInfoByGUID(guid))]
+	end	
 	
 	if c then
 		return string.format("|c%s", CombatLog_Color_FloatToText(c.r, c.g, c.b, 1))
@@ -94,7 +94,6 @@ local function FormatSpell(spellId, spellName, spellSchool)
 	local colorArray = CombatLog_Color_ColorArrayBySchool(spellSchool, DEFAULT_COMBATLOG_FILTER_TEMPLATE)
 	local colorstr = CombatLog_Color_FloatToText(colorArray.r, colorArray.g, colorArray.b, colorArray.a)
 
-	-- return string.format("|T%s:14|t |c%s%s", icon, CombatLog_Color_ColorStringBySchool(spellSchool), name)
 	return string.format("|T%s:14|t |c%s%s", icon, colorstr, name)
 end
 
@@ -125,6 +124,10 @@ local function SpellMissed(spellId, spellName, spellSchool, missType)
 	return FormatMiss(missType), FormatSpell(spellId, spellName, spellSchool)
 end
 
+local function SpellInstakill(spellId, spellName, spellSchool)
+	return "|cFFFF0000" .. ACTION_SPELL_INSTAKILL, FormatSpell(spellId, spellName, spellSchool)
+end
+
 local function SwingDamage(amount)
 	return FormatDamage(amount), FormatSwing()
 end
@@ -134,7 +137,7 @@ local function SwingMissed(missType)
 end
 
 local function EnvironmentalDamage(environmentalType, amount)
-	return FormatDamage(amount), _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], ENVIRONMENTAL_DAMAGE
+	return FormatDamage(amount), _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType]
 end
 
 local function SpellHeal(spellId, spellName, spellSchool, amount)
@@ -184,7 +187,6 @@ end
 
 -- Tooltip formatters
 local function SpellTooltip(spellId, spellName, spellSchool)
-	-- GameTooltip:SetHyperlink(GetSpellLink(spellId))
 	GameTooltip:SetSpellByID(spellId)
 	return true
 end
@@ -231,7 +233,9 @@ local event_formatter_table = {
 	["SPELL_CAST_FAILED"]		= { CastFailed, CastChat, CastTooltip },
 	["SPELL_CAST_SUCCESS"]		= { CastSuccess, CastChat, CastTooltip },
 	
-	["SPELL_INTERRUPT"] 		= { Interrupt },
+	-- ["SPELL_INTERRUPT"] 		= { SpellInterrupt, SpellChat, SpellTooltip },
+	
+	["SPELL_INSTAKILL"]			= { SpellInstakill, SpellChat, SpellTooltip },
 
 	["UNIT_DIED"] 				= { UnitDied, UnitDiedChat, UnitDiedTooltip },
 }
