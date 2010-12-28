@@ -10,7 +10,7 @@ DeathNote.Options = {
 					order = 1,
 					name = "Maximum number of deaths",
 					type = "range",
-					min = 25,
+					min = 5,
 					max = 500,
 					step = 1,
 					width = "full",
@@ -20,18 +20,36 @@ DeathNote.Options = {
 				
 				death_time = {
 					order = 2,
-					name = "Time to keep before each death (seconds)",
+					name = "Seconds to keep before each death (for the unit killed)",
 					type = "range",
-					min = 10,
+					min = 5,
 					max = 120,
 					step = 1,
 					width = "full",
 					get = function() return DeathNote.settings.death_time end,
-					set = function(_, v) DeathNote.settings.death_time = v end,
+					set = function(_, v)
+						DeathNote.settings.death_time = v
+						DeathNote.settings.others_death_time = math.min(v, DeathNote.settings.others_death_time)
+					end,
 				},
 				
-				filter_capture = {
+				others_death_time = {
 					order = 3,
+					name = "Seconds to keep before each death (for other units)",
+					type = "range",
+					min = 0,
+					max = 120,
+					step = 1,
+					width = "full",
+					get = function() return DeathNote.settings.others_death_time end,
+					set = function(_, v)
+						DeathNote.settings.others_death_time = v
+						DeathNote.settings.death_time = math.max(v, DeathNote.settings.death_time)
+					end,
+				},
+
+				filter_capture = {
+					order = 10,
 					name = "Unit filters",
 					type = "group",
 					inline = true,
@@ -96,7 +114,7 @@ DeathNote.Options = {
 				},
 
 				keep_data = {
-					order = 4,
+					order = 20,
 					name = "Keep data between sessions",
 					type = "toggle",
 					width = "full",
@@ -105,7 +123,7 @@ DeathNote.Options = {
 				},
 				
 				reset_data = {
-					order = 5,
+					order = 30,
 					name = "Reset data",
 					type = "execute",
 					func = function() DeathNote:ResetData() end

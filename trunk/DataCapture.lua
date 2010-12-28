@@ -108,7 +108,9 @@ local event_handler_table = {
 	["SPELL_STOLEN"]			= true,
 	
 	["SPELL_INTERRUPT"] 		= true,
-
+	
+	["SPELL_INSTAKILL"]			= true,
+	
 	["UNIT_DIED"] 				= UnitDiedFilter,
 }
 
@@ -117,13 +119,12 @@ function DeathNote:DataCapture_Initialize()
 		DeathNoteData = {
 			log = {},
 			deaths = {},
-			keep_data = true,
+			keep_data = false,
 		}
 	end
 	
 	log = DeathNoteData.log
 	deaths = DeathNoteData.deaths	
-	self.captured_events = 0
 	self:UpdateUnitFilters()
 end
 
@@ -138,8 +139,8 @@ function DeathNote:ResetData(silent)
 	end
 end
 
-function DeathNote:CleanData()
-	if self.settings.debugging then debugprofilestart() end
+function DeathNote:CleanData(manual)
+	if manual or self.settings.debugging then debugprofilestart() end
 
 	if not self.frame or not self.frame:IsShown() then
 		while #deaths > self.settings.max_deaths do
@@ -150,21 +151,43 @@ function DeathNote:CleanData()
 	self:UpdateNameList()
 
 	local death_time = self.settings.death_time
+	local others_death_time = self.settings.others_death_time
 	local min_time = deaths[1] and (deaths[1][1] - death_time) or 0
 	local max_time = time() - death_time
 	
-	local keep = {}
+	local keep_guid, keep_all = {}, {}
 	for i = 1, #deaths do
 		local timestamp = floor(deaths[i][1])
 		for t = timestamp - death_time, timestamp do
-			keep[t] = true
+			if not keep_guid[t] then
+				keep_guid[t] = {}
+			end
+			keep_guid[t][deaths[i][2]] = true
+		end
+
+		for t = timestamp - others_death_time, timestamp do
+			keep_all[t] = true
 		end
 	end
 
 	local t  = next(log)
 	while t do
-		if t < max_time and (t < min_time or not keep[t]) then
-			log[t] = nil
+		local logt = log[t]
+		if logt then
+			if t < min_time then
+				log[t] = nil
+			elseif t < max_time and not keep_all[t] then
+				local keep_guidt = keep_guid[t]				
+				if not keep_guidt then
+					log[t] = nil
+				else
+					for i = #logt, 1, -1 do
+						if not keep_guidt[logt[i][8]] then
+							tremove(logt, i)
+						end
+					end
+				end
+			end
 		end
 		t = next(log, t)
 	end
@@ -190,7 +213,7 @@ function DeathNote:CleanData()
 	end
 	]]
 	
-	if self.settings.debugging then self:Debug(string.format("Data cleaned in %.02f ms", debugprofilestop())) end
+	if manual or self.settings.debugging then self:Debug(string.format("Data optimization took %.02f ms", debugprofilestop())) end
 end
 
 function DeathNote:SetUnitFilter(filter, value)
@@ -280,26 +303,22 @@ local function IsFiltered(sourceFlags, destFlags)
 end
 
 function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
-	if IsFiltered(sourceFlags, destFlags) then
-		local handler = event_handler_table[event]
-		if handler then
-			local hp = destName and UnitHealth(destName) or 0
-			local hpmax = destName and UnitHealthMax(destName) or 0
-			local entry = { hp, hpmax, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ... }
-			
-			local t = floor(timestamp)
-			
-			if not log[t] then
-				log[t] = {}
-			end
-			
-			tinsert(log[t], entry)
-			
-			self.captured_events = self.captured_events + 1
-			
-			if handler ~= true then
-				handler(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
-			end
+	local handler = event_handler_table[event]
+	if handler and IsFiltered(sourceFlags, destFlags) then
+		local hp = destName and UnitHealth(destName) or 0
+		local hpmax = destName and UnitHealthMax(destName) or 0
+		local entry = { hp, hpmax, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ... }
+		
+		local t = floor(timestamp)
+		
+		if not log[t] then
+			log[t] = {}
+		end
+		
+		tinsert(log[t], entry)
+		
+		if handler ~= true then
+			handler(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
 		end
 	end
 end

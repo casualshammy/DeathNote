@@ -6,7 +6,8 @@ function DeathNote:OnInitialize()
 		profile = {
 			debugging = false,
 			max_deaths = 50,
-			death_time = 60,
+			death_time = 30,
+			others_death_time = 0,
 			
 			unit_filters = {
 				group = true,
@@ -40,15 +41,23 @@ function DeathNote:OnInitialize()
 		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
 		OnClick = function(self, button)
 			if button == "LeftButton" then
-				DeathNote:Show()
+				if IsShiftKeyDown() then
+					DeathNote:CleanData(true)
+					collectgarbage("collect")
+					self:UpdateLDB()
+				elseif IsControlKeyDown() then
+					DeathNote:ResetData()
+					self:UpdateLDB()
+				else
+					DeathNote:Show()
+				end
 			elseif button == "RightButton" then
-				-- DeathNote:ResetData()
 				InterfaceOptionsFrame_OpenToCategory("Death Note")
 			end
 		end,
 		OnTooltipShow = function(tooltip)
 			tooltip:AddLine("DeathNote")
-			tooltip:AddLine("|cffeda55fClick|r to open DeathNote. |cffeda55fRight-Click|r to show options.", 0.2, 1, 0.2, 1)
+			tooltip:AddLine("|cffeda55fClick|r to open DeathNote. |cffeda55fRight-Click|r to show options. |cffeda55fShift-Click|r to optimice data. |cffeda55fCtrl-Click|r to reset data.", 0.2, 1, 0.2, 1)
 		end,
 	})
 	
@@ -88,11 +97,9 @@ end
 local lt = GetTime()
 function DeathNote:UpdateLDB()
 	UpdateAddOnMemoryUsage()
-	self.ldb.text = string.format("%i KB - %i E/S", floor(GetAddOnMemoryUsage("DeathNote") + 0.5), floor(self.captured_events / (GetTime() - lt) + 0.5))
+	self.ldb.text = string.format("%i deaths - %i KB", #DeathNoteData.deaths, floor(GetAddOnMemoryUsage("DeathNote") + 0.5))
 	
 	lt = GetTime()
-	
-	self.captured_events = 0
 end
 
 function DeathNote:SendReport(channel)
