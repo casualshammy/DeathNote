@@ -20,41 +20,41 @@ end
 local FormatHealth = {}
 FormatHealth[1] = function(hp, hpmax)
 	if hpmax == 0 then
-		return { "bar", 0 }
+		return { 0 }
 	else
-		return { "bar", hp / hpmax }
+		return { hp / hpmax }
 	end
 end
 
 FormatHealth[2] = function(hp, hpmax)
 	if hpmax == 0 then
-		return "??%"
+		return { 0, "??%" }
 	else
-		return string.format("%.02f%%", hp / hpmax * 100)
+		return { hp / hpmax, string.format("%.02f%%", hp / hpmax * 100) }
 	end
 end
 
 FormatHealth[3] = function(hp, hpmax)
 	if hpmax == 0 then
-		return "??/??"
+		return { 0, "??/??" }
 	else
-		return string.format("%s/%s", CommaNumber(hp), CommaNumber(hpmax))
+		return { hp / hpmax, string.format("%s/%s", CommaNumber(hp), CommaNumber(hpmax)) }
 	end
 end
 
 FormatHealth[4] = function(hp, hpmax)
 	if hpmax == 0 then
-		return "??"
+		return { 0, "??" }
 	else
-		return string.format("%s", CommaNumber(hp))
+		return { hp / hpmax, string.format("%s", CommaNumber(hp)) }
 	end
 end
 
 FormatHealth[5] = function(hp, hpmax)
 	if hpmax == 0 then
-		return "??/?? (??%)"
+		return { 0, "??/?? (??%)" }
 	else
-		return string.format("%s/%s (%i%%)", CommaNumber(hp), CommaNumber(hpmax), floor(hp / hpmax * 100))
+		return { hp / hpmax, string.format("%s/%s (%i%%)", CommaNumber(hp), CommaNumber(hpmax), floor(hp / hpmax * 100)) }
 	end
 end
 
@@ -103,12 +103,20 @@ local function FormatSwing()
 	return "|c" .. colorstr .. ACTION_SWING
 end
 
-local function FormatDamage(amount)
-	return "|cFFFF0000-" .. CommaNumber(amount)
+local function FormatDamage(amount, critical)
+	if critical then
+		return "|cFFFF0000*" .. CommaNumber(amount)
+	else
+		return "|cFFFF0000-" .. CommaNumber(amount)
+	end
 end
 
-local function FormatHeal(amount)
-	return "|cFF00FF00+" .. CommaNumber(amount)
+local function FormatHeal(amount, critical)
+	if critical then
+		return "|cFF00FF00*" .. CommaNumber(amount)
+	else
+		return "|cFF00FF00+" .. CommaNumber(amount)
+	end
 end
 
 local function FormatMiss(missType)
@@ -116,8 +124,8 @@ local function FormatMiss(missType)
 end
 
 -- ListBox formatters
-local function SpellDamage(spellId, spellName, spellSchool, amount)
-	return FormatDamage(amount), FormatSpell(spellId, spellName, spellSchool)
+local function SpellDamage(spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical)
+	return FormatDamage(amount, critical), FormatSpell(spellId, spellName, spellSchool)
 end
 
 local function SpellMissed(spellId, spellName, spellSchool, missType)
@@ -128,8 +136,8 @@ local function SpellInstakill(spellId, spellName, spellSchool)
 	return "|cFFFF0000" .. ACTION_SPELL_INSTAKILL, FormatSpell(spellId, spellName, spellSchool)
 end
 
-local function SwingDamage(amount)
-	return FormatDamage(amount), FormatSwing()
+local function SwingDamage(amount, overkill, school, resisted, blocked, absorbed, critical)
+	return FormatDamage(amount, critical), FormatSwing()
 end
 
 local function SwingMissed(missType)
@@ -140,8 +148,8 @@ local function EnvironmentalDamage(environmentalType, amount)
 	return FormatDamage(amount), _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType]
 end
 
-local function SpellHeal(spellId, spellName, spellSchool, amount)
-	return FormatHeal(amount), FormatSpell(spellId, spellName, spellSchool)
+local function SpellHeal(spellId, spellName, spellSchool, amount, overhealing, absorbed, critical)
+	return FormatHeal(amount, critical), FormatSpell(spellId, spellName, spellSchool)
 end
 
 local function SpellAuraApplied(auraType)
@@ -280,7 +288,7 @@ function DeathNote:FormatChatTimestamp(entry)
 end
 
 function DeathNote:FormatChatHealth(entry)
-	return FormatHealth[5](entry[1], entry[2])
+	return FormatHealth[5](entry[1], entry[2])[2]
 end
 
 function DeathNote:FormatChatAmount(entry)
@@ -317,7 +325,7 @@ function DeathNote:FormatTooltipTimestamp(entry)
 end
 
 function DeathNote:FormatTooltipHealth(entry)
-	GameTooltip:SetText(FormatHealth[5](entry[1], entry[2]))
+	GameTooltip:SetText(FormatHealth[5](entry[1], entry[2])[2])
 	return true
 end
 
