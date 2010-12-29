@@ -5,11 +5,17 @@ local WindowBackdrop = {
 	insets = { left = 3, right = 3, top = 3, bottom = 3 }
 }
 
-local PaneBackdrop  = {
+local PaneBackdrop = {
 	bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
 	tile = true, tileSize = 16, edgeSize = 16,
 	insets = { left = 3, right = 3, top = 5, bottom = 3 }
+}
+
+local TabPaneBackdrop = {
+	edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
+	tile = true, tileSize = 16, edgeSize = 16,
+	insets = { left = 5, right = 5, top = 5, bottom = 5 }
 }
 
 local DraggerBackdrop  = {
@@ -104,16 +110,366 @@ function DeathNote:Show()
 		-- filters
 		local filters = CreateFrame("Frame", nil, frame)
 		filters:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -34)
-		filters:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -10, -63)
+		--filters:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -10, -63)
+		filters:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+		filters:SetHeight(30)
+		
 		filters:SetBackdrop(PaneBackdrop)
 		filters:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
 		filters:SetBackdropBorderColor(0.4, 0.4, 0.4)
 		
-		local filters_label = filters:CreateFontString(nil, "OVERLAY")
-		filters_label:SetPoint("TOPLEFT", 12, -8)
-		filters_label:SetFontObject(GameFontNormal)
-		filters_label:SetText("|T" .. [[Interface\AddOns\DeathNote\Textures\tri-closed.tga]] .. ":12|tFilters")
+		local filters_title = CreateFrame("Frame", nil, filters)
+		filters_title:SetPoint("TOPLEFT", 4, -4)
+		filters_title:SetPoint("BOTTOMRIGHT", filters, "TOPRIGHT", -4, -25)
+		filters_title:EnableMouse()
 		
+		local filters_label = filters_title:CreateFontString(nil, "OVERLAY")
+		filters_label:SetPoint("TOPLEFT", 4, -4)
+		filters_label:SetFontObject(GameFontNormal)		
+		local filters_label_open = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-open.tga]] .. ":12|t Filters"
+		local filters_label_closed = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-closed.tga]] .. ":12|t Filters"				
+		filters_label:SetText(filters_label_closed)
+		
+		-- tab group
+		local filters_tab = CreateFrame("Frame", "DeathNoteFilters", filters)
+		filters_tab:Hide()
+		filters_tab:SetPoint("TOP", filters_title, "BOTTOM", 0, -20)
+		filters_tab:SetPoint("LEFT", 5, 0)
+		filters_tab:SetPoint("RIGHT", -5, 0)
+		filters_tab:SetPoint("BOTTOM", 0, 5)
+		
+		-- manual backdrop ftl
+		local topleft = filters_tab:CreateTexture(nil, "BORDER")
+		topleft:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		topleft:SetVertexColor(0.4, 0.4, 0.4)
+		topleft:SetSize(16, 16)
+		topleft:SetTexCoord(0.5, 0.625, 0, 1)
+		topleft:SetPoint("TOPLEFT")
+				
+		local topright = filters_tab:CreateTexture(nil, "BORDER")
+		topright:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		topright:SetVertexColor(0.4, 0.4, 0.4)
+		topright:SetSize(16, 16)
+		topright:SetTexCoord(0.625, 0.75, 0, 1)
+		topright:SetPoint("TOPRIGHT")
+
+		local bottomleft = filters_tab:CreateTexture(nil, "BORDER")
+		bottomleft:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		bottomleft:SetVertexColor(0.4, 0.4, 0.4)
+		bottomleft:SetSize(16, 16)
+		bottomleft:SetTexCoord(0.75, 0.875, 0, 1)
+		bottomleft:SetPoint("BOTTOMLEFT")
+				
+		local bottomright = filters_tab:CreateTexture(nil, "BORDER")
+		bottomright:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		bottomright:SetVertexColor(0.4, 0.4, 0.4)
+		bottomright:SetSize(16, 16)
+		bottomright:SetTexCoord(0.875, 1, 0, 1)
+		bottomright:SetPoint("BOTTOMRIGHT")
+				
+
+		local left = filters_tab:CreateTexture(nil, "BORDER")
+		left:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		left:SetVertexColor(0.4, 0.4, 0.4)
+		left:SetTexCoord(0, 0.125, 0, 1)
+		left:SetPoint("TOPLEFT", topleft, "BOTTOMLEFT")
+		left:SetPoint("BOTTOMRIGHT", bottomleft, "TOPRIGHT")
+		
+		local right = filters_tab:CreateTexture(nil, "BORDER")
+		right:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		right:SetVertexColor(0.4, 0.4, 0.4)
+		right:SetTexCoord(0.125, 0.25, 0, 1)
+		right:SetPoint("TOPLEFT", topright, "BOTTOMLEFT")
+		right:SetPoint("BOTTOMRIGHT", bottomright, "TOPRIGHT")
+
+		local bottom = filters_tab:CreateTexture(nil, "BORDER")
+		bottom:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		bottom:SetVertexColor(0.4, 0.4, 0.4)
+		bottom:SetTexCoord(0.8125, 0.875, 0, 1)		
+		bottom:SetPoint("BOTTOMLEFT", bottomleft, "BOTTOMRIGHT")
+		bottom:SetPoint("BOTTOMRIGHT", bottomright, "BOTTOMLEFT")		
+		
+		-- damage tab
+		local damage_tab_button = CreateFrame("Button", "DeathNoteFiltersTab1", filters_tab, "OptionsFrameTabButtonTemplate")
+		damage_tab_button.ntab = 1
+		damage_tab_button:SetPoint("BOTTOMLEFT", filters_tab, "TOPLEFT", 6, -3)
+		damage_tab_button:SetText("Damage")
+		damage_tab_button:SetFrameLevel(2)
+
+		local tabtext = DeathNoteFiltersTab1Text
+		tabtext:ClearAllPoints()
+		tabtext:SetPoint("LEFT", 14, -3)
+		tabtext:SetPoint("RIGHT", -12, -3)
+		
+		local damage_tab_spacer1 = filters_tab:CreateTexture(nil, "BORDER")
+		damage_tab_spacer1:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		damage_tab_spacer1:SetVertexColor(0.4, 0.4, 0.4)
+		damage_tab_spacer1:SetTexCoord(0.625-0.0625, 0.628, 0, 1)
+		damage_tab_spacer1:SetPoint("TOPLEFT", damage_tab_button, "BOTTOMRIGHT", -10, 3)
+		damage_tab_spacer1:SetPoint("TOPRIGHT", topright, "TOPLEFT")		
+		
+		-- local damage_tab = CreateFrame("Frame", nil, filters_tab)
+		-- damage_tab:SetAllPoints()
+		
+		
+		--[[
+		-- show checkbox
+		local show_damage_checkbox = CreateFrame("CheckButton", "show_damage_checkbox", damage_tab, "UICheckButtonTemplate")
+		show_damage_checkbox:SetSize(20, 20)
+		show_damage_checkbox:SetPoint("TOPLEFT", 8, -8)
+		show_damage_checkboxText:SetPoint("LEFT", show_damage_checkbox, "RIGHT", 3, 0)
+		show_damage_checkboxText:SetText("Show damage")
+		
+		-- consolidate consecutive checkbox
+		local consolidate_damage_checkbox = CreateFrame("CheckButton", "consolidate_damage_checkbox", damage_tab, "UICheckButtonTemplate")
+		consolidate_damage_checkbox:SetSize(20, 20)
+		consolidate_damage_checkbox:SetPoint("TOPLEFT", show_damage_checkbox, "BOTTOMLEFT")
+		consolidate_damage_checkboxText:SetPoint("LEFT", consolidate_damage_checkbox, "RIGHT", 3, 0)
+		consolidate_damage_checkboxText:SetText("Consolidate consecutive hits")
+		
+		-- threshold slider
+		]]
+		local damage_options = {
+			type = "group",
+			inline = true,
+			args = {
+				consolidate = {
+					order = 2,
+					name = "Consolidate consecutive hits",
+					type = "toggle",
+					width = "full",
+				},
+				threshold = {
+					order = 3,
+					name = "Threshold",
+					type = "range",
+					width = "full",
+					min = 0,
+					softMax = 20000,
+					step = 1,
+				},				
+			},
+		}
+		
+		local AceGUI = LibStub("AceGUI-3.0")
+		local damage_tab = AceGUI:Create("SimpleGroup")
+		damage_tab.frame:SetParent(filters_tab)
+		damage_tab.frame:SetScale(0.9)
+		damage_tab.frame:Hide()
+		damage_tab:SetPoint("TOPLEFT", 8, -8)
+		damage_tab:SetPoint("BOTTOMRIGHT", -8, 8)
+		LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note - Damage", damage_options)
+		LibStub("AceConfigDialog-3.0"):Open("Death Note - Damage", damage_tab)
+		
+			
+		-- healing tab
+		local healing_tab_button = CreateFrame("Button", "DeathNoteFiltersTab2", filters_tab, "OptionsFrameTabButtonTemplate")
+		healing_tab_button.ntab = 2
+		healing_tab_button:SetPoint("TOPLEFT", damage_tab_button, "TOPRIGHT", -16, 0)
+		healing_tab_button:SetText("Healing")
+		healing_tab_button:SetFrameLevel(2)
+
+		tabtext = DeathNoteFiltersTab2Text
+		tabtext:ClearAllPoints()
+		tabtext:SetPoint("LEFT", 14, -3)
+		tabtext:SetPoint("RIGHT", -12, -3)
+		
+		local healing_tab_spacer1 = filters_tab:CreateTexture(nil, "BORDER")
+		healing_tab_spacer1:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		healing_tab_spacer1:SetVertexColor(0.4, 0.4, 0.4)
+		healing_tab_spacer1:SetTexCoord(0.625-0.0625, 0.628, 0, 1)
+		healing_tab_spacer1:SetPoint("TOPLEFT", topleft, "TOPRIGHT")
+		healing_tab_spacer1:SetPoint("TOPRIGHT", healing_tab_button, "BOTTOMLEFT", 10, 0)
+		
+		local healing_tab_spacer2 = filters_tab:CreateTexture(nil, "BORDER")
+		healing_tab_spacer2:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		healing_tab_spacer2:SetVertexColor(0.4, 0.4, 0.4)
+		healing_tab_spacer2:SetTexCoord(0.625-0.0625, 0.628, 0, 1)
+		healing_tab_spacer2:SetPoint("TOPLEFT", healing_tab_button, "BOTTOMRIGHT", -10, 3)
+		healing_tab_spacer2:SetPoint("TOPRIGHT", topright, "TOPLEFT")
+		
+		-- local healing_tab = CreateFrame("Frame", nil, filters_tab)
+		-- healing_tab:SetAllPoints()
+
+		local healing_options = {
+			type = "group",
+			inline = true,
+			args = {
+				consolidate = {
+					order = 2,
+					name = "Consolidate consecutive heals",
+					type = "toggle",
+					width = "full",
+				},
+				tgroup = {
+					order = 1,
+					name = "Threshold",
+					type = "group",
+					inline = true,
+					args = {
+				threshold = {
+					order = 1,
+					name = "",
+					type = "range",
+					width = "full",
+					min = 0,
+					softMax = 20000,
+					step = 1,
+				},
+				},
+				}
+			},
+		}
+		
+		local AceGUI = LibStub("AceGUI-3.0")
+		local healing_tab = AceGUI:Create("SimpleGroup")
+		healing_tab.frame:SetParent(filters_tab)
+		healing_tab.frame:SetScale(0.9)
+		healing_tab.frame:Hide()
+		healing_tab:SetPoint("TOPLEFT", 8, -8)
+		healing_tab:SetPoint("BOTTOMRIGHT", -8, 8)
+		LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note - Healing", healing_options)
+		LibStub("AceConfigDialog-3.0"):Open("Death Note - Healing", healing_tab)
+		
+		-- auras tab
+		local auras_tab_button = CreateFrame("Button", "DeathNoteFiltersTab3", filters_tab, "OptionsFrameTabButtonTemplate")
+		auras_tab_button.ntab = 3
+		auras_tab_button:SetPoint("TOPLEFT", healing_tab_button, "TOPRIGHT", -16, 0)
+		auras_tab_button:SetText("Auras")
+		auras_tab_button:SetFrameLevel(2)
+
+		tabtext = DeathNoteFiltersTab3Text
+		tabtext:ClearAllPoints()
+		tabtext:SetPoint("LEFT", 14, -3)
+		tabtext:SetPoint("RIGHT", -12, -3)
+
+		local auras_tab_spacer1 = filters_tab:CreateTexture(nil, "BORDER")
+		auras_tab_spacer1:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		auras_tab_spacer1:SetVertexColor(0.4, 0.4, 0.4)
+		auras_tab_spacer1:SetTexCoord(0.625-0.0625, 0.628, 0, 1)
+		auras_tab_spacer1:SetPoint("TOPLEFT", topleft, "TOPRIGHT")
+		auras_tab_spacer1:SetPoint("TOPRIGHT", auras_tab_button, "BOTTOMLEFT", 10, 0)
+		
+		local auras_tab_spacer2 = filters_tab:CreateTexture(nil, "BORDER")
+		auras_tab_spacer2:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		auras_tab_spacer2:SetVertexColor(0.4, 0.4, 0.4)
+		auras_tab_spacer2:SetTexCoord(0.625-0.0625, 0.628, 0, 1)
+		auras_tab_spacer2:SetPoint("TOPLEFT", auras_tab_button, "BOTTOMRIGHT", -10, 3)
+		auras_tab_spacer2:SetPoint("TOPRIGHT", topright, "TOPLEFT")
+		
+		-- local auras_tab = CreateFrame("Frame", nil, filters_tab)
+		-- auras_tab:SetAllPoints()
+		
+		local auras_options = {
+			type = "group",
+			inline = true,
+			args = {
+				display = {
+					order = 1,
+					name = function() return nil end,
+					type = "multiselect",
+					--style = "radio",
+					values = {
+						--["1"] = "None",
+						["2"] = "Buffs",
+						["3"] = "Debuffs",
+						--["4"] = "Buffs and debuffs",
+						["5"] = "Survival buffs only",
+					},
+				},
+				consolidate = {
+					order = 2,
+					name = "Consolidate consecutive auras",
+					type = "toggle",
+					width = "full",
+				},
+			},
+		}
+		
+		local AceGUI = LibStub("AceGUI-3.0")
+		local auras_tab = AceGUI:Create("SimpleGroup")
+		auras_tab.frame:SetParent(filters_tab)
+		auras_tab.frame:SetScale(0.9)
+		auras_tab.frame:Hide()
+		auras_tab:SetPoint("TOPLEFT", 8, -8)
+		auras_tab:SetPoint("BOTTOMRIGHT", -8, 8)
+		LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note - Auras", auras_options)
+		LibStub("AceConfigDialog-3.0"):Open("Death Note - Auras", auras_tab)
+
+		
+		------------------------------
+		
+		local function Tab_OnClick(frame)
+			filters_tab.selectedTab = frame.ntab
+			PanelTemplates_UpdateTabs(filters_tab)
+			
+			if frame.ntab == 1 then
+				damage_tab_spacer1:Show()
+				healing_tab_spacer1:Hide()
+				healing_tab_spacer2:Hide()
+				auras_tab_spacer1:Hide()
+				auras_tab_spacer2:Hide()
+				damage_tab.frame:Show()
+				healing_tab.frame:Hide()
+				auras_tab.frame:Hide()
+			elseif frame.ntab == 2 then
+				damage_tab_spacer1:Hide()
+				healing_tab_spacer1:Show()
+				healing_tab_spacer2:Show()
+				auras_tab_spacer1:Hide()
+				auras_tab_spacer2:Hide()
+				damage_tab.frame:Hide()
+				healing_tab.frame:Show()
+				auras_tab.frame:Hide()
+			elseif frame.ntab == 3 then
+				damage_tab_spacer1:Hide()
+				healing_tab_spacer1:Hide()
+				healing_tab_spacer2:Hide()
+				auras_tab_spacer1:Show()
+				auras_tab_spacer2:Show()
+				damage_tab.frame:Hide()
+				healing_tab.frame:Hide()
+				auras_tab.frame:Show()
+			end
+		end
+		
+		damage_tab_button:SetScript("OnClick", Tab_OnClick)
+		healing_tab_button:SetScript("OnClick", Tab_OnClick)
+		auras_tab_button:SetScript("OnClick", Tab_OnClick)
+		
+		filters_tab.selectedTab = 1
+		PanelTemplates_SetNumTabs(filters_tab, 3)
+		PanelTemplates_UpdateTabs(filters_tab)
+		Tab_OnClick(damage_tab_button)
+		
+		local collapsed = true
+		filters_title:SetScript("OnMouseUp", function()
+			if collapsed then
+				filters_label:SetText(filters_label_open)
+				filters:SetHeight(175)
+				filters_tab:Show()
+				
+				damage_tab:SetHeight(filters_tab:GetHeight())
+				damage_tab:SetWidth(filters_tab:GetWidth())
+				damage_tab:DoLayout()
+
+				healing_tab:SetHeight(filters_tab:GetHeight())
+				healing_tab:SetWidth(filters_tab:GetWidth())
+				healing_tab:DoLayout()
+
+				auras_tab:SetHeight(filters_tab:GetHeight())
+				auras_tab:SetWidth(filters_tab:GetWidth())
+				auras_tab:DoLayout()
+			else
+				filters_label:SetText(filters_label_closed)
+				filters:SetHeight(30)
+				filters_tab:Hide()
+			end
+			collapsed = not collapsed
+		end)
+		
+		filters_title:GetScript("OnMouseUp")()
+	
 		-- name list
 		local name_list_border = CreateFrame("Frame", nil, frame)
 		name_list_border:SetPoint("TOPLEFT", filters, "BOTTOMLEFT", 0, 0)
@@ -208,8 +564,7 @@ function DeathNote:Show()
 		local logframe = self:CreateListBox(frame)
 		logframe.frame:SetPoint("TOPLEFT", name_list_border, "TOPRIGHT")
 		logframe.frame:SetPoint("BOTTOM", name_list_border, "BOTTOM")
-		logframe.frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0	)
-		logframe.frame:SetWidth(450)
+		logframe.frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 		
 		self.logframe = logframe
 		
