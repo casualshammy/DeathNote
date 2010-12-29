@@ -27,6 +27,10 @@ local DraggerBackdrop  = {
 
 function DeathNote:Show()
 	if not self.frame then
+		local AceGUI = LibStub("AceGUI-3.0")
+		local AceConfig = LibStub("AceConfig-3.0")
+		local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+
 		local frame = CreateFrame("Frame", "DeathNoteFrame", UIParent)
 		
 		frame:SetWidth(700)
@@ -43,7 +47,6 @@ function DeathNote:Show()
 		
 		-- titlebar
 		local titlebar = frame:CreateTexture(nil, "BACKGROUND")
-		--titlebar:SetTexture(0.3, 0.3, 0.3, 1.0)
 		titlebar:SetTexture(1, 1, 1, 1)
 		titlebar:SetGradient("HORIZONTAL", 0.6, 0.6, 0.6, 0.3, 0.3, 0.3)
 		titlebar:SetPoint("TOPLEFT", 4, -4)
@@ -59,7 +62,7 @@ function DeathNote:Show()
 		titlebarframe:SetScript("OnMouseUp", function()
 			self.logframe.content:Show()
 			frame:StopMovingOrSizing() 
-		end)		
+		end)
 
 		local titleicon = frame:CreateTexture(nil, "ARTWORK")
 		titleicon:SetTexture([[Interface\AddOns\DeathNote\Textures\icon.tga]])
@@ -70,7 +73,6 @@ function DeathNote:Show()
 		local titletext = frame:CreateFontString(nil, "ARTWORK")
 		titletext:SetFontObject(GameFontNormal)
 		titletext:SetTextColor(0.6, 0.6, 0.6)
-		--titletext:SetAllPoints(titlebar)
 		titletext:SetPoint("TOPLEFT", titlebar, "TOPLEFT", 26, 0)
 		titletext:SetPoint("BOTTOMRIGHT", titlebar)
 		
@@ -91,15 +93,12 @@ function DeathNote:Show()
 		sizer_se:SetWidth(16)
 		sizer_se:SetHeight(16)
 		sizer_se:SetScript("OnMouseDown", function()
-			-- DeathNote.logframe.content:Hide()
-			
-			frame:SetMinResize(self.name_list_border:GetWidth() + 100, 200)
+			frame:SetMinResize(500, 300)
 			frame:SetMaxResize(2000, 2000)
 			
 			frame:StartSizing() 
 		end)
 		sizer_se:SetScript("OnMouseUp", function()
-			-- DeathNote.logframe.content:Show()
 			frame:StopMovingOrSizing()
 		end)
 
@@ -110,7 +109,6 @@ function DeathNote:Show()
 		-- filters
 		local filters = CreateFrame("Frame", nil, frame)
 		filters:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -34)
-		--filters:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -10, -63)
 		filters:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 		filters:SetHeight(30)
 		
@@ -118,17 +116,18 @@ function DeathNote:Show()
 		filters:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
 		filters:SetBackdropBorderColor(0.4, 0.4, 0.4)
 		
-		local filters_title = CreateFrame("Frame", nil, filters)
-		filters_title:SetPoint("TOPLEFT", 4, -4)
-		filters_title:SetPoint("BOTTOMRIGHT", filters, "TOPRIGHT", -4, -25)
-		filters_title:EnableMouse()
-		
-		local filters_label = filters_title:CreateFontString(nil, "OVERLAY")
-		filters_label:SetPoint("TOPLEFT", 4, -4)
+		local filters_label = filters:CreateFontString(nil, "OVERLAY")
+		filters_label:SetPoint("LEFT", 6, 0)
+		filters_label:SetPoint("TOP", 0, -6)
+		filters_label:SetPoint("BOTTOM", filters, "TOP", 0, -25)
 		filters_label:SetFontObject(GameFontNormal)		
 		local filters_label_open = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-open.tga]] .. ":12|t Filters"
 		local filters_label_closed = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-closed.tga]] .. ":12|t Filters"				
 		filters_label:SetText(filters_label_closed)
+		
+		local filters_title = CreateFrame("Frame", nil, filters)
+		filters_title:SetAllPoints(filters_label)
+		filters_title:EnableMouse()
 		
 		-- tab group
 		local filters_tab = CreateFrame("Frame", "DeathNoteFilters", filters)
@@ -165,8 +164,7 @@ function DeathNote:Show()
 		bottomright:SetVertexColor(0.4, 0.4, 0.4)
 		bottomright:SetSize(16, 16)
 		bottomright:SetTexCoord(0.875, 1, 0, 1)
-		bottomright:SetPoint("BOTTOMRIGHT")
-				
+		bottomright:SetPoint("BOTTOMRIGHT")				
 
 		local left = filters_tab:CreateTexture(nil, "BORDER")
 		left:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
@@ -208,58 +206,44 @@ function DeathNote:Show()
 		damage_tab_spacer1:SetPoint("TOPLEFT", damage_tab_button, "BOTTOMRIGHT", -10, 3)
 		damage_tab_spacer1:SetPoint("TOPRIGHT", topright, "TOPLEFT")		
 		
-		-- local damage_tab = CreateFrame("Frame", nil, filters_tab)
-		-- damage_tab:SetAllPoints()
-		
-		
-		--[[
-		-- show checkbox
-		local show_damage_checkbox = CreateFrame("CheckButton", "show_damage_checkbox", damage_tab, "UICheckButtonTemplate")
-		show_damage_checkbox:SetSize(20, 20)
-		show_damage_checkbox:SetPoint("TOPLEFT", 8, -8)
-		show_damage_checkboxText:SetPoint("LEFT", show_damage_checkbox, "RIGHT", 3, 0)
-		show_damage_checkboxText:SetText("Show damage")
-		
-		-- consolidate consecutive checkbox
-		local consolidate_damage_checkbox = CreateFrame("CheckButton", "consolidate_damage_checkbox", damage_tab, "UICheckButtonTemplate")
-		consolidate_damage_checkbox:SetSize(20, 20)
-		consolidate_damage_checkbox:SetPoint("TOPLEFT", show_damage_checkbox, "BOTTOMLEFT")
-		consolidate_damage_checkboxText:SetPoint("LEFT", consolidate_damage_checkbox, "RIGHT", 3, 0)
-		consolidate_damage_checkboxText:SetText("Consolidate consecutive hits")
-		
-		-- threshold slider
-		]]
 		local damage_options = {
 			type = "group",
 			inline = true,
 			args = {
+				tgroup = {
+					order = 1,
+					name = "Threshold",
+					type = "group",
+					inline = true,
+					args = {
+						threshold = {
+							order = 1,
+							name = "",
+							type = "range",
+							width = "full",
+							min = 0,
+							softMax = 20000,
+							step = 1,
+						},
+					},
+				},
 				consolidate = {
 					order = 2,
 					name = "Consolidate consecutive hits",
 					type = "toggle",
 					width = "full",
 				},
-				threshold = {
-					order = 3,
-					name = "Threshold",
-					type = "range",
-					width = "full",
-					min = 0,
-					softMax = 20000,
-					step = 1,
-				},				
 			},
 		}
 		
-		local AceGUI = LibStub("AceGUI-3.0")
 		local damage_tab = AceGUI:Create("SimpleGroup")
 		damage_tab.frame:SetParent(filters_tab)
 		damage_tab.frame:SetScale(0.9)
 		damage_tab.frame:Hide()
 		damage_tab:SetPoint("TOPLEFT", 8, -8)
 		damage_tab:SetPoint("BOTTOMRIGHT", -8, 8)
-		LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note - Damage", damage_options)
-		LibStub("AceConfigDialog-3.0"):Open("Death Note - Damage", damage_tab)
+		AceConfig:RegisterOptionsTable("Death Note - Damage", damage_options)
+		AceConfigDialog:Open("Death Note - Damage", damage_tab)
 		
 			
 		-- healing tab
@@ -288,48 +272,44 @@ function DeathNote:Show()
 		healing_tab_spacer2:SetPoint("TOPLEFT", healing_tab_button, "BOTTOMRIGHT", -10, 3)
 		healing_tab_spacer2:SetPoint("TOPRIGHT", topright, "TOPLEFT")
 		
-		-- local healing_tab = CreateFrame("Frame", nil, filters_tab)
-		-- healing_tab:SetAllPoints()
-
 		local healing_options = {
 			type = "group",
 			inline = true,
 			args = {
-				consolidate = {
-					order = 2,
-					name = "Consolidate consecutive heals",
-					type = "toggle",
-					width = "full",
-				},
 				tgroup = {
 					order = 1,
 					name = "Threshold",
 					type = "group",
 					inline = true,
 					args = {
-				threshold = {
-					order = 1,
-					name = "",
-					type = "range",
+						threshold = {
+							order = 1,
+							name = "",
+							type = "range",
+							width = "full",
+							min = 0,
+							softMax = 20000,
+							step = 1,
+						},
+					},
+				},
+				consolidate = {
+					order = 2,
+					name = "Consolidate consecutive heals",
+					type = "toggle",
 					width = "full",
-					min = 0,
-					softMax = 20000,
-					step = 1,
 				},
-				},
-				}
 			},
 		}
 		
-		local AceGUI = LibStub("AceGUI-3.0")
 		local healing_tab = AceGUI:Create("SimpleGroup")
 		healing_tab.frame:SetParent(filters_tab)
 		healing_tab.frame:SetScale(0.9)
 		healing_tab.frame:Hide()
 		healing_tab:SetPoint("TOPLEFT", 8, -8)
 		healing_tab:SetPoint("BOTTOMRIGHT", -8, 8)
-		LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note - Healing", healing_options)
-		LibStub("AceConfigDialog-3.0"):Open("Death Note - Healing", healing_tab)
+		AceConfig:RegisterOptionsTable("Death Note - Healing", healing_options)
+		AceConfigDialog:Open("Death Note - Healing", healing_tab)
 		
 		-- auras tab
 		local auras_tab_button = CreateFrame("Button", "DeathNoteFiltersTab3", filters_tab, "OptionsFrameTabButtonTemplate")
@@ -357,24 +337,18 @@ function DeathNote:Show()
 		auras_tab_spacer2:SetPoint("TOPLEFT", auras_tab_button, "BOTTOMRIGHT", -10, 3)
 		auras_tab_spacer2:SetPoint("TOPRIGHT", topright, "TOPLEFT")
 		
-		-- local auras_tab = CreateFrame("Frame", nil, filters_tab)
-		-- auras_tab:SetAllPoints()
-		
 		local auras_options = {
 			type = "group",
 			inline = true,
 			args = {
 				display = {
 					order = 1,
-					name = function() return nil end,
+					name = "Auras",
 					type = "multiselect",
-					--style = "radio",
 					values = {
-						--["1"] = "None",
-						["2"] = "Buffs",
-						["3"] = "Debuffs",
-						--["4"] = "Buffs and debuffs",
-						["5"] = "Survival buffs only",
+						["1"] = "Buffs",
+						["2"] = "Debuffs",
+						["3"] = "Survival buffs only",
 					},
 				},
 				consolidate = {
@@ -386,60 +360,149 @@ function DeathNote:Show()
 			},
 		}
 		
-		local AceGUI = LibStub("AceGUI-3.0")
 		local auras_tab = AceGUI:Create("SimpleGroup")
 		auras_tab.frame:SetParent(filters_tab)
 		auras_tab.frame:SetScale(0.9)
-		auras_tab.frame:Hide()
 		auras_tab:SetPoint("TOPLEFT", 8, -8)
 		auras_tab:SetPoint("BOTTOMRIGHT", -8, 8)
-		LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note - Auras", auras_options)
-		LibStub("AceConfigDialog-3.0"):Open("Death Note - Auras", auras_tab)
-
+		AceConfig:RegisterOptionsTable("Death Note - Auras", auras_options)
+		AceConfigDialog:Open("Death Note - Auras", auras_tab)
 		
+		-- others tab
+		local others_tab_button = CreateFrame("Button", "DeathNoteFiltersTab4", filters_tab, "OptionsFrameTabButtonTemplate")
+		others_tab_button.ntab = 4
+		others_tab_button:SetPoint("TOPLEFT", auras_tab_button, "TOPRIGHT", -16, 0)
+		others_tab_button:SetText("Other")
+		others_tab_button:SetFrameLevel(2)
+
+		tabtext = DeathNoteFiltersTab4Text
+		tabtext:ClearAllPoints()
+		tabtext:SetPoint("LEFT", 14, -3)
+		tabtext:SetPoint("RIGHT", -12, -3)
+
+		local others_tab_spacer1 = filters_tab:CreateTexture(nil, "BORDER")
+		others_tab_spacer1:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		others_tab_spacer1:SetVertexColor(0.4, 0.4, 0.4)
+		others_tab_spacer1:SetTexCoord(0.625-0.0625, 0.628, 0, 1)
+		others_tab_spacer1:SetPoint("TOPLEFT", topleft, "TOPRIGHT")
+		others_tab_spacer1:SetPoint("TOPRIGHT", others_tab_button, "BOTTOMLEFT", 10, 0)
+		
+		local others_tab_spacer2 = filters_tab:CreateTexture(nil, "BORDER")
+		others_tab_spacer2:SetTexture([[Interface\Tooltips\UI-Tooltip-Border]])
+		others_tab_spacer2:SetVertexColor(0.4, 0.4, 0.4)
+		others_tab_spacer2:SetTexCoord(0.625-0.0625, 0.628, 0, 1)
+		others_tab_spacer2:SetPoint("TOPLEFT", others_tab_button, "BOTTOMRIGHT", -10, 3)
+		others_tab_spacer2:SetPoint("TOPRIGHT", topright, "TOPLEFT")
+		
+		local others_options = {
+			type = "group",
+			inline = true,
+			args = {
+				display = {
+					order = 1,
+					name = "Spell filter",
+					type = "input",
+					width = "double",
+				},
+				consolidate = {
+					order = 2,
+					name = "Source filter",
+					type = "input",
+					width = "double",
+				},
+			},
+		}
+		
+		local others_tab = AceGUI:Create("SimpleGroup")
+		others_tab.frame:SetParent(filters_tab)
+		others_tab.frame:SetScale(0.9)
+		others_tab:SetPoint("TOPLEFT", 8, -8)
+		others_tab:SetPoint("BOTTOMRIGHT", -8, 8)
+		AceConfig:RegisterOptionsTable("Death Note - Others", others_options)
+		AceConfigDialog:Open("Death Note - Others", others_tab)		
 		------------------------------
+		PanelTemplates_SetNumTabs(filters_tab, 4)
+		
+		filters_tab:SetScript("OnSizeChanged", function(frame, width, height)
+				damage_tab:SetWidth(width - 16)
+				damage_tab:SetHeight(height - 16)
+				
+				healing_tab:SetWidth(width - 16)
+				healing_tab:SetHeight(height - 16)
+				
+				auras_tab:SetWidth(width - 16)
+				auras_tab:SetHeight(height - 16)
+				
+				others_tab:SetWidth(width - 16)
+				others_tab:SetHeight(height - 16)
+			end)
+
 		
 		local function Tab_OnClick(frame)
 			filters_tab.selectedTab = frame.ntab
 			PanelTemplates_UpdateTabs(filters_tab)
 			
+			-- this shouldn't be hardcoded, but there weren't so many tabs at the beginning
 			if frame.ntab == 1 then
 				damage_tab_spacer1:Show()
 				healing_tab_spacer1:Hide()
 				healing_tab_spacer2:Hide()
 				auras_tab_spacer1:Hide()
 				auras_tab_spacer2:Hide()
+				others_tab_spacer1:Hide()
+				others_tab_spacer2:Hide()
+				
 				damage_tab.frame:Show()
 				healing_tab.frame:Hide()
 				auras_tab.frame:Hide()
+				others_tab.frame:Hide()
 			elseif frame.ntab == 2 then
 				damage_tab_spacer1:Hide()
 				healing_tab_spacer1:Show()
 				healing_tab_spacer2:Show()
 				auras_tab_spacer1:Hide()
 				auras_tab_spacer2:Hide()
+				others_tab_spacer1:Hide()
+				others_tab_spacer2:Hide()
+				
 				damage_tab.frame:Hide()
 				healing_tab.frame:Show()
 				auras_tab.frame:Hide()
+				others_tab.frame:Hide()
 			elseif frame.ntab == 3 then
 				damage_tab_spacer1:Hide()
 				healing_tab_spacer1:Hide()
 				healing_tab_spacer2:Hide()
 				auras_tab_spacer1:Show()
 				auras_tab_spacer2:Show()
+				others_tab_spacer1:Hide()
+				others_tab_spacer2:Hide()
+				
 				damage_tab.frame:Hide()
 				healing_tab.frame:Hide()
 				auras_tab.frame:Show()
+				others_tab.frame:Hide()
+			elseif frame.ntab == 4 then
+				damage_tab_spacer1:Hide()
+				healing_tab_spacer1:Hide()
+				healing_tab_spacer2:Hide()
+				auras_tab_spacer1:Hide()
+				auras_tab_spacer2:Hide()
+				others_tab_spacer1:Show()
+				others_tab_spacer2:Show()
+				
+				damage_tab.frame:Hide()
+				healing_tab.frame:Hide()
+				auras_tab.frame:Hide()
+				others_tab.frame:Show()
 			end
 		end
 		
 		damage_tab_button:SetScript("OnClick", Tab_OnClick)
 		healing_tab_button:SetScript("OnClick", Tab_OnClick)
 		auras_tab_button:SetScript("OnClick", Tab_OnClick)
+		others_tab_button:SetScript("OnClick", Tab_OnClick)
 		
-		filters_tab.selectedTab = 1
-		PanelTemplates_SetNumTabs(filters_tab, 3)
-		PanelTemplates_UpdateTabs(filters_tab)
 		Tab_OnClick(damage_tab_button)
 		
 		local collapsed = true
@@ -448,18 +511,6 @@ function DeathNote:Show()
 				filters_label:SetText(filters_label_open)
 				filters:SetHeight(175)
 				filters_tab:Show()
-				
-				damage_tab:SetHeight(filters_tab:GetHeight())
-				damage_tab:SetWidth(filters_tab:GetWidth())
-				damage_tab:DoLayout()
-
-				healing_tab:SetHeight(filters_tab:GetHeight())
-				healing_tab:SetWidth(filters_tab:GetWidth())
-				healing_tab:DoLayout()
-
-				auras_tab:SetHeight(filters_tab:GetHeight())
-				auras_tab:SetWidth(filters_tab:GetWidth())
-				auras_tab:DoLayout()
 			else
 				filters_label:SetText(filters_label_closed)
 				filters:SetHeight(30)
@@ -468,7 +519,7 @@ function DeathNote:Show()
 			collapsed = not collapsed
 		end)
 		
-		filters_title:GetScript("OnMouseUp")()
+		-- filters_title:GetScript("OnMouseUp")()
 	
 		-- name list
 		local name_list_border = CreateFrame("Frame", nil, frame)
@@ -648,7 +699,7 @@ function DeathNote:Show()
 end
 
 ------------------------------------------------------------------------------
--- UnitPopup hook
+-- UnitPopup support
 ------------------------------------------------------------------------------
 
 function DeathNote:ShowUnit(name)
@@ -700,6 +751,8 @@ function DeathNote.UnitPopupClick()
 		name = name .. "-" .. server
 	end
 	
+	DeathNote:Debug("unit:", UIDROPDOWNMENU_INIT_MENU.unit, "name:", UIDROPDOWNMENU_INIT_MENU.name, "result:", name)
+	
 	DeathNote:ShowUnit(name)
 end
 
@@ -712,6 +765,10 @@ function DeathNote:UnitPopup_ShowMenu(dropdownMenu, which, unit, name, userData,
 		end
 	end
 end
+
+------------------------------------------------------------------------------
+-- Drop down menu
+------------------------------------------------------------------------------
 
 function DeathNote.LogFrameDropDownInitialize(self, level)
 	local info = {}
@@ -1288,6 +1345,10 @@ local function ListBox_Line_Column_OnSizeChanged(frame)
 end
 
 local function ListBox_UpdateLine(self, nline, values)
+local font = CreateFont("dnfont")
+local f, h, fl  = GameFontNormalSmall:GetFont()
+font:SetFont(f, h-2, fl)
+
 	local line = self.lines[nline]
 	
 	for i, c in ipairs(self.columns) do
@@ -1298,8 +1359,11 @@ local function ListBox_UpdateLine(self, nline, values)
 			
 			if not line.columns[i].barframe then
 				line.columns[i].barframe = CreateFrame("Frame", nil, line.columns[i])
-				line.columns[i].barframe:SetPoint("TOPLEFT", line.columns[i], "TOPLEFT", 3, -3)
+				line.columns[i].barframe:SetPoint("TOPLEFT", line.columns[i], "TOPLEFT", 1, -3)
 				line.columns[i].barframe:SetPoint("BOTTOM", line.columns[i], "BOTTOM", 0, 3)
+				--line.columns[i].barframe:SetPoint("LEFT")
+				--line.columns[i].barframe:SetHeight(8)
+				
 				
 				line.columns[i].bartex = line.columns[i].barframe:CreateTexture(nil, "OVERLAY")
 				line.columns[i].bartex:SetAllPoints()
@@ -1307,7 +1371,7 @@ local function ListBox_UpdateLine(self, nline, values)
 			end
 			
 			line.columns[i].barframe:Show()
-			line.columns[i].value = values[i][2]
+			line.columns[i].value = values[i][1]
 			ListBox_Line_Column_OnSizeChanged(line.columns[i])
 			line.columns[i]:SetScript("OnSizeChanged", ListBox_Line_Column_OnSizeChanged)
 		else
@@ -1373,18 +1437,7 @@ function DeathNote:CreateListBox(parent)
 	headersep:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -22)
 	headersep:SetPoint("RIGHT")
 	headersep:SetBackdrop(DraggerBackdrop)
-	headersep:SetBackdropColor(1, 1, 1, 1)
-
-	--local pin = CreateFrame("Button", nil, frame)
-	--pin:SetNormalTexture([[Interface\AddOns\DeathNote\Textures\pin.tga]]) 
-	--pin:SetPushedTexture(texture)
-	--pin:SetWidth(16 * UIParent:GetScale())
-	--pin:SetHeight(16 * UIParent:GetScale())
-	--pin:SetPoint("TOPRIGHT", -8, -8)
-		
-	--local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-	--close:SetPoint("TOPRIGHT", 0, 0)
-	
+	headersep:SetBackdropColor(1, 1, 1, 1)	
 	
 	local listbox = {
 		AddColumn = ListBox_AddColumn,

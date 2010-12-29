@@ -80,6 +80,8 @@ function DeathNote:OnEnable()
 	
 	self:AddToUnitPopup()
 	
+	self:CleanData()
+	
 	self:ScheduleRepeatingTimer("UpdateLDB", 5)
 	
 	if self.settings.debugging then

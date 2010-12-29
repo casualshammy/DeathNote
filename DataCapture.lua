@@ -143,7 +143,8 @@ function DeathNote:CleanData(manual)
 	if manual or self.settings.debugging then debugprofilestart() end
 
 	if not self.frame or not self.frame:IsShown() then
-		while #deaths > self.settings.max_deaths do
+		local count = #deaths - self.settings.max_deaths
+		for i = 1, count do
 			tremove(deaths, 1)
 		end
 	end
@@ -157,12 +158,14 @@ function DeathNote:CleanData(manual)
 	
 	local keep_guid, keep_all = {}, {}
 	for i = 1, #deaths do
-		local timestamp = floor(deaths[i][1])
-		for t = timestamp - death_time, timestamp do
+		local deathsi = deaths[i]
+		local timestamp = floor(deathsi[1])
+		local guid = deathsi[2]
+		for t = timestamp - death_time, timestamp - others_death_time do
 			if not keep_guid[t] then
 				keep_guid[t] = {}
 			end
-			keep_guid[t][deaths[i][2]] = true
+			keep_guid[t][guid] = true
 		end
 
 		for t = timestamp - others_death_time, timestamp do
@@ -170,7 +173,7 @@ function DeathNote:CleanData(manual)
 		end
 	end
 
-	local t  = next(log)
+	local t = next(log)
 	while t do
 		local logt = log[t]
 		if logt then
@@ -191,27 +194,6 @@ function DeathNote:CleanData(manual)
 		end
 		t = next(log, t)
 	end
-	--[[
-	local function CanEraseTimestamp(timestamp)		
-		for i = 1, #deaths do
-			local diff = deaths[i][1] - timestamp
-			
-			if diff >= 0 and diff <= death_time then
-				return false
-			end
-		end
-		
-		return true
-	end
-	
-	local t  = next(log)
-	while t do
-		if t < max_time and (t < min_time or CanEraseTimestamp(t)) then
-			log[t] = nil
-		end
-		t = next(log, t)
-	end
-	]]
 	
 	if manual or self.settings.debugging then self:Debug(string.format("Data optimization took %.02f ms", debugprofilestop())) end
 end
