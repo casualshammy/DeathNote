@@ -276,7 +276,7 @@ function DeathNote:PLAYER_REGEN_DISABLED()
 end
 
 function DeathNote:PLAYER_REGEN_ENABLED()
-	self.clean_timer = self:ScheduleTimer("CleanData", 5)
+	self.clean_timer = self:ScheduleTimer("CleanData", 15)
 end
 
 function DeathNote:PLAYER_FLAGS_CHANGED(_, unitid)

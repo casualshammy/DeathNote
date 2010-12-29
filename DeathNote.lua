@@ -30,7 +30,7 @@ function DeathNote:OnInitialize()
 	self.settings = self.db.profile
 	
 	-- Register options
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note", self.Options)	
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note", self.Options)
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Death Note", "Death Note")
 	
 	-- Register LDB object
@@ -57,7 +57,7 @@ function DeathNote:OnInitialize()
 		end,
 		OnTooltipShow = function(tooltip)
 			tooltip:AddLine("DeathNote")
-			tooltip:AddLine("|cffeda55fClick|r to open DeathNote. |cffeda55fRight-Click|r to show options. |cffeda55fShift-Click|r to optimice data. |cffeda55fCtrl-Click|r to reset data.", 0.2, 1, 0.2, 1)
+			tooltip:AddLine("|cffeda55fClick|r to open DeathNote. |cffeda55fRight-Click|r to show options. |cffeda55fShift-Click|r to optimize data. |cffeda55fCtrl-Click|r to reset data.", 0.2, 1, 0.2, 1)
 		end,
 	})
 	
@@ -81,6 +81,10 @@ function DeathNote:OnEnable()
 	self:AddToUnitPopup()
 	
 	self:ScheduleRepeatingTimer("UpdateLDB", 5)
+	
+	if self.settings.debugging then
+		self:Show()
+	end
 end
 
 function DeathNote:OnDisable()
