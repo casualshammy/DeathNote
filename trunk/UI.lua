@@ -1,4 +1,4 @@
-local WindowBackdrop = {
+ WindowBackdrop = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
 	tile = true, tileSize = 16, edgeSize = 16,
@@ -12,18 +12,16 @@ local PaneBackdrop = {
 	insets = { left = 3, right = 3, top = 5, bottom = 3 }
 }
 
-local TabPaneBackdrop = {
-	edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
-	tile = true, tileSize = 16, edgeSize = 16,
-	insets = { left = 5, right = 5, top = 5, bottom = 5 }
-}
-
 local DraggerBackdrop  = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 	edgeFile = nil,
 	tile = true, tileSize = 16, edgeSize = 0,
 	insets = { left = 3, right = 3, top = 7, bottom = 7 }
 }
+
+local normal_hilight = { r = 0, g = 0.3, b = 0.8, a = 0.4 }
+local spell_hilight = { r = 0.5, g = 0.5, b = 0, a = 0.4 }
+local source_hilight = { r = 0.2, g = 0.4, b = 0.8, a = 0.4 }
 
 function DeathNote:Show()
 	if not self.frame then
@@ -93,7 +91,7 @@ function DeathNote:Show()
 		sizer_se:SetWidth(16)
 		sizer_se:SetHeight(16)
 		sizer_se:SetScript("OnMouseDown", function()
-			frame:SetMinResize(500, 300)
+			frame:SetMinResize(600, 270)
 			frame:SetMaxResize(2000, 2000)
 			
 			frame:StartSizing() 
@@ -117,7 +115,7 @@ function DeathNote:Show()
 		filters:SetBackdropBorderColor(0.4, 0.4, 0.4)
 		
 		local filters_label = filters:CreateFontString(nil, "OVERLAY")
-		filters_label:SetPoint("LEFT", 6, 0)
+		filters_label:SetPoint("LEFT", 8, 0)
 		filters_label:SetPoint("TOP", 0, -6)
 		filters_label:SetPoint("BOTTOM", filters, "TOP", 0, -25)
 		filters_label:SetFontObject(GameFontNormal)		
@@ -346,9 +344,11 @@ function DeathNote:Show()
 					name = "Auras",
 					type = "multiselect",
 					values = {
-						["1"] = "Buffs",
-						["2"] = "Debuffs",
-						["3"] = "Survival buffs only",
+						["1"] = "Buff gains",
+						["2"] = "Buff fades",
+						["4"] = "Debuff gains",
+						["5"] = "Debuff fades",
+						["3"] = "Survival buffs",
 					},
 				},
 				consolidate = {
@@ -620,7 +620,7 @@ function DeathNote:Show()
 		self.logframe = logframe
 		
 		logframe:AddColumn("Time", "RIGHT", 60)
-		logframe:AddColumn("HP", "RIGHT", 90)
+		logframe:AddColumn("HP", "CENTER", 90)
 		logframe:AddColumn("Amount", "RIGHT", 60)
 		logframe:AddColumn("Spell", "LEFT", 100)
 		logframe:AddColumn("Source", "LEFT")
@@ -646,7 +646,9 @@ function DeathNote:Show()
 						self:CycleHealthDisplay()
 					elseif column == 3 then
 					elseif column == 4 then
+						self:SetSpellHilight(userdata)
 					elseif column == 5 then
+						self:SetSourceHilight(userdata)
 					end
 					
 					self:RefreshDeath()
@@ -747,7 +749,7 @@ function DeathNote.UnitPopupClick()
 		return
 	end
 	
-	if server then
+	if server and server ~= "" then
 		name = name .. "-" .. server
 	end
 	
@@ -981,6 +983,7 @@ end
 -- ShowDeath
 ------------------------------------------------------------------------------
 
+-- Overkill readers
 local function SpellDamageOverkill(spellId, spellName, spellSchool, amount, overkill)
 	return overkill
 end
@@ -989,19 +992,64 @@ local function SwingDamageOverkill(amount, overkill)
 	return overkill
 end
 
-local function EnvironmentalDamageOverkill(environmentalType, amount, overkill)
+local function EnvironmentalOverkill(environmentalType, amount, overkill)
 	return overkill
 end
 
-local damage_event_table = {
-	["SPELL_DAMAGE"] 			= SpellDamageOverkill,
-	["SPELL_PERIODIC_DAMAGE"] 	= SpellDamageOverkill,
-	["SPELL_BUILDING_DAMAGE"] 	= SpellDamageOverkill,
-	["RANGE_DAMAGE"] 			= SpellDamageOverkill,
-	["DAMAGE_SHIELD"] 			= SpellDamageOverkill,
-	["DAMAGE_SPLIT"] 			= SpellDamageOverkill,
-	["SWING_DAMAGE"] 			= SwingDamageOverkill,
-	["ENVIRONMENTAL_DAMAGE"] 	= EnvironmentalDamageOverkill,
+local function SpellInstakillOverkill()
+	return 1
+end
+
+-- SpellId readers
+function SpellSpellId(spellId)
+	return spellId
+end
+
+function SwingSpellId()
+	return "SWING"
+end
+
+function EnvironmentalSpellId(environmentalType)
+	return environmentalType
+end
+
+local reader_event_table = {
+	["SPELL_DAMAGE"] 			= { SpellDamageOverkill, SpellSpellId },
+	["SPELL_PERIODIC_DAMAGE"] 	= { SpellDamageOverkill, SpellSpellId },
+	["SPELL_BUILDING_DAMAGE"] 	= { SpellDamageOverkill, SpellSpellId },
+	["RANGE_DAMAGE"] 			= { SpellDamageOverkill, SpellSpellId },
+	["DAMAGE_SHIELD"] 			= { SpellDamageOverkill, SpellSpellId },
+	["DAMAGE_SPLIT"] 			= { SpellDamageOverkill, SpellSpellId },
+
+	["SPELL_MISSED"] 			= { nil, SpellSpellId },
+	["SPELL_PERIODIC_MISSED"] 	= { nil, SpellSpellId },
+	["SPELL_BUILDING_MISSED"] 	= { nil, SpellSpellId },
+	["DAMAGE_SHIELD_MISSED"] 	= { nil, SpellSpellId },
+
+	["SWING_DAMAGE"] 			= { SwingDamageOverkill, SwingSpellId },
+
+	["SWING_MISSED"] 			= { nil, SwingSpellId },
+
+	["ENVIRONMENTAL_DAMAGE"] 	= { EnvironmentalOverkill, EnvironmentalSpellId },
+
+	["SPELL_HEAL"] 				= { nil, SpellSpellId },
+	["SPELL_PERIODIC_HEAL"] 	= { nil, SpellSpellId },
+	["SPELL_BUILDING_HEAL"] 	= { nil, SpellSpellId },
+	
+	["SPELL_AURA_APPLIED"]		= { nil, SpellSpellId },
+	["SPELL_AURA_REMOVED"]		= { nil, SpellSpellId },
+	
+	-- ["SPELL_CAST_START"]		= { CastStart, CastChat, CastTooltip },
+	-- ["SPELL_CAST_FAILED"]		= { CastFailed, CastChat, CastTooltip },
+	-- ["SPELL_CAST_SUCCESS"]		= { CastSuccess, CastChat, CastTooltip },
+	
+	-- ["SPELL_INTERRUPT"] 		= { SpellInterrupt, SpellChat, SpellTooltip },
+	
+	["SPELL_INSTAKILL"]			= { SpellInstakillOverkill, SpellSpellId },
+
+	["UNIT_DIED"] 				= { nil, nil },
+
+-----------------
 }
 
 function DeathNote:GetKillingBlow(death)
@@ -1023,7 +1071,7 @@ function DeathNote:GetKillingBlow(death)
 						end
 					end
 					
-					if damage_event_table[entry[4]] and damage_event_table[entry[4]](unpack(entry, 11)) > 0 then
+					if reader_event_table[entry[4]] and reader_event_table[entry[4]][1] and reader_event_table[entry[4]][1](unpack(entry, 11)) > 0 then
 						return entry
 					end
 				end
@@ -1037,6 +1085,9 @@ end
 
 function DeathNote:ShowDeath(death)
 	if self.settings.debugging then debugprofilestart() end
+
+	self.current_source_hilight = nil
+	self.current_spell_hilight = nil
 
 	self.logframe:ClearAllLines()
 
@@ -1087,6 +1138,53 @@ function DeathNote:RefreshDeath()
 	for i = 1, count do
 		self.logframe:UpdateLine(i, self:FormatEntry(self.logframe:GetLineUserdata(i)))
 	end
+end
+
+
+local function GetEntrySpellId(entry)
+	local reader = reader_event_table[entry[4]] and reader_event_table[entry[4]][2]
+	
+	if reader then
+		return reader(unpack(entry, 11))
+	end
+	
+	return nil
+end
+
+function DeathNote:SetSpellHilight(entry)
+	local spellid = GetEntrySpellId(entry)
+	
+	local count = self.logframe:GetLineCount()
+	for i = 1, count do
+		local userdata = self.logframe:GetLineUserdata(i)
+		
+		if not spellid or spellid == self.current_spell_hilight then
+			self.logframe:SetLineHighlight(i, nil)
+		else		
+			self.logframe:SetLineHighlight(i, GetEntrySpellId(userdata) == spellid and spell_hilight)
+		end
+	end
+
+	self.current_source_hilight = nil
+	self.current_spell_hilight = self.current_spell_hilight ~= spellid and spellid or nil
+end
+
+function DeathNote:SetSourceHilight(entry)
+	local source = entry[5]
+	
+	local count = self.logframe:GetLineCount()
+	for i = 1, count do
+		local userdata = self.logframe:GetLineUserdata(i)
+		
+		if source == self.current_source_hilight then
+			self.logframe:SetLineHighlight(i, nil)
+		else
+			self.logframe:SetLineHighlight(i, userdata[5] == source and source_hilight)
+		end
+	end
+	
+	self.current_source_hilight = self.current_source_hilight ~= source and source or nil
+	self.current_spell_hilight = nil
 end
 
 ------------------------------------------------------------------------------
@@ -1190,7 +1288,9 @@ function ListBox_Column_OnMouseUp(frame, button)
 end
 
 function ListBox_Column_OnEnter(frame)
-	frame.line.hili:Show()
+	if not frame.line.static_hili then	
+		frame.line.hili:Show()
+	end
 	
 	if frame.line.obj.column_onenter then
 		frame.line.obj.column_onenter(frame.column, frame.line.userdata)
@@ -1198,7 +1298,9 @@ function ListBox_Column_OnEnter(frame)
 end
 
 function ListBox_Column_OnLeave(frame)
-	frame.line.hili:Hide()
+	if not frame.line.static_hili then	
+		frame.line.hili:Hide()
+	end
 	
 	if frame.line.obj.column_onleave then
 		frame.line.obj.column_onleave(frame.column, frame.line.userdata)
@@ -1218,7 +1320,6 @@ local function ListBox_CreateLine(self)
 		local hili = line:CreateTexture(nil, "OVERLAY")
 		hili:SetAllPoints()
 		hili:SetBlendMode("ADD")
-		hili:SetTexture(0, 0.2, 0.8, 0.5)
 		hili:Hide()
 		line.hili = hili
 		
@@ -1241,7 +1342,7 @@ local function ListBox_CreateLine(self)
 		
 		self.line_cache[nline] = line
 	end
-
+	
 	table.insert(self.lines, line)
 	
 	return line
@@ -1276,9 +1377,78 @@ function ListBox_UpdateComplete(self)
 	end
 end
 
+local function ListBox_Line_Column_OnSizeChanged(frame)
+	if frame.bartex then
+		local width = (frame:GetWidth() - 2) * frame.value
+		if width == 0 then
+			frame.bartex:Hide()
+		else
+			frame.bartex:SetWidth(width)
+		end
+	end
+end
+
+local function ListBox_UpdateLine(self, nline, values)
+	local line = self.lines[nline]
+	
+	for i, c in ipairs(self.columns) do
+		if type(values[i]) == "table" then
+			if line.columns[i].fs then
+				line.columns[i].fs:Hide()
+			end
+
+			if not line.columns[i].bartex then
+				line.columns[i]:SetScript("OnSizeChanged", ListBox_Line_Column_OnSizeChanged)				
+				line.columns[i].bartex = line.columns[i]:CreateTexture(nil, "BACKGROUND")
+				line.columns[i].bartex:SetPoint("TOPLEFT", line.columns[i], "TOPLEFT", 1, -3)
+				line.columns[i].bartex:SetPoint("BOTTOM", line.columns[i], "BOTTOM", 0, 3)
+				line.columns[i].bartex:SetTexture(1, 0, 0)
+			end
+			
+			line.columns[i].bartex:Show()
+			line.columns[i].value = values[i][1]
+			ListBox_Line_Column_OnSizeChanged(line.columns[i])
+			line.columns[i]:SetScript("OnSizeChanged", ListBox_Line_Column_OnSizeChanged)
+		else
+			if line.columns[i].bartex then
+				line.columns[i]:SetScript("OnSizeChanged", nil)
+				line.columns[i].bartex:Hide()
+			end
+			
+			if not line.columns[i].fs then
+				local fs = line.columns[i]:CreateFontString(nil, "OVERLAY")
+				fs:SetAllPoints(line.columns[i])
+				fs:SetFontObject(GameFontNormalSmall)
+				fs:SetJustifyH(c.align)
+				line.columns[i].fs = fs
+			end
+			
+			line.columns[i].fs:Show()
+			line.columns[i].fs:SetText(values[i])
+		end
+	end
+end
+
+local function ListBox_SetLineHighlight(self, nline, color)
+	local line = self.lines[nline]
+	
+	if color then
+		line.static_hili = true
+		line.hili:SetTexture(color.r, color.g, color.b, color.a)
+		line.hili:Show()
+	elseif line.static_hili then
+		line.static_hili = nil
+		line.hili:SetTexture(normal_hilight.r, normal_hilight.g, normal_hilight.b, normal_hilight.a)
+		line.hili:Hide()
+	end
+end
+
 local function ListBox_ClearAllLines(self)
 	for i = 1, #self.lines do
 		self.lines[i].userdata = nil
+		self.lines[i].static_hili = nil
+		self.lines[i].hili:SetTexture(normal_hilight.r, normal_hilight.g, normal_hilight.b, normal_hilight.a)
+		self.lines[i].hili:Hide()
 		self.lines[i]:Hide()
 	end
 	
@@ -1333,67 +1503,6 @@ local function ListBox_GetLineUserdata(self, line)
 	return self.lines[line].userdata
 end
 
-local function ListBox_Line_Column_OnSizeChanged(frame)
-	if frame.barframe and frame.barframe:IsShown() then
-		local width = (frame:GetWidth() - 6) * frame.value
-		if width == 0 then
-			frame.barframe:Hide()
-		else
-			frame.barframe:SetWidth(width)
-		end
-	end
-end
-
-local function ListBox_UpdateLine(self, nline, values)
-local font = CreateFont("dnfont")
-local f, h, fl  = GameFontNormalSmall:GetFont()
-font:SetFont(f, h-2, fl)
-
-	local line = self.lines[nline]
-	
-	for i, c in ipairs(self.columns) do
-		if type(values[i]) == "table" then
-			if line.columns[i].fs then
-				line.columns[i].fs:Hide()
-			end
-			
-			if not line.columns[i].barframe then
-				line.columns[i].barframe = CreateFrame("Frame", nil, line.columns[i])
-				line.columns[i].barframe:SetPoint("TOPLEFT", line.columns[i], "TOPLEFT", 1, -3)
-				line.columns[i].barframe:SetPoint("BOTTOM", line.columns[i], "BOTTOM", 0, 3)
-				--line.columns[i].barframe:SetPoint("LEFT")
-				--line.columns[i].barframe:SetHeight(8)
-				
-				
-				line.columns[i].bartex = line.columns[i].barframe:CreateTexture(nil, "OVERLAY")
-				line.columns[i].bartex:SetAllPoints()
-				line.columns[i].bartex:SetTexture(1, 0, 0)
-			end
-			
-			line.columns[i].barframe:Show()
-			line.columns[i].value = values[i][1]
-			ListBox_Line_Column_OnSizeChanged(line.columns[i])
-			line.columns[i]:SetScript("OnSizeChanged", ListBox_Line_Column_OnSizeChanged)
-		else
-			if line.columns[i].barframe then
-				line.columns[i]:SetScript("OnSizeChanged", nil)
-				line.columns[i].barframe:Hide()
-			end
-			
-			if not line.columns[i].fs then
-				local fs = line.columns[i]:CreateFontString(nil, "OVERLAY")
-				fs:SetAllPoints(line.columns[i])
-				fs:SetFontObject(GameFontNormalSmall)
-				fs:SetJustifyH(c.align)
-				line.columns[i].fs = fs
-			end
-			
-			line.columns[i].fs:Show()
-			line.columns[i].fs:SetText(values[i])
-		end
-	end
-end
-	
 function DeathNote:CreateListBox(parent)
 	local frame = CreateFrame("ScrollFrame", nil, parent)	
 	
@@ -1449,6 +1558,7 @@ function DeathNote:CreateListBox(parent)
 		GetLineCount = ListBox_GetLineCount,
 		GetLineUserdata = ListBox_GetLineUserdata,
 		UpdateLine = ListBox_UpdateLine,
+		SetLineHighlight = ListBox_SetLineHighlight,
 		UpdateComplete = ListBox_UpdateComplete,
 
 		frame = frame,

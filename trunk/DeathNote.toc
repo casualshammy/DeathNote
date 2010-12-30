@@ -33,3 +33,4 @@ DataCapture.lua
 UI.lua
 Format.lua
 Options.lua
+SurvivalIDs.lua

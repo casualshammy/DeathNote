@@ -28,33 +28,33 @@ end
 
 FormatHealth[2] = function(hp, hpmax)
 	if hpmax == 0 then
-		return { 0, "??%" }
+		return "??%"
 	else
-		return { hp / hpmax, string.format("%.02f%%", hp / hpmax * 100) }
+		return string.format("%i%%", hp / hpmax * 100)
 	end
 end
 
 FormatHealth[3] = function(hp, hpmax)
 	if hpmax == 0 then
-		return { 0, "??/??" }
+		return "??"
 	else
-		return { hp / hpmax, string.format("%s/%s", CommaNumber(hp), CommaNumber(hpmax)) }
+		return string.format("%s", CommaNumber(hp))
 	end
 end
 
 FormatHealth[4] = function(hp, hpmax)
 	if hpmax == 0 then
-		return { 0, "??" }
+		return "??/??"
 	else
-		return { hp / hpmax, string.format("%s", CommaNumber(hp)) }
+		return string.format("%s/%s", CommaNumber(hp), CommaNumber(hpmax))
 	end
 end
 
-FormatHealth[5] = function(hp, hpmax)
+local function FormatHealthFull(hp, hpmax)
 	if hpmax == 0 then
-		return { 0, "??/?? (??%)" }
+		return "??/?? (??%)"
 	else
-		return { hp / hpmax, string.format("%s/%s (%i%%)", CommaNumber(hp), CommaNumber(hpmax), floor(hp / hpmax * 100)) }
+		return string.format("%s/%s (%i%%)", CommaNumber(hp), CommaNumber(hpmax), floor(hp / hpmax * 100))
 	end
 end
 
@@ -288,7 +288,7 @@ function DeathNote:FormatChatTimestamp(entry)
 end
 
 function DeathNote:FormatChatHealth(entry)
-	return FormatHealth[5](entry[1], entry[2])[2]
+	return FormatHealthFull(entry[1], entry[2])
 end
 
 function DeathNote:FormatChatAmount(entry)
@@ -325,7 +325,7 @@ function DeathNote:FormatTooltipTimestamp(entry)
 end
 
 function DeathNote:FormatTooltipHealth(entry)
-	GameTooltip:SetText(FormatHealth[5](entry[1], entry[2])[2])
+	GameTooltip:SetText(FormatHealthFull(entry[1], entry[2]))
 	return true
 end
 
