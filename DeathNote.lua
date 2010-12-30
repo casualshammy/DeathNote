@@ -24,6 +24,21 @@ function DeathNote:OnInitialize()
 				timestamp = 1,
 				health = 1,
 			},
+			
+			display_filters = {
+				damage_threshold = 0,
+				consolidate_damage = false,
+				
+				heal_threshold = 0,
+				consolidate_heal = false,
+				
+				show_buff_gains = false,
+				show_buff_fades = false,
+				show_debuff_gains = false,
+				show_debuff_fades = false,
+				survival_buffs = true,
+				consolidate_auras = false,				
+			},
 		},
 	})
 	
