@@ -31,9 +31,9 @@ function DeathNote:Show()
 
 		local frame = CreateFrame("Frame", "DeathNoteFrame", UIParent)
 		
-		frame:SetWidth(700)
-		frame:SetHeight(500)
-		frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+		frame:SetWidth(self.settings.display.w)
+		frame:SetHeight(self.settings.display.h)
+		frame:SetPoint("CENTER", UIParent, "CENTER", self.settings.display.x, self.settings.display.y)
 		frame:SetBackdrop(WindowBackdrop)
 		frame:SetBackdropColor(0, 0, 0, 1)
 		frame:SetBackdropBorderColor(0.4, 0.4, 0.4)		
@@ -41,6 +41,7 @@ function DeathNote:Show()
 		frame:EnableMouse()
 		frame:SetMovable(true)
 		frame:SetResizable(true)
+		frame:SetClampedToScreen(true)
 		frame:SetFrameStrata("DIALOG")
 		
 		-- titlebar
@@ -53,14 +54,6 @@ function DeathNote:Show()
 		local titlebarframe = CreateFrame("Frame", nil, frame)
 		titlebarframe:SetAllPoints(titlebar)
 		titlebarframe:EnableMouse()
-		titlebarframe:SetScript("OnMouseDown", function()
-			self.logframe.content:Hide() -- HACK: for now, either this or huge performance problem
-			frame:StartMoving() 
-		end)
-		titlebarframe:SetScript("OnMouseUp", function()
-			self.logframe.content:Show()
-			frame:StopMovingOrSizing() 
-		end)
 
 		local titleicon = frame:CreateTexture(nil, "ARTWORK")
 		titleicon:SetTexture([[Interface\AddOns\DeathNote\Textures\icon.tga]])
@@ -90,6 +83,29 @@ function DeathNote:Show()
 		sizer_se:SetPoint("BOTTOMRIGHT", -3, 3)
 		sizer_se:SetWidth(16)
 		sizer_se:SetHeight(16)
+
+		local sizer_se_tex = frame:CreateTexture(nil, "BORDER")
+		sizer_se_tex:SetTexture([[Interface\AddOns\DeathNote\Textures\resize.tga]])
+		sizer_se_tex:SetAllPoints(sizer_se)
+
+		local function save_frame_rect()
+			local _, _, sw, sh = UIParent:GetRect()
+			local x, y, w, h = frame:GetRect()
+			self.settings.display.x, self.settings.display.y, self.settings.display.w, self.settings.display.h =
+				x + w/2 - sw/2, y + h/2 - sh/2, w, h
+		end
+		
+		titlebarframe:SetScript("OnMouseDown", function()
+			self.logframe.content:Hide() -- HACK: for now, either this or huge performance problem
+			frame:StartMoving()
+		end)
+		titlebarframe:SetScript("OnMouseUp", function()
+			self.logframe.content:Show()
+			frame:StopMovingOrSizing()
+			
+			save_frame_rect()
+		end)
+
 		sizer_se:SetScript("OnMouseDown", function()
 			frame:SetMinResize(600, 270)
 			frame:SetMaxResize(2000, 2000)
@@ -98,11 +114,9 @@ function DeathNote:Show()
 		end)
 		sizer_se:SetScript("OnMouseUp", function()
 			frame:StopMovingOrSizing()
+			
+			save_frame_rect()
 		end)
-
-		local sizer_se_tex = frame:CreateTexture(nil, "BORDER")
-		sizer_se_tex:SetTexture([[Interface\AddOns\DeathNote\Textures\resize.tga]])
-		sizer_se_tex:SetAllPoints(sizer_se)
 		
 		-- filters
 		local filters = CreateFrame("Frame", nil, frame)
@@ -222,6 +236,8 @@ function DeathNote:Show()
 							min = 0,
 							softMax = 20000,
 							step = 1,
+							get = function() return DeathNote.settings.display_filters.damage_threshold end,
+							set = function(_, v) DeathNote:SetDisplayFilter("damage_threshold", v) end,
 						},
 					},
 				},
@@ -229,7 +245,17 @@ function DeathNote:Show()
 					order = 2,
 					name = "Consolidate consecutive hits",
 					type = "toggle",
-					width = "full",
+					width = "double",
+					get = function() return DeathNote.settings.display_filters.consolidate_damage end,
+					set = function(_, v) DeathNote:SetDisplayFilter("consolidate_damage", v) end,
+				},
+				misses = {
+					order = 3,
+					name = "Hide misses",
+					type = "toggle",
+					width = "normal",
+					get = function() return DeathNote.settings.display_filters.hide_misses end,
+					set = function(_, v) DeathNote:SetDisplayFilter("hide_misses", v) end,
 				},
 			},
 		}
@@ -288,6 +314,8 @@ function DeathNote:Show()
 							min = 0,
 							softMax = 20000,
 							step = 1,
+							get = function() return DeathNote.settings.display_filters.heal_threshold end,
+							set = function(_, v) DeathNote:SetDisplayFilter("heal_threshold", v) end,
 						},
 					},
 				},
@@ -296,6 +324,8 @@ function DeathNote:Show()
 					name = "Consolidate consecutive heals",
 					type = "toggle",
 					width = "full",
+					get = function() return DeathNote.settings.display_filters.consolidate_heals end,
+					set = function(_, v) DeathNote:SetDisplayFilter("consolidate_heals", v) end,					
 				},
 			},
 		}
@@ -342,13 +372,44 @@ function DeathNote:Show()
 				display = {
 					order = 1,
 					name = "Auras",
-					type = "multiselect",
-					values = {
-						["1"] = "Buff gains",
-						["2"] = "Buff fades",
-						["4"] = "Debuff gains",
-						["5"] = "Debuff fades",
-						["3"] = "Survival buffs",
+					type = "group",
+					inline = true,
+					args = {
+						buff_gains = {
+							order = 1,
+							type = "toggle",
+							name = "Buff gains",
+							get = function() return DeathNote.settings.display_filters.buff_gains end,
+							set = function(_, v) DeathNote:SetDisplayFilter("buff_gains", v) end,
+						},
+						buff_fades = {
+							order = 2,
+							type = "toggle",
+							name = "Buff fades",
+							get = function() return DeathNote.settings.display_filters.buff_fades end,
+							set = function(_, v) DeathNote:SetDisplayFilter("buff_fades", v) end,
+						},
+						debuff_gains = {
+							order = 3,
+							type = "toggle",
+							name = "Debuff gains",
+							get = function() return DeathNote.settings.display_filters.debuff_gains end,
+							set = function(_, v) DeathNote:SetDisplayFilter("debuff_gains", v) end,
+						},
+						debuff_fades = {
+							order = 4,
+							type = "toggle",
+							name = "Debuff fades",
+							get = function() return DeathNote.settings.display_filters.debuff_fades end,
+							set = function(_, v) DeathNote:SetDisplayFilter("debuff_fades", v) end,
+						},
+						survival_buffs = {
+							order = 5,
+							type = "toggle",
+							name = "Survival buffs",
+							get = function() return DeathNote.settings.display_filters.survival_buffs end,
+							set = function(_, v) DeathNote:SetDisplayFilter("survival_buffs", v) end,
+						},
 					},
 				},
 				consolidate = {
@@ -356,6 +417,8 @@ function DeathNote:Show()
 					name = "Consolidate consecutive auras",
 					type = "toggle",
 					width = "full",
+					get = function() return DeathNote.settings.display_filters.consolidate_auras end,
+					set = function(_, v) DeathNote:SetDisplayFilter("consolidate_auras", v) end,
 				},
 			},
 		}
@@ -394,21 +457,42 @@ function DeathNote:Show()
 		others_tab_spacer2:SetPoint("TOPLEFT", others_tab_button, "BOTTOMRIGHT", -10, 3)
 		others_tab_spacer2:SetPoint("TOPRIGHT", topright, "TOPLEFT")
 		
+		local function format_filter(f)
+			local t = {}
+			for k, v in pairs(f) do
+				table.insert(t, v)
+			end
+			table.sort(t)
+			return table.concat(t, ",")
+		end
+		
 		local others_options = {
 			type = "group",
 			inline = true,
 			args = {
-				display = {
+				spell = {
 					order = 1,
 					name = "Spell filter",
+					desc = "Enter one or more spells, separated by commas.\nCtrl+Click on a spell column to add that spell.",
 					type = "input",
-					width = "double",
+					width = "full",
+					get = function() return format_filter(DeathNote.settings.display_filters.spell_filter) end,
+					set = function(_, v) DeathNote:SetDisplayFilter("spell_filter", v) end,
 				},
-				consolidate = {
+				source = {
 					order = 2,
 					name = "Source filter",
+					desc = "Enter one or more sources, separated by commas.\nCtrl+Click on a source column to add that source.",
 					type = "input",
-					width = "double",
+					width = "full",
+					get = function() return format_filter(DeathNote.settings.display_filters.source_filter) end,
+					set = function(_, v) DeathNote:SetDisplayFilter("source_filter", v) end,
+				},
+				reset = {
+					order = 3,
+					name = "Reset",
+					type = "execute",
+					func = function() DeathNote:SetDisplayFilter("spell_filter", "") DeathNote:SetDisplayFilter("source_filter", "") end,
 				},
 			},
 		}
@@ -419,7 +503,9 @@ function DeathNote:Show()
 		others_tab:SetPoint("TOPLEFT", 8, -8)
 		others_tab:SetPoint("BOTTOMRIGHT", -8, 8)
 		AceConfig:RegisterOptionsTable("Death Note - Others", others_options)
-		AceConfigDialog:Open("Death Note - Others", others_tab)		
+		AceConfigDialog:Open("Death Note - Others", others_tab)
+		
+		self.others_tab = others_tab
 		------------------------------
 		PanelTemplates_SetNumTabs(filters_tab, 4)
 		
@@ -524,7 +610,7 @@ function DeathNote:Show()
 		-- name list
 		local name_list_border = CreateFrame("Frame", nil, frame)
 		name_list_border:SetPoint("TOPLEFT", filters, "BOTTOMLEFT", 0, 0)
-		name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 220, 10)
+		name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", self.settings.display.namelist_width, 10)
 		
 		name_list_border:SetBackdrop(PaneBackdrop)
 		name_list_border:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
@@ -540,22 +626,23 @@ function DeathNote:Show()
 		
 		-- name list scrollbar
 		local name_scroll = CreateFrame("Slider", nil, name_list, "UIPanelScrollBarTemplate")
-		name_scroll:SetPoint("BOTTOMRIGHT", 0, 16)
-		name_scroll:SetPoint("TOPRIGHT", 0, -16)
+		name_scroll:SetPoint("BOTTOMRIGHT", name_list_border, "BOTTOMRIGHT", -8, 24)
+		name_scroll:SetPoint("TOPRIGHT", name_list_border, "TOPRIGHT", -8, -24)
 		name_scroll:SetMinMaxValues(0, 1000)
 		name_scroll:SetValueStep(1)
 		name_scroll:SetValue(0)
 		name_scroll:SetWidth(16)
-		name_scroll:Show()
+		name_scroll:SetFrameLevel(6)
+		name_scroll:Hide()
 		
 		local name_scrollbg = name_scroll:CreateTexture(nil, "BACKGROUND")
 		name_scrollbg:SetAllPoints()
 		name_scrollbg:SetTexture(0, 0, 0, 1)
 
 		local name_content = CreateFrame("Frame", nil, name_list)
+		name_list:SetScrollChild(name_content)
 		name_content:SetPoint("TOPLEFT")
 		name_content:SetPoint("TOPRIGHT")		
-		name_list:SetScrollChild(name_content)
 		
 		name_list:SetScript("OnMouseWheel", function(frame, value)
 			local l, h = name_scroll:GetMinMaxValues()
@@ -564,7 +651,7 @@ function DeathNote:Show()
 		
 		name_scroll:SetScript("OnValueChanged", function(frame, value)
 			name_content:SetPoint("TOPLEFT", 0, value)
-			name_content:SetPoint("TOPRIGHT", -16, value)
+			name_content:SetPoint("TOPRIGHT", 0, value)
 		end)
 		
 		self.name_list_border = name_list_border
@@ -600,10 +687,11 @@ function DeathNote:Show()
 			name_list_border:StopMovingOrSizing()
 			name_list_border:SetUserPlaced(false)
 			
-			local width = name_list_border:GetWidth()
+			local width = name_list_border:GetWidth() + 10
 			name_list_border:ClearAllPoints()
 			name_list_border:SetPoint("TOPLEFT", filters, "BOTTOMLEFT", 0, 0)
-			name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", width + 10, 10)
+			name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", width, 10)
+			self.settings.display.namelist_width = width
 		end
 
 		dragger:SetScript("OnEnter", Dragger_OnEnter)
@@ -612,19 +700,27 @@ function DeathNote:Show()
 		dragger:SetScript("OnMouseUp", Dragger_OnMouseUp)
 
 		-- logframe
-		local logframe = self:CreateListBox(frame)
+		local logframe = self:CreateListBox(frame, self.settings.display.scale)
 		logframe.frame:SetPoint("TOPLEFT", name_list_border, "TOPRIGHT")
 		logframe.frame:SetPoint("BOTTOM", name_list_border, "BOTTOM")
 		logframe.frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 		
 		self.logframe = logframe
 		
-		logframe:AddColumn("Time", "RIGHT", 60)
-		logframe:AddColumn("HP", "CENTER", 90)
-		logframe:AddColumn("Amount", "RIGHT", 60)
-		logframe:AddColumn("Spell", "LEFT", 100)
+		logframe:AddColumn("Time", "RIGHT", self.settings.display.columns[1])
+		logframe:AddColumn("HP", "CENTER", self.settings.display.columns[2])
+		logframe:AddColumn("Amount", "RIGHT", self.settings.display.columns[3])
+		logframe:AddColumn("Spell", "LEFT", self.settings.display.columns[4])
 		logframe:AddColumn("Source", "LEFT")
 		
+		logframe:SetSettingsCallback(
+			function(columns)
+				self.settings.display.columns = columns
+			end,
+			function(scale)
+				self.settings.display.scale = scale
+			end)
+			
 		logframe:SetMouseCallbacks(
 			function(button, line, column, userdata)
 				if IsModifiedClick("CHATLINK") then
@@ -640,18 +736,26 @@ function DeathNote:Show()
 						ChatEdit_InsertLink(self:FormatChatSource(userdata))
 					end
 				elseif button == "LeftButton" then
-					if column == 1 then
-						self:CycleTimestampDisplay()
-					elseif column == 2 then
-						self:CycleHealthDisplay()
-					elseif column == 3 then
-					elseif column == 4 then
-						self:SetSpellHilight(userdata)
-					elseif column == 5 then
-						self:SetSourceHilight(userdata)
+					if IsControlKeyDown() then
+						if column == 4 then
+							self:AddSpellFilter(userdata)
+						elseif column == 5 then
+							self:AddSourceFilter(userdata)
+						end
+					else
+						if column == 1 then
+							self:CycleTimestampDisplay()
+						elseif column == 2 then
+							self:CycleHealthDisplay()
+						elseif column == 3 then
+						elseif column == 4 then
+							self:SetSpellHilight(userdata)
+						elseif column == 5 then
+							self:SetSourceHilight(userdata)
+						end
+						
+						self:RefreshDeath()
 					end
-					
-					self:RefreshDeath()
 				elseif button == "RightButton" then
 					-- menu
 					self.dropdown_line = line
@@ -838,11 +942,11 @@ function DeathNote:NameList_SizeChanged()
 	local height = self.name_list:GetHeight()
 		
 	if height >= content_height then
-		self.name_content:SetPoint("TOPRIGHT")
+		self.name_list:SetPoint("BOTTOMRIGHT", -8, 8)
 		self.name_scroll:SetMinMaxValues(0, 0)
 		self.name_scroll:Hide()
-	else	
-		self.name_content:SetPoint("TOPRIGHT", -16, 0)
+	else
+		self.name_list:SetPoint("BOTTOMRIGHT", -8, 8)
 		self.name_scroll:SetMinMaxValues(0, content_height - height)
 		self.name_scroll:Show()
 	end
@@ -984,60 +1088,76 @@ end
 ------------------------------------------------------------------------------
 
 -- Overkill readers
-local function SpellDamageOverkill(spellId, spellName, spellSchool, amount, overkill)
-	return overkill
+local function SpellDamageAmount(spellId, spellName, spellSchool, amount, overkill)
+	return amount, overkill
 end
 
-local function SwingDamageOverkill(amount, overkill)
-	return overkill
+local function SwingDamageAmount(amount, overkill)
+	return amount, overkill
 end
 
-local function EnvironmentalOverkill(environmentalType, amount, overkill)
-	return overkill
+local function EnvironmentalAmount(environmentalType, amount, overkill)
+	return amount, overkill
 end
 
-local function SpellInstakillOverkill()
-	return 1
+local function SpellInstakillAmount()
+	return 1e20, 1
+end
+
+-- Heal readers
+local function SpellHealAmount(spellId, spellName, spellSchool, amount)
+	return amount
 end
 
 -- SpellId readers
-function SpellSpellId(spellId)
-	return spellId
+function SpellSpellId(spellId, spellName, spellSchool)
+	return spellId, spellName, spellSchool
 end
 
-function SwingSpellId()
-	return "SWING"
+function SwingSpellId(amount, overkill, school)
+	return ACTION_SWING, ACTION_SWING, school
 end
 
-function EnvironmentalSpellId(environmentalType)
-	return environmentalType
+function EnvironmentalSpellId(environmentalType, amount, overkill, school)
+	return _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], school
 end
 
-local reader_event_table = {
-	["SPELL_DAMAGE"] 			= { SpellDamageOverkill, SpellSpellId },
-	["SPELL_PERIODIC_DAMAGE"] 	= { SpellDamageOverkill, SpellSpellId },
-	["SPELL_BUILDING_DAMAGE"] 	= { SpellDamageOverkill, SpellSpellId },
-	["RANGE_DAMAGE"] 			= { SpellDamageOverkill, SpellSpellId },
-	["DAMAGE_SHIELD"] 			= { SpellDamageOverkill, SpellSpellId },
-	["DAMAGE_SPLIT"] 			= { SpellDamageOverkill, SpellSpellId },
+-- Aura readers
+local function AuraApplied(spellId, spellName, spellSchool, auraType, amount)
+	return true, auraType, amount, spellId, spellName, spellSchool
+end
 
-	["SPELL_MISSED"] 			= { nil, SpellSpellId },
-	["SPELL_PERIODIC_MISSED"] 	= { nil, SpellSpellId },
-	["SPELL_BUILDING_MISSED"] 	= { nil, SpellSpellId },
-	["DAMAGE_SHIELD_MISSED"] 	= { nil, SpellSpellId },
+local function AuraRemoved(spellId, spellName, spellSchool, auraType, amount)
+	return false, auraType, amount, spellId, spellName, spellSchool
+end
 
-	["SWING_DAMAGE"] 			= { SwingDamageOverkill, SwingSpellId },
+local event_reader_table = {
+	["SPELL_DAMAGE"] 			= { SpellDamageAmount, nil, SpellSpellId },
+	["SPELL_PERIODIC_DAMAGE"] 	= { SpellDamageAmount, nil, SpellSpellId },
+	["SPELL_BUILDING_DAMAGE"] 	= { SpellDamageAmount, nil, SpellSpellId },
+	["RANGE_DAMAGE"] 			= { SpellDamageAmount, nil, SpellSpellId },
+	["DAMAGE_SHIELD"] 			= { SpellDamageAmount, nil, SpellSpellId },
+	["DAMAGE_SPLIT"] 			= { SpellDamageAmount, nil, SpellSpellId },
 
-	["SWING_MISSED"] 			= { nil, SwingSpellId },
+	["SPELL_MISSED"] 			= { nil, nil, SpellSpellId, nil, true },
+	["SPELL_PERIODIC_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
+	["SPELL_BUILDING_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
+	["DAMAGE_SHIELD_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
 
-	["ENVIRONMENTAL_DAMAGE"] 	= { EnvironmentalOverkill, EnvironmentalSpellId },
+	["SWING_DAMAGE"] 			= { SwingDamageAmount, nil, SwingSpellId },
 
-	["SPELL_HEAL"] 				= { nil, SpellSpellId },
-	["SPELL_PERIODIC_HEAL"] 	= { nil, SpellSpellId },
-	["SPELL_BUILDING_HEAL"] 	= { nil, SpellSpellId },
+	["SWING_MISSED"] 			= { nil, nil, SwingSpellId, nil, true },
+
+	["ENVIRONMENTAL_DAMAGE"] 	= { EnvironmentalAmount, nil, EnvironmentalSpellId },
+
+	["SPELL_HEAL"] 				= { nil, SpellHealAmount, SpellSpellId },
+	["SPELL_PERIODIC_HEAL"] 	= { nil, SpellHealAmount, SpellSpellId },
+	["SPELL_BUILDING_HEAL"] 	= { nil, SpellHealAmount, SpellSpellId },
 	
-	["SPELL_AURA_APPLIED"]		= { nil, SpellSpellId },
-	["SPELL_AURA_REMOVED"]		= { nil, SpellSpellId },
+	["SPELL_AURA_APPLIED"]		= { nil, nil, SpellSpellId, AuraApplied },
+	["SPELL_AURA_REMOVED"]		= { nil, nil, SpellSpellId, AuraRemoved },
+	["SPELL_AURA_APPLIED_DOSE"]	= { nil, nil, SpellSpellId, AuraApplied },
+	["SPELL_AURA_REMOVED_DOSE"]	= { nil, nil, SpellSpellId, AuraRemoved },
 	
 	-- ["SPELL_CAST_START"]		= { CastStart, CastChat, CastTooltip },
 	-- ["SPELL_CAST_FAILED"]		= { CastFailed, CastChat, CastTooltip },
@@ -1045,12 +1165,38 @@ local reader_event_table = {
 	
 	-- ["SPELL_INTERRUPT"] 		= { SpellInterrupt, SpellChat, SpellTooltip },
 	
-	["SPELL_INSTAKILL"]			= { SpellInstakillOverkill, SpellSpellId },
+	["SPELL_INSTAKILL"]			= { SpellInstakillAmount, nil, SpellSpellId },
 
-	["UNIT_DIED"] 				= { nil, nil },
-
------------------
+	-- ["UNIT_DIED"] 				= { nil, nil },
 }
+
+local function GetEntryReader(entry, nreader)
+	local reader = event_reader_table[entry[4]] and event_reader_table[entry[4]][nreader]
+
+	if reader then
+		return reader(unpack(entry, 11))
+	end
+end
+
+local function GetEntryDamage(entry)
+	return GetEntryReader(entry, 1)
+end
+
+local function GetEntryHeal(entry)
+	return GetEntryReader(entry, 2)
+end
+
+local function GetEntrySpell(entry)
+	return GetEntryReader(entry, 3)
+end
+
+local function GetEntryAura(entry)
+	return GetEntryReader(entry, 4)
+end
+
+local function GetEntryMiss(entry)
+	return event_reader_table[entry[4]] and event_reader_table[entry[4]][5]
+end
 
 function DeathNote:GetKillingBlow(death)
 	local guid = death[2]
@@ -1071,7 +1217,8 @@ function DeathNote:GetKillingBlow(death)
 						end
 					end
 					
-					if reader_event_table[entry[4]] and reader_event_table[entry[4]][1] and reader_event_table[entry[4]][1](unpack(entry, 11)) > 0 then
+					local _, overkill = GetEntryDamage(entry)
+					if overkill and overkill > 0 then
 						return entry
 					end
 				end
@@ -1081,6 +1228,79 @@ function DeathNote:GetKillingBlow(death)
 	end
 	
 	return nil
+end
+
+function DeathNote:IsEntryFiltered(entry)
+	if self.settings.display_filters.damage_threshold > 0 then
+		local damage = GetEntryDamage(entry)
+		if damage and damage < self.settings.display_filters.damage_threshold then
+			return false
+		end
+	end
+
+	if self.settings.display_filters.hide_misses then
+		local miss = GetEntryMiss(entry)
+		if miss then
+			return false
+		end
+	end	
+	
+	if self.settings.display_filters.heal_threshold > 0 then
+		local heal = GetEntryHeal(entry)
+		if heal and heal < self.settings.display_filters.heal_threshold then
+			return false
+		end
+	end
+	
+	if self.settings.display_filters.survival_buffs then
+		local gain, _, _, spellid = GetEntryAura(entry)
+		if self.SurvivalIDs[spellid] then
+			return true
+		end	
+	end
+	
+	if not self.settings.display_filters.buff_gains then
+		local gain, auraType = GetEntryAura(entry)
+		if gain and auraType == "BUFF" then
+			return false
+		end
+	end
+
+	if not self.settings.display_filters.buff_fades then
+		local gain, auraType = GetEntryAura(entry)
+		if not gain and auraType == "BUFF" then
+			return false
+		end
+	end
+
+	if not self.settings.display_filters.debuff_gains then
+		local gain, auraType = GetEntryAura(entry)
+		if gain and auraType == "DEBUFF" then
+			return false
+		end
+	end
+	
+	if not self.settings.display_filters.debuff_fades then
+		local gain, auraType = GetEntryAura(entry)
+		if not gain and auraType == "DEBUFF" then
+			return false
+		end
+	end
+	
+	if next(self.settings.display_filters.spell_filter) then
+		local _, spellname = GetEntrySpell(entry)
+		if self.settings.display_filters.spell_filter[string.lower(spellname or "")] then
+			return false
+		end
+	end
+
+	if next(self.settings.display_filters.source_filter) then
+		if self.settings.display_filters.source_filter[string.lower(entry[6] or "")] then
+			return false
+		end
+	end
+	
+	return true
 end
 
 function DeathNote:ShowDeath(death)
@@ -1111,7 +1331,9 @@ function DeathNote:ShowDeath(death)
 						end
 					end
 					
-					self:AddDeathEntry(entry)
+					if self:IsEntryFiltered(entry) then
+						self:AddDeathEntry(entry)
+					end
 				end
 			end
 		end
@@ -1140,19 +1362,32 @@ function DeathNote:RefreshDeath()
 	end
 end
 
-
-local function GetEntrySpellId(entry)
-	local reader = reader_event_table[entry[4]] and reader_event_table[entry[4]][2]
-	
-	if reader then
-		return reader(unpack(entry, 11))
+function DeathNote:RefreshFilters()
+	if self.current_death then
+		self:ShowDeath(self.current_death)
 	end
+end
+
+function DeathNote:AddSpellFilter(entry)
+	local _, spellname = GetEntrySpell(entry)
+
+	if spellname then
+		self.settings.display_filters.spell_filter[string.lower(spellname)] = spellname
+		LibStub("AceConfigDialog-3.0"):Open("Death Note - Others", self.others_tab)
+		self:RefreshFilters()		
+	end
+end
+
+function DeathNote:AddSourceFilter(entry)
+	local source = entry[6] or ""
 	
-	return nil
+	self.settings.display_filters.source_filter[string.lower(source)] = source
+	LibStub("AceConfigDialog-3.0"):Open("Death Note - Others", self.others_tab)
+	self:RefreshFilters()
 end
 
 function DeathNote:SetSpellHilight(entry)
-	local spellid = GetEntrySpellId(entry)
+	local spellid = GetEntrySpell(entry)
 	
 	local count = self.logframe:GetLineCount()
 	for i = 1, count do
@@ -1161,7 +1396,7 @@ function DeathNote:SetSpellHilight(entry)
 		if not spellid or spellid == self.current_spell_hilight then
 			self.logframe:SetLineHighlight(i, nil)
 		else		
-			self.logframe:SetLineHighlight(i, GetEntrySpellId(userdata) == spellid and spell_hilight)
+			self.logframe:SetLineHighlight(i, GetEntrySpell(userdata) == spellid and spell_hilight)
 		end
 	end
 
@@ -1185,6 +1420,28 @@ function DeathNote:SetSourceHilight(entry)
 	
 	self.current_source_hilight = self.current_source_hilight ~= source and source or nil
 	self.current_spell_hilight = nil
+end
+
+------------------------------------------------------------------------------
+-- Display filters
+------------------------------------------------------------------------------
+
+function DeathNote:SetDisplayFilter(filter, value)
+	if filter == "spell_filter" or filter == "source_filter" then
+		local result = {}
+		value = string.gsub(value, "^%s*(.-)%s*$", "%1")
+		if #value > 0 then
+			for v in string.gmatch(value, "([^,]+),?") do
+				local r = string.gsub(v, "^%s*(.-)%s*$", "%1") or ""
+				result[string.lower(r)] = r
+			end
+		end
+		value = result
+	end
+	
+	self.settings.display_filters[filter] = value
+	
+	self:RefreshFilters()
 end
 
 ------------------------------------------------------------------------------
@@ -1226,13 +1483,22 @@ local function ListBox_PlaceColumn(self, column, prev, width)
 end
 
 local function ListBox_Column_Dragger_OnMouseUp(frame)
+	local self = frame.obj
 	local prev = frame.prev
 	local prevprev = frame.prevprev
 	
 	prev:StopMovingOrSizing()
 	prev:SetUserPlaced(false)
 	
-	ListBox_PlaceColumn(frame.obj, prev, prevprev, prev:GetWidth())
+	ListBox_PlaceColumn(self, prev, prevprev, prev:GetWidth())
+	
+	if self.columns_callback then
+		local t = {}
+		for i = 1, #self.columns - 1 do
+			table.insert(t, self.columns[i]:GetWidth())
+		end
+		self.columns_callback(t)
+	end
 end
 
 local function ListBox_AddColumn(self, label, align, width)
@@ -1478,8 +1744,20 @@ end
 local function ListBox_ScrollFrame_OnMouseWheel(frame, value)
 	local self = frame.obj
 	
-	local l, h = self.scrollbar:GetMinMaxValues()
-	self.scrollbar:SetValue(min(max(self.scrollbar:GetValue() - value*45, l), h))
+	if IsControlKeyDown() then
+		local scale = self.content:GetScale() + 0.05 * -value
+			if scale >= 0.5 and scale <= 2.0 then
+			DeathNote:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
+			self.content:SetScale(scale)
+			
+			if self.scale_callback then
+				self.scale_callback(scale)
+			end
+		end
+	else	
+		local l, h = self.scrollbar:GetMinMaxValues()
+		self.scrollbar:SetValue(min(max(self.scrollbar:GetValue() - value*45, l), h))
+	end
 end
 	
 local function ListBox_ScrollBar_OnValueChanged(frame, value)
@@ -1503,7 +1781,12 @@ local function ListBox_GetLineUserdata(self, line)
 	return self.lines[line].userdata
 end
 
-function DeathNote:CreateListBox(parent)
+local function ListBox_SetSettingsCallback(self, columns_callback, scale_callback)
+	self.columns_callback = columns_callback
+	self.scale_callback = scale_callback
+end
+
+function DeathNote:CreateListBox(parent, scale)
 	local frame = CreateFrame("ScrollFrame", nil, parent)	
 	
 	local iframe = CreateFrame("Frame", nil, frame)
@@ -1539,7 +1822,7 @@ function DeathNote:CreateListBox(parent)
 	scrollframe:SetScrollChild(content)
 	content:SetPoint("TOPLEFT")
 	content:SetPoint("TOPRIGHT", -16, 0)
-	content:SetHeight(1000)
+	content:SetScale(scale)
 	
 	local headersep = CreateFrame("Frame", nil, iframe)
 	headersep:SetHeight(16)
@@ -1552,6 +1835,7 @@ function DeathNote:CreateListBox(parent)
 		AddColumn = ListBox_AddColumn,
 		AddLine = ListBox_AddLine,
 		ClearAllLines = ListBox_ClearAllLines,
+		SetSettingsCallback = ListBox_SetSettingsCallback,
 		SetMouseCallbacks = ListBox_SetMouseCallbacks,
 		CreateLine = ListBox_CreateLine,
 		ScrollToBottom = ListBox_ScrollToBottom,

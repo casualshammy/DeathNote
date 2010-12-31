@@ -88,13 +88,34 @@ local function FormatUnit(guid, name, flags)
 	end
 end
 
+local function FormatIcon(icon)
+	return string.format("|T%s:0:0:0:0:64:64:4:60:4:60|t", icon)
+end
+
 local function FormatSpell(spellId, spellName, spellSchool)
 	local name, _, icon = GetSpellInfo(spellId)
-	
 	local colorArray = CombatLog_Color_ColorArrayBySchool(spellSchool, DEFAULT_COMBATLOG_FILTER_TEMPLATE)
 	local colorstr = CombatLog_Color_FloatToText(colorArray.r, colorArray.g, colorArray.b, colorArray.a)
 
-	return string.format("|T%s:14|t |c%s%s", icon, colorstr, name)
+	return string.format("%s |c%s%s", FormatIcon(icon), colorstr, name)
+end
+
+local function GetAuraTypeColor(auraType)
+	return auraType == "BUFF" and "|cFF00FF00" or "|cFFFF0000"
+end
+
+local function FormatAuraGain(spellId, spellName, spellSchool, auraType)
+	local name, _, icon = GetSpellInfo(spellId)
+	return string.format("%s %s+%s", FormatIcon(icon), GetAuraTypeColor(auraType), name)
+end
+
+local function FormatAuraFade(spellId, spellName, spellSchool, auraType)
+	local name, _, icon = GetSpellInfo(spellId)
+	return string.format("%s %s-%s", FormatIcon(icon), GetAuraTypeColor(auraType), name)
+end
+
+local function FormatAuraAmount(auraType, amount)
+	return string.format("%s%s%s", GetAuraTypeColor(auraType), amount > 0 and "+" or "", CommaNumber(amount))
 end
 
 local function FormatSwing()
@@ -152,12 +173,12 @@ local function SpellHeal(spellId, spellName, spellSchool, amount, overhealing, a
 	return FormatHeal(amount, critical), FormatSpell(spellId, spellName, spellSchool)
 end
 
-local function SpellAuraApplied(auraType)
-	return "Aura", "Applied"
+local function AuraApplied(spellId, spellName, spellSchool, auraType, amount)
+	return amount and FormatAuraAmount(auraType, amount) or "", FormatAuraGain(spellId, spellName, spellSchool, auraType)
 end
 
-local function SpellAuraRemoved(auraType)
-	return "Aura", "Removed"
+local function AuraRemoved(spellId, spellName, spellSchool, auraType, amount)
+	return amount and FormatAuraAmount(auraType, -amount) or "", FormatAuraFade(spellId, spellName, spellSchool, auraType)
 end
 
 local function SpellCastStart(...)
@@ -234,12 +255,14 @@ local event_formatter_table = {
 	["SPELL_PERIODIC_HEAL"] 	= { SpellHeal, SpellChat, SpellTooltip },
 	["SPELL_BUILDING_HEAL"] 	= { SpellHeal, SpellChat, SpellTooltip },
 	
-	["SPELL_AURA_APPLIED"]		= { AuraApplied, AuraChat, AuraTooltip },
-	["SPELL_AURA_REMOVED"]		= { AuraRemoved, AuraChat, AuraTooltip },
+	["SPELL_AURA_APPLIED"]		= { AuraApplied, SpellChat, SpellTooltip },
+	["SPELL_AURA_REMOVED"]		= { AuraRemoved, SpellChat, SpellTooltip },
+	["SPELL_AURA_APPLIED_DOSE"]	= { AuraApplied, SpellChat, SpellTooltip },
+	["SPELL_AURA_REMOVED_DOSE"]	= { AuraRemoved, SpellChat, SpellTooltip },
 	
-	["SPELL_CAST_START"]		= { CastStart, CastChat, CastTooltip },
-	["SPELL_CAST_FAILED"]		= { CastFailed, CastChat, CastTooltip },
-	["SPELL_CAST_SUCCESS"]		= { CastSuccess, CastChat, CastTooltip },
+	["SPELL_CAST_START"]		= { CastStart, SpellChat, SpellTooltip },
+	["SPELL_CAST_FAILED"]		= { CastFailed, SpellChat, SpellTooltip },
+	["SPELL_CAST_SUCCESS"]		= { CastSuccess, SpellChat, SpellTooltip },
 	
 	-- ["SPELL_INTERRUPT"] 		= { SpellInterrupt, SpellChat, SpellTooltip },
 	
