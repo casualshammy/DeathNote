@@ -1,4 +1,4 @@
- WindowBackdrop = {
+local WindowBackdrop = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
 	tile = true, tileSize = 16, edgeSize = 16,
@@ -19,6 +19,8 @@ local DraggerBackdrop  = {
 	insets = { left = 3, right = 3, top = 7, bottom = 7 }
 }
 
+local filters_label_open = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-open.tga]] .. ":0|t Filters"
+local filters_label_closed = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-closed.tga]] .. ":0|t Filters"
 local normal_hilight = { r = 0, g = 0.3, b = 0.8, a = 0.4 }
 local spell_hilight = { r = 0.5, g = 0.5, b = 0, a = 0.4 }
 local source_hilight = { r = 0.2, g = 0.4, b = 0.8, a = 0.4 }
@@ -119,30 +121,28 @@ function DeathNote:Show()
 		end)
 		
 		-- filters
-		local filters = CreateFrame("Frame", nil, frame)
-		filters:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -34)
-		filters:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
-		filters:SetHeight(30)
+		local filters_frame = CreateFrame("Frame", nil, frame)
+		filters_frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -34)
+		filters_frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+		filters_frame:SetHeight(30)
 		
-		filters:SetBackdrop(PaneBackdrop)
-		filters:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
-		filters:SetBackdropBorderColor(0.4, 0.4, 0.4)
+		filters_frame:SetBackdrop(PaneBackdrop)
+		filters_frame:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
+		filters_frame:SetBackdropBorderColor(0.4, 0.4, 0.4)
 		
-		local filters_label = filters:CreateFontString(nil, "OVERLAY")
+		local filters_label = filters_frame:CreateFontString(nil, "OVERLAY")
 		filters_label:SetPoint("LEFT", 8, 0)
 		filters_label:SetPoint("TOP", 0, -6)
-		filters_label:SetPoint("BOTTOM", filters, "TOP", 0, -25)
+		filters_label:SetPoint("BOTTOM", filters_frame, "TOP", 0, -25)
 		filters_label:SetFontObject(GameFontNormal)		
-		local filters_label_open = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-open.tga]] .. ":12|t Filters"
-		local filters_label_closed = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-closed.tga]] .. ":12|t Filters"				
 		filters_label:SetText(filters_label_closed)
 		
-		local filters_title = CreateFrame("Frame", nil, filters)
+		local filters_title = CreateFrame("Frame", nil, filters_frame)
 		filters_title:SetAllPoints(filters_label)
 		filters_title:EnableMouse()
 		
 		-- tab group
-		local filters_tab = CreateFrame("Frame", "DeathNoteFilters", filters)
+		local filters_tab = CreateFrame("Frame", "DeathNoteFilters", filters_frame)
 		filters_tab:Hide()
 		filters_tab:SetPoint("TOP", filters_title, "BOTTOM", 0, -20)
 		filters_tab:SetPoint("LEFT", 5, 0)
@@ -492,6 +492,7 @@ function DeathNote:Show()
 					order = 3,
 					name = "Reset",
 					type = "execute",
+					width = "half",
 					func = function() DeathNote:SetDisplayFilter("spell_filter", "") DeathNote:SetDisplayFilter("source_filter", "") end,
 				},
 			},
@@ -504,9 +505,25 @@ function DeathNote:Show()
 		others_tab:SetPoint("BOTTOMRIGHT", -8, 8)
 		AceConfig:RegisterOptionsTable("Death Note - Others", others_options)
 		AceConfigDialog:Open("Death Note - Others", others_tab)
-		
+
+		-- final tab setup
+		self.filters_label = filters_label
+		self.filters_frame = filters_frame
+		self.filters_tab = filters_tab
+
+		self.damage_tab = damage_tab
+		self.healing_tab = healing_tab
+		self.auras_tab = auras_tab
 		self.others_tab = others_tab
-		------------------------------
+		
+		self.damage_tab_spacer1 = damage_tab_spacer1
+		self.healing_tab_spacer1 = healing_tab_spacer1
+		self.healing_tab_spacer2 = healing_tab_spacer2
+		self.auras_tab_spacer1 = auras_tab_spacer1
+		self.auras_tab_spacer2 = auras_tab_spacer2
+		self.others_tab_spacer1 = others_tab_spacer1
+		self.others_tab_spacer2 = others_tab_spacer2
+		
 		PanelTemplates_SetNumTabs(filters_tab, 4)
 		
 		filters_tab:SetScript("OnSizeChanged", function(frame, width, height)
@@ -523,65 +540,8 @@ function DeathNote:Show()
 				others_tab:SetHeight(height - 16)
 			end)
 
-		
 		local function Tab_OnClick(frame)
-			filters_tab.selectedTab = frame.ntab
-			PanelTemplates_UpdateTabs(filters_tab)
-			
-			-- this shouldn't be hardcoded, but there weren't so many tabs at the beginning
-			if frame.ntab == 1 then
-				damage_tab_spacer1:Show()
-				healing_tab_spacer1:Hide()
-				healing_tab_spacer2:Hide()
-				auras_tab_spacer1:Hide()
-				auras_tab_spacer2:Hide()
-				others_tab_spacer1:Hide()
-				others_tab_spacer2:Hide()
-				
-				damage_tab.frame:Show()
-				healing_tab.frame:Hide()
-				auras_tab.frame:Hide()
-				others_tab.frame:Hide()
-			elseif frame.ntab == 2 then
-				damage_tab_spacer1:Hide()
-				healing_tab_spacer1:Show()
-				healing_tab_spacer2:Show()
-				auras_tab_spacer1:Hide()
-				auras_tab_spacer2:Hide()
-				others_tab_spacer1:Hide()
-				others_tab_spacer2:Hide()
-				
-				damage_tab.frame:Hide()
-				healing_tab.frame:Show()
-				auras_tab.frame:Hide()
-				others_tab.frame:Hide()
-			elseif frame.ntab == 3 then
-				damage_tab_spacer1:Hide()
-				healing_tab_spacer1:Hide()
-				healing_tab_spacer2:Hide()
-				auras_tab_spacer1:Show()
-				auras_tab_spacer2:Show()
-				others_tab_spacer1:Hide()
-				others_tab_spacer2:Hide()
-				
-				damage_tab.frame:Hide()
-				healing_tab.frame:Hide()
-				auras_tab.frame:Show()
-				others_tab.frame:Hide()
-			elseif frame.ntab == 4 then
-				damage_tab_spacer1:Hide()
-				healing_tab_spacer1:Hide()
-				healing_tab_spacer2:Hide()
-				auras_tab_spacer1:Hide()
-				auras_tab_spacer2:Hide()
-				others_tab_spacer1:Show()
-				others_tab_spacer2:Show()
-				
-				damage_tab.frame:Hide()
-				healing_tab.frame:Hide()
-				auras_tab.frame:Hide()
-				others_tab.frame:Show()
-			end
+			DeathNote:SetFiltersTab(frame.ntab)
 		end
 		
 		damage_tab_button:SetScript("OnClick", Tab_OnClick)
@@ -590,26 +550,13 @@ function DeathNote:Show()
 		others_tab_button:SetScript("OnClick", Tab_OnClick)
 		
 		Tab_OnClick(damage_tab_button)
+
+		self.collapsed = true
+		filters_title:SetScript("OnMouseUp", function() DeathNote:ToggleFiltersFrame() end)
 		
-		local collapsed = true
-		filters_title:SetScript("OnMouseUp", function()
-			if collapsed then
-				filters_label:SetText(filters_label_open)
-				filters:SetHeight(175)
-				filters_tab:Show()
-			else
-				filters_label:SetText(filters_label_closed)
-				filters:SetHeight(30)
-				filters_tab:Hide()
-			end
-			collapsed = not collapsed
-		end)
-		
-		-- filters_title:GetScript("OnMouseUp")()
-	
 		-- name list
 		local name_list_border = CreateFrame("Frame", nil, frame)
-		name_list_border:SetPoint("TOPLEFT", filters, "BOTTOMLEFT", 0, 0)
+		name_list_border:SetPoint("TOPLEFT", filters_frame, "BOTTOMLEFT", 0, 0)
 		name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", self.settings.display.namelist_width, 10)
 		
 		name_list_border:SetBackdrop(PaneBackdrop)
@@ -689,7 +636,7 @@ function DeathNote:Show()
 			
 			local width = name_list_border:GetWidth() + 10
 			name_list_border:ClearAllPoints()
-			name_list_border:SetPoint("TOPLEFT", filters, "BOTTOMLEFT", 0, 0)
+			name_list_border:SetPoint("TOPLEFT", filters_frame, "BOTTOMLEFT", 0, 0)
 			name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", width, 10)
 			self.settings.display.namelist_width = width
 		end
@@ -804,6 +751,90 @@ function DeathNote:Show()
 	self:UpdateNameList()
 end
 
+-- Filters UI		
+function DeathNote:SetFiltersTab(ntab)
+	self.filters_tab.selectedTab = ntab
+	PanelTemplates_UpdateTabs(self.filters_tab)
+	
+	-- this shouldn't be hardcoded
+	if ntab == 1 then
+		self.damage_tab_spacer1:Show()
+		self.healing_tab_spacer1:Hide()
+		self.healing_tab_spacer2:Hide()
+		self.auras_tab_spacer1:Hide()
+		self.auras_tab_spacer2:Hide()
+		self.others_tab_spacer1:Hide()
+		self.others_tab_spacer2:Hide()
+		
+		self.damage_tab.frame:Show()
+		self.healing_tab.frame:Hide()
+		self.auras_tab.frame:Hide()
+		self.others_tab.frame:Hide()
+	elseif ntab == 2 then
+		self.damage_tab_spacer1:Hide()
+		self.healing_tab_spacer1:Show()
+		self.healing_tab_spacer2:Show()
+		self.auras_tab_spacer1:Hide()
+		self.auras_tab_spacer2:Hide()
+		self.others_tab_spacer1:Hide()
+		self.others_tab_spacer2:Hide()
+		
+		self.damage_tab.frame:Hide()
+		self.healing_tab.frame:Show()
+		self.auras_tab.frame:Hide()
+		self.others_tab.frame:Hide()
+	elseif ntab == 3 then
+		self.damage_tab_spacer1:Hide()
+		self.healing_tab_spacer1:Hide()
+		self.healing_tab_spacer2:Hide()
+		self.auras_tab_spacer1:Show()
+		self.auras_tab_spacer2:Show()
+		self.others_tab_spacer1:Hide()
+		self.others_tab_spacer2:Hide()
+		
+		self.damage_tab.frame:Hide()
+		self.healing_tab.frame:Hide()
+		self.auras_tab.frame:Show()
+		self.others_tab.frame:Hide()
+	elseif ntab == 4 then
+		self.damage_tab_spacer1:Hide()
+		self.healing_tab_spacer1:Hide()
+		self.healing_tab_spacer2:Hide()
+		self.auras_tab_spacer1:Hide()
+		self.auras_tab_spacer2:Hide()
+		self.others_tab_spacer1:Show()
+		self.others_tab_spacer2:Show()
+		
+		self.damage_tab.frame:Hide()
+		self.healing_tab.frame:Hide()
+		self.auras_tab.frame:Hide()
+		self.others_tab.frame:Show()
+	end
+end
+		
+function DeathNote:ToggleFiltersFrame(show)
+	if show ~= nil then
+		self.collapsed = show
+	end
+	
+	if self.collapsed then
+		self.filters_label:SetText(filters_label_open)
+		self.filters_frame:SetHeight(175)
+		self.filters_tab:Show()
+	else
+		self.filters_label:SetText(filters_label_closed)
+		self.filters_frame:SetHeight(30)
+		self.filters_tab:Hide()
+	end
+	
+	self.collapsed = not self.collapsed
+end
+
+function DeathNote:ShowFiltersTab(ntab)
+	self:SetFiltersTab(ntab)
+	self:ToggleFiltersFrame(true)
+end
+		
 ------------------------------------------------------------------------------
 -- UnitPopup support
 ------------------------------------------------------------------------------
@@ -1096,8 +1127,8 @@ local function SwingDamageAmount(amount, overkill)
 	return amount, overkill
 end
 
-local function EnvironmentalAmount(environmentalType, amount, overkill)
-	return amount, overkill
+local function EnvironmentalAmount(environmentalType, amount)
+	return amount, 1
 end
 
 local function SpellInstakillAmount()
@@ -1374,7 +1405,8 @@ function DeathNote:AddSpellFilter(entry)
 	if spellname then
 		self.settings.display_filters.spell_filter[string.lower(spellname)] = spellname
 		LibStub("AceConfigDialog-3.0"):Open("Death Note - Others", self.others_tab)
-		self:RefreshFilters()		
+		self:RefreshFilters()
+		self:ShowFiltersTab(4)
 	end
 end
 
@@ -1384,6 +1416,7 @@ function DeathNote:AddSourceFilter(entry)
 	self.settings.display_filters.source_filter[string.lower(source)] = source
 	LibStub("AceConfigDialog-3.0"):Open("Death Note - Others", self.others_tab)
 	self:RefreshFilters()
+	self:ShowFiltersTab(4)
 end
 
 function DeathNote:SetSpellHilight(entry)
@@ -1721,14 +1754,19 @@ local function ListBox_ClearAllLines(self)
 	wipe(self.lines)
 end
 
-function ListBox_ScrollFrame_OnSizeChanged(frame, width, height)
+function ListBox_ScrollFrame_OnSizeChanged(frame)
 	local self = frame.obj
 	
 	-- Update Scrollbar	
 	local height = self.scrollframe:GetHeight()
 	local content_height = #self.lines * 12 + 8
-	
+
 	self.content:SetHeight(content_height)
+	
+	local cscale = self.content:GetScale()
+	
+	content_height = content_height * cscale
+	
 	
 	if height >= content_height then
 		self.content:SetPoint("TOPRIGHT")
@@ -1741,28 +1779,35 @@ function ListBox_ScrollFrame_OnSizeChanged(frame, width, height)
 	end
 end
 
+local function ListBox_SetScale(self, scale)
+	DeathNote:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
+	self.content:SetScale(scale)
+	
+	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
+	
+	if self.scale_callback then
+		self.scale_callback(scale)
+	end
+end
+
 local function ListBox_ScrollFrame_OnMouseWheel(frame, value)
 	local self = frame.obj
 	
 	if IsControlKeyDown() then
 		local scale = self.content:GetScale() + 0.05 * -value
-			if scale >= 0.5 and scale <= 2.0 then
-			DeathNote:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
-			self.content:SetScale(scale)
-			
-			if self.scale_callback then
-				self.scale_callback(scale)
-			end
+		if scale >= 0.5 and scale <= 2.0 then
+			ListBox_SetScale(self, scale)
 		end
 	else	
 		local l, h = self.scrollbar:GetMinMaxValues()
-		self.scrollbar:SetValue(min(max(self.scrollbar:GetValue() - value*45, l), h))
+		self.scrollbar:SetValue(min(max(self.scrollbar:GetValue() - value * 36 * self.content:GetScale(), l), h))
 	end
 end
 	
 local function ListBox_ScrollBar_OnValueChanged(frame, value)
 	local self = frame.obj
 
+	value = value / self.content:GetScale()
 	self.content:SetPoint("TOPLEFT", 0, value)
 	self.content:SetPoint("TOPRIGHT", -20, value)
 end
