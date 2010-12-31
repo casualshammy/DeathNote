@@ -20,24 +20,32 @@ function DeathNote:OnInitialize()
 			},
 			
 			display = {
+				x = 0, y = 0, w = 700, h = 500,
+				namelist_width = 220,
 				namelist = 1,
 				timestamp = 1,
 				health = 1,
+				scale = 1,
+				columns = { 60, 90, 60, 100 },
 			},
 			
 			display_filters = {
 				damage_threshold = 0,
+				hide_misses = false,
 				consolidate_damage = false,
 				
 				heal_threshold = 0,
-				consolidate_heal = false,
+				consolidate_heals = false,
 				
-				show_buff_gains = false,
-				show_buff_fades = false,
-				show_debuff_gains = false,
-				show_debuff_fades = false,
+				buff_gains = false,
+				buff_fades = false,
+				debuff_gains = false,
+				debuff_fades = false,
 				survival_buffs = true,
-				consolidate_auras = false,				
+				consolidate_auras = false,
+				
+				spell_filter = {},
+				source_filter = {},
 			},
 		},
 	})
@@ -50,7 +58,7 @@ function DeathNote:OnInitialize()
 	
 	-- Register LDB object
 	self.ldb = LibStub("LibDataBroker-1.1"):NewDataObject("DeathNote", {
-		type = "launcher",
+		type = "data source",
 		label = "|cFF8F8F8FDeath Note|r",
 		text = "|cFF8F8F8FDeath Note|r",
 		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
