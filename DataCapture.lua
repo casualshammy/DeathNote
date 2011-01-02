@@ -63,7 +63,10 @@ local function UnitDiedFilter(timestamp, event, sourceGUID, sourceName, sourceFl
 		end
 	end
 	
-	tinsert(deaths, { timestamp, destGUID, destName, destFlags })
+	local death = { timestamp, destGUID, destName, destFlags }
+	tinsert(deaths, death)
+
+	DeathNote:AnnounceDeath(death)
 	
 	-- UpdateNameList does nothing when the frame is hidden
 	DeathNote:UpdateNameList()
@@ -284,12 +287,43 @@ local function IsFiltered(sourceFlags, destFlags)
 	return false
 end
 
+local function build_tuple_constructor(n)
+	local t = {}
+	for i = 1, n do
+		t[i] = "a" .. i
+	end
+	local arglist = table.concat(t, ',')
+
+	local t2 = {}
+	for i = 1, n do
+		local v = "a" .. i 
+		t2[i] = v .. " ~= nil and " .. v .. " or false"
+	end
+	local arglist2 = table.concat(t2, ',')
+
+	local src = "return function(" .. arglist .. ") return { " .. arglist2 .. " } end"
+	
+	return loadstring(src)()
+end
+
+local tuple_constructors = setmetatable({}, {__index=function(self, n)
+	local constructor = build_tuple_constructor(n)
+	rawset(self, n, constructor)
+	return constructor
+end})
+
+local function tuple(...)
+	local construct = tuple_constructors[select('#', ...)]
+	return construct(...)
+end
+
+
 function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
 	local handler = event_handler_table[event]
 	if handler and IsFiltered(sourceFlags, destFlags) then
 		local hp = destName and UnitHealth(destName) or 0
 		local hpmax = destName and UnitHealthMax(destName) or 0
-		local entry = { hp, hpmax, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ... }
+		local entry = tuple(hp, hpmax, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
 		
 		local t = floor(timestamp)
 		

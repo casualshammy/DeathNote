@@ -1,8 +1,8 @@
 DeathNote.Options = {
 	type = "group",
-	inline = true,
 	args = {
-		graphics = {
+		data_capture = {
+			order = 1,
 			name = "Data capture",
 			type = "group",
 			args = {
@@ -141,5 +141,106 @@ DeathNote.Options = {
 				},
 			},
 		},
+		
+		announce = {
+			order = 2,
+			name = "Announce",
+			type = "group",
+			args = {
+				announce = {
+					order = 10,
+					name = "Announce deaths",
+					type = "toggle",
+					width = "full",
+					get = function() return DeathNote.settings.announce.enabled end,
+					set = function(_, v) DeathNote.settings.announce.enabled = v end,
+				},
+				
+				announce_unknown = {
+					order = 11,
+					name = "Announce deaths with an unknown cause",
+					type = "toggle",
+					width = "full",
+					disabled = function() return not DeathNote.settings.announce.enabled end,
+					get = function() return DeathNote.settings.announce.announce_unknown end,
+					set = function(_, v) DeathNote.settings.announce.announce_unknown = v end,
+				},
+				
+				channel = {
+					order = 20,
+					name = "Output channel",
+					type = "select",
+					disabled = function() return not DeathNote.settings.announce.enabled end,
+					values = {
+						["CHATFRAME"] = "Chat frame",
+						["PARTY"] = "Party",
+						["RAID"] = "Raid",
+						["GROUP"] = "Group (party or raid)",
+						["RW"] = "Raid Warning",
+						["GUILD"] = "Guild",
+						["OFFICER"] = "Officer",
+					},
+					get = function() return DeathNote.settings.announce.channel end,
+					set = function(_, v) DeathNote.settings.announce.channel = v end,
+				},
+				
+				format = {
+					order = 30,
+					name = "Style",
+					type = "select",
+					style = "radio",
+					disabled = function() return not DeathNote.settings.announce.enabled end,
+					values = {
+						["COMBAT_LOG"] = "Combat log line",
+						["FORMATTED"] = "Formatted",
+					},
+					get = function() return DeathNote.settings.announce.style end,
+					set = function(_, v) DeathNote.settings.announce.style = v end,
+				},
+				
+				format_style = {
+					order = 40,
+					name = "Formatted options",
+					type = "group",
+					inline = true,
+					disabled = function() return not DeathNote.settings.announce.enabled or DeathNote.settings.announce.style ~= "FORMATTED" end,
+					args = {
+						format_damage = {
+							order = 10,
+							name = "Include damage",
+							type = "toggle",
+							get = function() return DeathNote.settings.announce.format_damage end,
+							set = function(_, v) DeathNote.settings.announce.format_damage = v end,
+						},
+
+						format_resisted = {
+							order = 20,
+							name = "Include amount resisted/blocked/absorbed",
+							type = "toggle",
+							width = "double",
+							get = function() return DeathNote.settings.announce.format_resist end,
+							set = function(_, v) DeathNote.settings.announce.format_resist = v end,
+						},
+
+						format_hittype = {
+							order = 30,
+							name = "Include hit type (critical, crushing, etc)",
+							type = "toggle",
+							width = "double",
+							get = function() return DeathNote.settings.announce.format_hittype end,
+							set = function(_, v) DeathNote.settings.announce.format_hittype = v end,
+						},
+
+						format_overkill = {
+							order = 40,
+							name = "Include overkill",
+							type = "toggle",
+							get = function() return DeathNote.settings.announce.format_overkill end,
+							set = function(_, v) DeathNote.settings.announce.format_overkill = v end,
+						},						
+					},
+				},
+			},
+		},		
 	},
 }

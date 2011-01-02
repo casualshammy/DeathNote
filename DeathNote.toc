@@ -35,3 +35,4 @@ Format.lua
 Options.lua
 SurvivalIDs.lua
 Data.lua
+Announce.lua
