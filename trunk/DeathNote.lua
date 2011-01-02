@@ -72,7 +72,7 @@ function DeathNote:OnInitialize()
 					DeathNote:ResetData()
 					DeathNote:UpdateLDB()
 				else
-					DeathNote:Show()
+					DeathNote:ShowUnit(UnitName("target"))
 				end
 			elseif button == "RightButton" then
 				InterfaceOptionsFrame_OpenToCategory("Death Note")

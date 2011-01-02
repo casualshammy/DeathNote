@@ -1,9 +1,9 @@
 local function CommaNumber(num)
-	local found = 1
+	local found
 	
-	while found > 0 do
-		num, found = string.gsub(num, "(%d)(%d%d%d)$", "%1,%2", 1)
-	end
+	repeat
+		num, found = string.gsub(num, "(%d)(%d%d%d)$", "%1,%2")
+	until found == 0
 	
 	return num
 end
@@ -179,18 +179,6 @@ end
 
 local function AuraRemoved(spellId, spellName, spellSchool, auraType, amount)
 	return amount and FormatAuraAmount(auraType, -amount) or "", FormatAuraFade(spellId, spellName, spellSchool, auraType)
-end
-
-local function SpellCastStart(...)
-	return "Cast", "Start"
-end
-
-local function SpellCastFailed(...)
-	return "Cast", "Failed"
-end
-
-local function SpellCastSuccess(...)
-	return "Cast", "Success"
 end
 
 local function UnitDied()
