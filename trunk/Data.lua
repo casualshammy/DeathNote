@@ -62,25 +62,37 @@ local function SpellHealAmount(spellId, spellName, spellSchool, amount)
 end
 
 -- SpellId readers
-function SpellSpellId(spellId, spellName, spellSchool)
+local function SpellSpellId(spellId, spellName, spellSchool)
 	return spellId, spellName, spellSchool
 end
 
-function SwingSpellId(amount, overkill, school)
+local function SwingSpellId(amount, overkill, school)
 	return ACTION_SWING, ACTION_SWING, school
 end
 
-function EnvironmentalSpellId(environmentalType, amount, overkill, school)
+local function EnvironmentalSpellId(environmentalType, amount, overkill, school)
 	return _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], school
+end
+
+local function ExtraSpellId(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool)
+	return extraSpellId, extraSpellName, extraSpellSchool
 end
 
 -- Aura readers
 local function AuraApplied(spellId, spellName, spellSchool, auraType, amount)
-	return true, auraType, amount, spellId, spellName, spellSchool
+	return true, auraType, amount, spellId, spellName, spellSchool, false
 end
 
 local function AuraRemoved(spellId, spellName, spellSchool, auraType, amount)
-	return false, auraType, amount, spellId, spellName, spellSchool
+	return false, auraType, amount, spellId, spellName, spellSchool, false
+end
+
+local function AuraBrokenSpell(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool, auraType)
+	return false, auraType, 0, spellId, spellName, spellSchool, true
+end
+
+local function AuraDispel(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool, auraType)
+	return false, auraType, 0, extraSpellId, extraSpellName, extraSpellSchool, true
 end
 
 local event_reader_table = {
@@ -110,12 +122,20 @@ local event_reader_table = {
 	["SPELL_AURA_REMOVED"]		= { nil, nil, SpellSpellId, AuraRemoved },
 	["SPELL_AURA_APPLIED_DOSE"]	= { nil, nil, SpellSpellId, AuraApplied },
 	["SPELL_AURA_REMOVED_DOSE"]	= { nil, nil, SpellSpellId, AuraRemoved },
+	["SPELL_AURA_REFRESH"]		= { nil, nil, SpellSpellId, AuraApplied },
+	["SPELL_AURA_BROKEN"]		= { nil, nil, SpellSpellId, AuraRemoved },
+	["SPELL_AURA_BROKEN_SPELL"]	= { nil, nil, SpellSpellId, AuraBrokenSpell },
 	
+	["SPELL_DISPEL"]			= { nil, nil, ExtraSpellId, AuraDispel },
+	-- ["SPELL_DISPEL_FAILED"]		= true,
+	["SPELL_STOLEN"]			= { nil, nil, ExtraSpellId, AuraDispel },
+
+	["SPELL_INTERRUPT"] 		= { nil, nil, ExtraSpellId },
+
 	-- ["SPELL_CAST_START"]		= { CastStart, CastChat, CastTooltip },
 	-- ["SPELL_CAST_FAILED"]		= { CastFailed, CastChat, CastTooltip },
 	-- ["SPELL_CAST_SUCCESS"]		= { CastSuccess, CastChat, CastTooltip },
 	
-	-- ["SPELL_INTERRUPT"] 		= { SpellInterrupt, SpellChat, SpellTooltip },
 	
 	["SPELL_INSTAKILL"]			= { SpellInstakillAmount, nil, SpellSpellId },
 
@@ -179,44 +199,59 @@ function DeathNote:IsEntryOverThreshold(entry)
 	return true
 end
 
+local auras_broken = {} -- dispel, steal, break
+function DeathNote:ResetFiltering()
+	wipe(auras_broken)
+end
+
 function DeathNote:IsEntryFiltered(entry)
+	local timestamp = entry[3]
+	local auraGain, auraType, _, auraSpellId, _, _, auraBroken = self:GetEntryAura(entry)
+
 	if self.settings.display_filters.hide_misses then
 		local miss = self:GetEntryMiss(entry)
 		if miss then
 			return false
 		end
 	end	
+	
 	if self.settings.display_filters.survival_buffs then
-		local gain, _, _, spellid = self:GetEntryAura(entry)
-		if self.SurvivalIDs[spellid] then
+		if self.SurvivalIDs[auraSpellId] then
 			return true
 		end	
 	end
 	
 	if not self.settings.display_filters.buff_gains then
-		local gain, auraType = self:GetEntryAura(entry)
-		if gain and auraType == "BUFF" then
+		if auraGain and auraType == "BUFF" then
 			return false
 		end
 	end
 
 	if not self.settings.display_filters.buff_fades then
-		local gain, auraType = self:GetEntryAura(entry)
-		if not gain and auraType == "BUFF" then
+		if not auraGain and auraType == "BUFF" then
 			return false
 		end
 	end
 
 	if not self.settings.display_filters.debuff_gains then
-		local gain, auraType = self:GetEntryAura(entry)
-		if gain and auraType == "DEBUFF" then
+		if auraGain and auraType == "DEBUFF" then
 			return false
 		end
 	end
 	
 	if not self.settings.display_filters.debuff_fades then
-		local gain, auraType = self:GetEntryAura(entry)
-		if not gain and auraType == "DEBUFF" then
+		if not auraGain and auraType == "DEBUFF" then
+			return false
+		end
+	end
+	
+	-- Remove fades when a break is detected
+	if auraBroken then
+		auras_broken[auraSpellId] = timestamp
+	elseif auraSpellId and auras_broken[auraSpellId] then
+		local aurat = auras_broken[auraSpellId]
+		auras_broken[auraSpellId] = nil
+		if (aurat - timestamp) < 1 then
 			return false
 		end
 	end

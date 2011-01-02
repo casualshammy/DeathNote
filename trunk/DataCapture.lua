@@ -103,9 +103,6 @@ local event_handler_table = {
 	["SPELL_AURA_BROKEN"]		= true,
 	["SPELL_AURA_BROKEN_SPELL"]	= true,
 	
-	["SPELL_CAST_START"]		= true,
-	["SPELL_CAST_SUCCESS"]		= SpellCastSuccessFilter,
-	
 	["SPELL_DISPEL"]			= true,
 	["SPELL_DISPEL_FAILED"]		= true,
 	["SPELL_STOLEN"]			= true,
@@ -113,6 +110,9 @@ local event_handler_table = {
 	["SPELL_INTERRUPT"] 		= true,
 	
 	["SPELL_INSTAKILL"]			= true,
+	
+	["SPELL_CAST_START"]		= true,
+	["SPELL_CAST_SUCCESS"]		= SpellCastSuccessFilter,
 	
 	["UNIT_DIED"] 				= UnitDiedFilter,
 }

@@ -1173,6 +1173,8 @@ function DeathNote:ShowDeath(death)
 
 	self.current_death = death
 	
+	self:ResetFiltering()
+	
 	for entry in self:IterateDeath(death, self.settings.death_time) do
 		self:ProcessDeathEntry(entry)
 	end
@@ -1193,7 +1195,7 @@ local prev
 local group -- { { entries }, "type", hp, hpmax, t1, t2, { spells }, { sources } }
 function DeathNote:ProcessDeathEntry(entry)
 	if entry then
-		if self:IsEntryFiltered(entry) then	
+		if self:IsEntryFiltered(entry) then
 			if self:IsEntryOverThreshold(entry) then
 				self:AddDeathEntry(entry)
 			end

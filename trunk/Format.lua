@@ -92,30 +92,66 @@ local function FormatIcon(icon)
 	return string.format("|T%s:0:0:0:0:64:64:4:60:4:60|t", icon)
 end
 
-function FormatSpell(spellId, spellName, spellSchool)
+local function FormatSpell(spellId, spellName, spellSchool)
 	local name, _, icon = GetSpellInfo(spellId)
 	local colorArray = CombatLog_Color_ColorArrayBySchool(spellSchool, DEFAULT_COMBATLOG_FILTER_TEMPLATE)
 	local colorstr = CombatLog_Color_FloatToText(colorArray.r, colorArray.g, colorArray.b, colorArray.a)
 
-	return string.format("%s |c%s%s|r", FormatIcon(icon), colorstr, name)
+	return string.format("%s|c%s|Hspell:%i|h%s|h|r", FormatIcon(icon), colorstr, spellId, name)
 end
 
 local function GetAuraTypeColor(auraType)
 	return auraType == "BUFF" and "|cFF00FF00" or "|cFFFF0000"
 end
 
-local function FormatAuraGain(spellId, spellName, spellSchool, auraType)
-	local name, _, icon = GetSpellInfo(spellId)
-	return string.format("%s %s+%s|r", FormatIcon(icon), GetAuraTypeColor(auraType), name)
+local function GetInverseAuraTypeColor(auraType)
+	return auraType == "DEBUFF" and "|cFF00FF00" or "|cFFFF0000"
 end
 
-local function FormatAuraFade(spellId, spellName, spellSchool, auraType)
-	local name, _, icon = GetSpellInfo(spellId)
-	return string.format("%s %s-%s|r", FormatIcon(icon), GetAuraTypeColor(auraType), name)
+local function FormatAuraType(auraType)
+	if auraType == "BUFF" then
+		return "Buff"
+	elseif auraType == "DEBUFF" then
+		return "Debuff"
+	else
+		return auraType
+	end
 end
 
-local function FormatAuraAmount(auraType, amount)
-	return string.format("%s%s%s|r", GetAuraTypeColor(auraType), amount > 0 and "+" or "", CommaNumber(amount))
+local function FormatAuraApplied(auraType, amount)
+	if amount and amount > 0 then
+		return string.format("%s<+%s>|r", GetAuraTypeColor(auraType), CommaNumber(amount))
+	else
+		return string.format("%s+%s|r", GetAuraTypeColor(auraType), FormatAuraType(auraType))
+	end
+end
+
+local function FormatAuraRemoved(auraType, amount)
+	if amount and amount > 0 then
+		return string.format("%s<-%s>|r", GetInverseAuraTypeColor(auraType), CommaNumber(amount))
+	else
+		return string.format("%s-%s|r", GetInverseAuraTypeColor(auraType), FormatAuraType(auraType))
+	end
+end
+
+local function FormatAuraRefresh(auraType)
+	return string.format("%s<Refresh>|r", GetAuraTypeColor(auraType))
+end
+
+local function FormatAuraBroken(auraType)
+	return string.format("%s<Break>|r", GetAuraTypeColor(auraType))
+end
+
+local function FormatDispel(auraType)
+	return string.format("%s<Dispel>|r", GetInverseAuraTypeColor(auraType))
+end
+
+local function FormatStolen(auraType)
+	return string.format("%s<Steal>|r", GetInverseAuraTypeColor(auraType))	
+end
+
+local function FormatInterrupt()
+	return "|cFFFF0000<Interrupt>|r"
 end
 
 local function FormatSwing()
@@ -174,11 +210,31 @@ local function SpellHeal(spellId, spellName, spellSchool, amount, overhealing, a
 end
 
 local function AuraApplied(spellId, spellName, spellSchool, auraType, amount)
-	return amount and FormatAuraAmount(auraType, amount) or "", FormatAuraGain(spellId, spellName, spellSchool, auraType)
+	return FormatAuraApplied(auraType, amount), FormatSpell(spellId, spellName, spellSchool)
 end
 
 local function AuraRemoved(spellId, spellName, spellSchool, auraType, amount)
-	return amount and FormatAuraAmount(auraType, -amount) or "", FormatAuraFade(spellId, spellName, spellSchool, auraType)
+	return FormatAuraRemoved(auraType, amount), FormatSpell(spellId, spellName, spellSchool)
+end
+
+local function AuraRefresh(spellId, spellName, spellSchool, auraType, amount)
+	return FormatAuraRefresh(auraType), FormatSpell(spellId, spellName, spellSchool)
+end
+
+local function AuraBrokenSpell(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool, auraType)
+	return FormatAuraBroken(auraType), FormatSpell(spellId, spellName, spellSchool)
+end
+
+local function Dispel(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool, auraType)
+	return FormatDispel(auraType), FormatSpell(extraSpellId, extraSpellName, extraSpellSchool)
+end
+
+local function Stolen(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool, auraType)
+	return FormatStolen(auraType), FormatSpell(extraSpellId, extraSpellName, extraSpellSchool)
+end
+
+local function Interrupt(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool)
+	return FormatInterrupt(), FormatSpell(extraSpellId, extraSpellName, extraSpellSchool)
 end
 
 local function UnitDied()
@@ -202,6 +258,10 @@ local function UnitDiedChat()
 	return "Death"
 end
 
+local function ExtraSpellChat(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSchool)
+	return GetSpellLink(extraSpellId)
+end
+
 -- Tooltip formatters
 local function SpellTooltip(spellId, spellName, spellSchool)
 	GameTooltip:SetSpellByID(spellId)
@@ -214,6 +274,11 @@ end
 
 local function EnvironmentalTooltip(environmentalType, amount)
 	return false
+end
+
+local function ExtraSpellTooltip(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSchool)
+	GameTooltip:SetSpellByID(extraSpellId)
+	return true
 end
 
 local function UnitDiedTooltip()
@@ -247,14 +312,20 @@ local event_formatter_table = {
 	["SPELL_AURA_REMOVED"]		= { AuraRemoved, SpellChat, SpellTooltip },
 	["SPELL_AURA_APPLIED_DOSE"]	= { AuraApplied, SpellChat, SpellTooltip },
 	["SPELL_AURA_REMOVED_DOSE"]	= { AuraRemoved, SpellChat, SpellTooltip },
+	["SPELL_AURA_REFRESH"]		= { AuraRefresh, SpellChat, SpellTooltip },
+	["SPELL_AURA_BROKEN"]		= { AuraRemoved, SpellChat, SpellTooltip },
+	["SPELL_AURA_BROKEN_SPELL"]	= { AuraBrokenSpell, SpellChat, SpellTooltip },
 	
-	["SPELL_CAST_START"]		= { CastStart, SpellChat, SpellTooltip },
-	["SPELL_CAST_FAILED"]		= { CastFailed, SpellChat, SpellTooltip },
-	["SPELL_CAST_SUCCESS"]		= { CastSuccess, SpellChat, SpellTooltip },
-	
-	-- ["SPELL_INTERRUPT"] 		= { SpellInterrupt, SpellChat, SpellTooltip },
+	["SPELL_DISPEL"]			= { Dispel, ExtraSpellChat, ExtraSpellTooltip },
+	-- ["SPELL_DISPEL_FAILED"]		= true,
+	["SPELL_STOLEN"]			= { Stolen, SpellChat, SpellTooltip },
+
+	["SPELL_INTERRUPT"] 		= { Interrupt, ExtraSpellChat, ExtraSpellTooltip },
 	
 	["SPELL_INSTAKILL"]			= { SpellInstakill, SpellChat, SpellTooltip },
+
+	-- ["SPELL_CAST_START"]		= { CastStart, SpellChat, SpellTooltip },
+	-- ["SPELL_CAST_SUCCESS"]		= { CastSuccess, SpellChat, SpellTooltip },
 
 	["UNIT_DIED"] 				= { UnitDied, UnitDiedChat, UnitDiedTooltip },
 }
