@@ -268,7 +268,6 @@ function DeathNote:Show()
 		damage_tab:SetPoint("BOTTOMRIGHT", -8, 8)
 		AceConfig:RegisterOptionsTable("Death Note - Damage", damage_options)
 		AceConfigDialog:Open("Death Note - Damage", damage_tab)
-		
 			
 		-- healing tab
 		local healing_tab_button = CreateFrame("Button", "DeathNoteFiltersTab2", filters_tab, "OptionsFrameTabButtonTemplate")
@@ -406,7 +405,7 @@ function DeathNote:Show()
 						survival_buffs = {
 							order = 5,
 							type = "toggle",
-							name = "Survival buffs",
+							name = "Survival cooldowns",
 							get = function() return DeathNote.settings.display_filters.survival_buffs end,
 							set = function(_, v) DeathNote:SetDisplayFilter("survival_buffs", v) end,
 						},
@@ -553,6 +552,20 @@ function DeathNote:Show()
 
 		self.collapsed = true
 		filters_title:SetScript("OnMouseUp", function() DeathNote:ToggleFiltersFrame() end)
+		
+		-- tools frame
+		local tools_frame = CreateFrame("Frame", nil, filters_frame)
+		tools_frame:SetPoint("TOPRIGHT", -8, -9)
+		tools_frame:SetWidth(12)
+		tools_frame:SetHeight(12)
+		tools_frame:EnableMouse()
+		
+		local tools_icon = tools_frame:CreateTexture(nil, "OVERLAY")
+		tools_icon:SetAllPoints()
+		tools_icon:SetTexture([[Interface\AddOns\DeathNote\Textures\gear.tga]])		
+		
+		self.tools_frame = tools_frame
+		tools_frame:SetScript("OnMouseUp", function() self:ShowToolsMenu() end)
 		
 		-- name list
 		local name_list_border = CreateFrame("Frame", nil, frame)
@@ -706,7 +719,7 @@ function DeathNote:Show()
 				elseif button == "RightButton" then
 					-- menu
 					self.dropdown_line = line
-					self:ShowDropDownMenu()
+					self:ShowLineMenu()
 				end
 			end,
 			function(column, userdata)
@@ -855,7 +868,7 @@ function DeathNote:ShowUnit(name)
 end
 
 function DeathNote:AddToUnitPopup()
-	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET", "PLAYER", "FRIEND" }
+	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET" }
 	
 	for i, v in ipairs(types) do
 		tinsert(UnitPopupMenus[v], #UnitPopupMenus[v], "SHOW_DEATH_NOTE")
@@ -904,10 +917,56 @@ function DeathNote:UnitPopup_ShowMenu(dropdownMenu, which, unit, name, userData,
 end
 
 ------------------------------------------------------------------------------
--- Drop down menu
+-- Tools menu
 ------------------------------------------------------------------------------
 
-function DeathNote.LogFrameDropDownInitialize(self, level)
+ function DeathNote:ShowToolsMenu()
+	if not self.tools_dropdownframe then
+		self.tools_dropdownframe = CreateFrame("Frame", nil, nil, "UIDropDownMenuTemplate")		
+		self.tools_dropdownframe.displayMode = "MENU"
+		self.tools_dropdownframe.initialize = self.ToolsDropDownInitialize				
+	end
+	
+	ToggleDropDownMenu(1, nil, self.tools_dropdownframe, "cursor")
+ 
+ end
+
+function DeathNote.ToolsDropDownInitialize(self, level) 
+ 	local info = {}
+	
+	if not level then return end
+
+	if level == 1 then
+		info.text = "Options"
+		info.value = "OPTIONS"
+		info.notCheckable = 1
+		info.func = function() InterfaceOptionsFrame_OpenToCategory("Death Note") end
+		UIDropDownMenu_AddButton(info, level)
+
+		info.text = "Reset data"
+		info.value = "RESETDATA"
+		info.notCheckable = 1
+		info.func = function() DeathNote:ResetData() end
+		UIDropDownMenu_AddButton(info, level)
+	end
+end
+
+ 
+------------------------------------------------------------------------------
+-- Line menu
+------------------------------------------------------------------------------
+
+function DeathNote:ShowLineMenu(line)
+	if not self.dropdownframe then
+		self.dropdownframe = CreateFrame("Frame", nil, nil, "UIDropDownMenuTemplate")		
+		self.dropdownframe.displayMode = "MENU"
+		self.dropdownframe.initialize = self.LineDropDownInitialize				
+	end
+	
+	ToggleDropDownMenu(1, nil, self.dropdownframe, "cursor")
+end
+
+function DeathNote.LineDropDownInitialize(self, level)
 	local info = {}
 	
 	if not level then return end
@@ -954,16 +1013,6 @@ function DeathNote.LogFrameDropDownInitialize(self, level)
 
 end
 
-function DeathNote:ShowDropDownMenu(line)
-	if not self.dropdownframe then
-		self.dropdownframe = CreateFrame("Frame", nil, nil, "UIDropDownMenuTemplate")		
-		self.dropdownframe.displayMode = "MENU"
-		self.dropdownframe.initialize = self.LogFrameDropDownInitialize				
-	end
-	
-	ToggleDropDownMenu(1, nil, self.dropdownframe, "cursor")
-end
-
 ------------------------------------------------------------------------------
 -- Name list
 ------------------------------------------------------------------------------
@@ -1003,14 +1052,10 @@ local function NameList_OnEnter(frame)
 	GameTooltip:SetOwner(frame, "ANCHOR_NONE")
 	GameTooltip:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT")
 
-	local have_tip = false
-
 	local entry = DeathNote:GetKillingBlow(frame.userdata)
+
+	local have_tip = entry and DeathNote:FormatTooltipAmount(entry)
 	
-	if entry then
-		have_tip = DeathNote:FormatTooltipAmount(entry)
-	end
-		
 	if have_tip then
 		GameTooltip:Show()
 	end
@@ -1118,222 +1163,6 @@ end
 -- ShowDeath
 ------------------------------------------------------------------------------
 
--- Overkill readers
-local function SpellDamageAmount(spellId, spellName, spellSchool, amount, overkill)
-	return amount, overkill
-end
-
-local function SwingDamageAmount(amount, overkill)
-	return amount, overkill
-end
-
-local function EnvironmentalAmount(environmentalType, amount)
-	return amount, 1
-end
-
-local function SpellInstakillAmount()
-	return 1e20, 1
-end
-
--- Heal readers
-local function SpellHealAmount(spellId, spellName, spellSchool, amount)
-	return amount
-end
-
--- SpellId readers
-function SpellSpellId(spellId, spellName, spellSchool)
-	return spellId, spellName, spellSchool
-end
-
-function SwingSpellId(amount, overkill, school)
-	return ACTION_SWING, ACTION_SWING, school
-end
-
-function EnvironmentalSpellId(environmentalType, amount, overkill, school)
-	return _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], school
-end
-
--- Aura readers
-local function AuraApplied(spellId, spellName, spellSchool, auraType, amount)
-	return true, auraType, amount, spellId, spellName, spellSchool
-end
-
-local function AuraRemoved(spellId, spellName, spellSchool, auraType, amount)
-	return false, auraType, amount, spellId, spellName, spellSchool
-end
-
-local event_reader_table = {
-	["SPELL_DAMAGE"] 			= { SpellDamageAmount, nil, SpellSpellId },
-	["SPELL_PERIODIC_DAMAGE"] 	= { SpellDamageAmount, nil, SpellSpellId },
-	["SPELL_BUILDING_DAMAGE"] 	= { SpellDamageAmount, nil, SpellSpellId },
-	["RANGE_DAMAGE"] 			= { SpellDamageAmount, nil, SpellSpellId },
-	["DAMAGE_SHIELD"] 			= { SpellDamageAmount, nil, SpellSpellId },
-	["DAMAGE_SPLIT"] 			= { SpellDamageAmount, nil, SpellSpellId },
-
-	["SPELL_MISSED"] 			= { nil, nil, SpellSpellId, nil, true },
-	["SPELL_PERIODIC_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
-	["SPELL_BUILDING_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
-	["DAMAGE_SHIELD_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
-
-	["SWING_DAMAGE"] 			= { SwingDamageAmount, nil, SwingSpellId },
-
-	["SWING_MISSED"] 			= { nil, nil, SwingSpellId, nil, true },
-
-	["ENVIRONMENTAL_DAMAGE"] 	= { EnvironmentalAmount, nil, EnvironmentalSpellId },
-
-	["SPELL_HEAL"] 				= { nil, SpellHealAmount, SpellSpellId },
-	["SPELL_PERIODIC_HEAL"] 	= { nil, SpellHealAmount, SpellSpellId },
-	["SPELL_BUILDING_HEAL"] 	= { nil, SpellHealAmount, SpellSpellId },
-	
-	["SPELL_AURA_APPLIED"]		= { nil, nil, SpellSpellId, AuraApplied },
-	["SPELL_AURA_REMOVED"]		= { nil, nil, SpellSpellId, AuraRemoved },
-	["SPELL_AURA_APPLIED_DOSE"]	= { nil, nil, SpellSpellId, AuraApplied },
-	["SPELL_AURA_REMOVED_DOSE"]	= { nil, nil, SpellSpellId, AuraRemoved },
-	
-	-- ["SPELL_CAST_START"]		= { CastStart, CastChat, CastTooltip },
-	-- ["SPELL_CAST_FAILED"]		= { CastFailed, CastChat, CastTooltip },
-	-- ["SPELL_CAST_SUCCESS"]		= { CastSuccess, CastChat, CastTooltip },
-	
-	-- ["SPELL_INTERRUPT"] 		= { SpellInterrupt, SpellChat, SpellTooltip },
-	
-	["SPELL_INSTAKILL"]			= { SpellInstakillAmount, nil, SpellSpellId },
-
-	-- ["UNIT_DIED"] 				= { nil, nil },
-}
-
-local function GetEntryReader(entry, nreader)
-	local reader = event_reader_table[entry[4]] and event_reader_table[entry[4]][nreader]
-
-	if reader then
-		return reader(unpack(entry, 11))
-	end
-end
-
-local function GetEntryDamage(entry)
-	return GetEntryReader(entry, 1)
-end
-
-local function GetEntryHeal(entry)
-	return GetEntryReader(entry, 2)
-end
-
-local function GetEntrySpell(entry)
-	return GetEntryReader(entry, 3)
-end
-
-local function GetEntryAura(entry)
-	return GetEntryReader(entry, 4)
-end
-
-local function GetEntryMiss(entry)
-	return event_reader_table[entry[4]] and event_reader_table[entry[4]][5]
-end
-
-function DeathNote:GetKillingBlow(death)
-	local guid = death[2]
-	local timestamp = floor(death[1])
-	local t = timestamp
-	local death_found = 0
-	
-	while t >= (timestamp - 3) and death_found <= 1 do
-		local l = DeathNoteData.log[t]
-		if l then
-			for i = #l, 1, -1 do
-				local entry = l[i]
-				if entry[8] == guid and entry[3] <= death[1] then
-					if entry[4] == "UNIT_DIED" then
-						death_found = death_found + 1
-						if death_found > 1 then
-							break
-						end
-					end
-					
-					local _, overkill = GetEntryDamage(entry)
-					if overkill and overkill > 0 then
-						return entry
-					end
-				end
-			end
-		end
-		t = t - 1
-	end
-	
-	return nil
-end
-
-function DeathNote:IsEntryFiltered(entry)
-	if self.settings.display_filters.damage_threshold > 0 then
-		local damage = GetEntryDamage(entry)
-		if damage and damage < self.settings.display_filters.damage_threshold then
-			return false
-		end
-	end
-
-	if self.settings.display_filters.hide_misses then
-		local miss = GetEntryMiss(entry)
-		if miss then
-			return false
-		end
-	end	
-	
-	if self.settings.display_filters.heal_threshold > 0 then
-		local heal = GetEntryHeal(entry)
-		if heal and heal < self.settings.display_filters.heal_threshold then
-			return false
-		end
-	end
-	
-	if self.settings.display_filters.survival_buffs then
-		local gain, _, _, spellid = GetEntryAura(entry)
-		if self.SurvivalIDs[spellid] then
-			return true
-		end	
-	end
-	
-	if not self.settings.display_filters.buff_gains then
-		local gain, auraType = GetEntryAura(entry)
-		if gain and auraType == "BUFF" then
-			return false
-		end
-	end
-
-	if not self.settings.display_filters.buff_fades then
-		local gain, auraType = GetEntryAura(entry)
-		if not gain and auraType == "BUFF" then
-			return false
-		end
-	end
-
-	if not self.settings.display_filters.debuff_gains then
-		local gain, auraType = GetEntryAura(entry)
-		if gain and auraType == "DEBUFF" then
-			return false
-		end
-	end
-	
-	if not self.settings.display_filters.debuff_fades then
-		local gain, auraType = GetEntryAura(entry)
-		if not gain and auraType == "DEBUFF" then
-			return false
-		end
-	end
-	
-	if next(self.settings.display_filters.spell_filter) then
-		local _, spellname = GetEntrySpell(entry)
-		if self.settings.display_filters.spell_filter[string.lower(spellname or "")] then
-			return false
-		end
-	end
-
-	if next(self.settings.display_filters.source_filter) then
-		if self.settings.display_filters.source_filter[string.lower(entry[6] or "")] then
-			return false
-		end
-	end
-	
-	return true
-end
-
 function DeathNote:ShowDeath(death)
 	if self.settings.debugging then debugprofilestart() end
 
@@ -1344,37 +1173,33 @@ function DeathNote:ShowDeath(death)
 
 	self.current_death = death
 	
-	local guid = death[2]
-	local timestamp = floor(death[1])
-	local t = timestamp
-	local death_found = 0
-	
-	while t >= (timestamp - self.settings.death_time) and death_found <= 1 do
-		local l = DeathNoteData.log[t]
-		if l then
-			for i = #l, 1, -1 do
-				local entry = l[i]
-				if entry[8] == guid and entry[3] <= death[1] then
-					if entry[4] == "UNIT_DIED" then
-						death_found = death_found + 1
-						if death_found > 1 then
-							break
-						end
-					end
-					
-					if self:IsEntryFiltered(entry) then
-						self:AddDeathEntry(entry)
-					end
-				end
-			end
-		end
-		t = t - 1
+	for entry in self:IterateDeath(death, self.settings.death_time) do
+		self:ProcessDeathEntry(entry)
 	end
 	
+	self:ProcessDeathEntry(nil)
 	self.logframe:UpdateComplete()
 	self.logframe:ScrollToBottom()
 	
-	if self.settings.debugging then self:Debug(string.format("Death shown in %.02f ms", debugprofilestop())) end
+	if self.settings.debugging then self:Debug(string.format("Death shown in %.02f ms (%i lines)", debugprofilestop(), self.logframe:GetLineCount())) end
+end
+
+
+local function IsGroupEntry(entry)
+	return type(entry[1]) == "table"
+end
+
+local prev
+local group -- { { entries }, "type", hp, hpmax, t1, t2, { spells }, { sources } }
+function DeathNote:ProcessDeathEntry(entry)
+	if entry then
+		if self:IsEntryFiltered(entry) then	
+			if self:IsEntryOverThreshold(entry) then
+				self:AddDeathEntry(entry)
+			end
+		end
+	else
+	end
 end
 
 function DeathNote:AddDeathEntry(entry)
@@ -1400,7 +1225,7 @@ function DeathNote:RefreshFilters()
 end
 
 function DeathNote:AddSpellFilter(entry)
-	local _, spellname = GetEntrySpell(entry)
+	local _, spellname = self:GetEntrySpell(entry)
 
 	if spellname then
 		self.settings.display_filters.spell_filter[string.lower(spellname)] = spellname
@@ -1420,7 +1245,7 @@ function DeathNote:AddSourceFilter(entry)
 end
 
 function DeathNote:SetSpellHilight(entry)
-	local spellid = GetEntrySpell(entry)
+	local spellid = self:GetEntrySpell(entry)
 	
 	local count = self.logframe:GetLineCount()
 	for i = 1, count do
@@ -1429,7 +1254,7 @@ function DeathNote:SetSpellHilight(entry)
 		if not spellid or spellid == self.current_spell_hilight then
 			self.logframe:SetLineHighlight(i, nil)
 		else		
-			self.logframe:SetLineHighlight(i, GetEntrySpell(userdata) == spellid and spell_hilight)
+			self.logframe:SetLineHighlight(i, self:GetEntrySpell(userdata) == spellid and spell_hilight)
 		end
 	end
 
@@ -1617,9 +1442,9 @@ local function ListBox_CreateLine(self)
 		line.obj = self
 		
 		local hili = line:CreateTexture(nil, "OVERLAY")
+		hili:Hide()
 		hili:SetAllPoints()
 		hili:SetBlendMode("ADD")
-		hili:Hide()
 		line.hili = hili
 		
 		line.columns = {}
@@ -1628,8 +1453,9 @@ local function ListBox_CreateLine(self)
 			f.nline = nline
 			f.line = line
 			f.column = i
+			f:SetHeight(12)
 			f:SetPoint("TOP", line, "TOP")
-			f:SetPoint("BOTTOM", line, "BOTTOM")
+			--f:SetPoint("BOTTOM", line, "BOTTOM")
 			f:SetPoint("LEFT", c, "LEFT", 3, 0)
 			f:SetPoint("RIGHT", c, "RIGHT", -3, 0)
 			f:SetScript("OnMouseUp", ListBox_Column_OnMouseUp)
@@ -1639,7 +1465,7 @@ local function ListBox_CreateLine(self)
 			line.columns[i] = f
 		end
 		
-		self.line_cache[nline] = line
+		table.insert(self.line_cache, line)
 	end
 	
 	table.insert(self.lines, line)
@@ -1656,6 +1482,8 @@ local function ListBox_AddLine(self, values, userdata)
 end
 
 function ListBox_UpdateComplete(self)
+	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
+
 	for nline = #self.lines, 1, -1 do
 		local line = self.lines[nline]
 		local prev = self.lines[nline + 1]
@@ -1667,23 +1495,15 @@ function ListBox_UpdateComplete(self)
 			line:SetPoint("TOPLEFT", prev, "BOTTOMLEFT")
 			line:SetPoint("RIGHT", prev, "RIGHT")
 		end
-	end
-
-	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
-
-	for nline = 1, #self.lines do
+		
 		self.lines[nline]:Show()
-	end
+	end	
 end
 
 local function ListBox_Line_Column_OnSizeChanged(frame)
 	if frame.bartex then
 		local width = (frame:GetWidth() - 2) * frame.value
-		if width == 0 then
-			frame.bartex:Hide()
-		else
-			frame.bartex:SetWidth(width)
-		end
+		frame.bartex:SetWidth(width)
 	end
 end
 
