@@ -40,20 +40,20 @@ function DeathNote:IterateDeath(death, maxt)
 end
 
 -- Overkill readers
-local function SpellDamageAmount(spellId, spellName, spellSchool, amount, overkill)
-	return amount, overkill
+local function SpellDamageAmount(spellId, spellName, spellSchool, ...)
+	return ...
 end
 
-local function SwingDamageAmount(amount, overkill)
-	return amount, overkill
+local function SwingDamageAmount(...)
+	return ...
 end
 
 local function EnvironmentalAmount(environmentalType, amount)
-	return amount, 1
+	return amount
 end
 
 local function SpellInstakillAmount()
-	return 1e20, 1
+	return -1
 end
 
 -- Heal readers
@@ -152,9 +152,9 @@ end
 
 function DeathNote:GetKillingBlow(death)	
 	for entry in self:IterateDeath(death, 3) do
-		local _, overkill = self:GetEntryDamage(entry)
-		if overkill and overkill > 0 then
-			return entry
+		local damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = self:GetEntryDamage(entry)
+		if damage and damage > 0 or damage == -1 then
+			return entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing
 		end
 	end
 	

@@ -1,5 +1,8 @@
 DeathNote = LibStub("AceAddon-3.0"):NewAddon("DeathNote", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0", "AceConsole-3.0")
 
+BINDING_HEADER_DEATH_NOTE = "Death Note"
+BINDING_NAME_DEATH_NOTE_SHOW_TARGET_DEATH = "Show target deaths"
+
 function DeathNote:OnInitialize()
 	-- AceDB options
 	self.db = LibStub("AceDB-3.0"):New("DeathNoteDB", {
@@ -46,6 +49,17 @@ function DeathNote:OnInitialize()
 				
 				spell_filter = {},
 				source_filter = {},
+			},
+			
+			announce = {
+				enable = true,
+				announce_unknown = false,
+				channel = "CHATFRAME",
+				style = "FORMATTED",
+				format_damage = true,
+				format_resist = true,
+				format_overkill = true,
+				format_hittype = true,
 			},
 		},
 	})

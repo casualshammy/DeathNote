@@ -76,7 +76,7 @@ local function GetUnitColor(guid, unit, flags)
 	end
 end
 
-local function FormatUnit(guid, name, flags)
+function DeathNote:FormatUnit(guid, name, flags)
 	if not name then
 		return ""
 	end
@@ -92,12 +92,12 @@ local function FormatIcon(icon)
 	return string.format("|T%s:0:0:0:0:64:64:4:60:4:60|t", icon)
 end
 
-local function FormatSpell(spellId, spellName, spellSchool)
+function FormatSpell(spellId, spellName, spellSchool)
 	local name, _, icon = GetSpellInfo(spellId)
 	local colorArray = CombatLog_Color_ColorArrayBySchool(spellSchool, DEFAULT_COMBATLOG_FILTER_TEMPLATE)
 	local colorstr = CombatLog_Color_FloatToText(colorArray.r, colorArray.g, colorArray.b, colorArray.a)
 
-	return string.format("%s |c%s%s", FormatIcon(icon), colorstr, name)
+	return string.format("%s |c%s%s|r", FormatIcon(icon), colorstr, name)
 end
 
 local function GetAuraTypeColor(auraType)
@@ -106,22 +106,22 @@ end
 
 local function FormatAuraGain(spellId, spellName, spellSchool, auraType)
 	local name, _, icon = GetSpellInfo(spellId)
-	return string.format("%s %s+%s", FormatIcon(icon), GetAuraTypeColor(auraType), name)
+	return string.format("%s %s+%s|r", FormatIcon(icon), GetAuraTypeColor(auraType), name)
 end
 
 local function FormatAuraFade(spellId, spellName, spellSchool, auraType)
 	local name, _, icon = GetSpellInfo(spellId)
-	return string.format("%s %s-%s", FormatIcon(icon), GetAuraTypeColor(auraType), name)
+	return string.format("%s %s-%s|r", FormatIcon(icon), GetAuraTypeColor(auraType), name)
 end
 
 local function FormatAuraAmount(auraType, amount)
-	return string.format("%s%s%s", GetAuraTypeColor(auraType), amount > 0 and "+" or "", CommaNumber(amount))
+	return string.format("%s%s%s|r", GetAuraTypeColor(auraType), amount > 0 and "+" or "", CommaNumber(amount))
 end
 
 local function FormatSwing()
 	local colorArray = CombatLog_Color_ColorArrayBySchool(SCHOOL_MASK_PHYSICAL, DEFAULT_COMBATLOG_FILTER_TEMPLATE)
 	local colorstr = CombatLog_Color_FloatToText(colorArray.r, colorArray.g, colorArray.b, colorArray.a)
-	return "|c" .. colorstr .. ACTION_SWING
+	return "|c" .. colorstr .. ACTION_SWING .. "|r"
 end
 
 local function FormatDamage(amount, critical)
@@ -182,7 +182,7 @@ local function AuraRemoved(spellId, spellName, spellSchool, auraType, amount)
 end
 
 local function UnitDied()
-	return "|cFFFF0000Death", ""
+	return "|cFFFF0000Death|r", ""
 end
 
 -- Chat formatters
@@ -267,6 +267,20 @@ function DeathNote:CycleHealthDisplay()
 	self.settings.display.health = self.settings.display.health % #FormatHealth + 1
 end
 
+function DeathNote:FormatEntrySpell(entry)
+	local event = entry[4]
+	local formatter = event_formatter_table[event]
+	local spell
+	
+	if formatter and formatter[1] then
+		_, spell, _ = formatter[1](unpack(entry, 11))
+	else
+		return nil
+	end
+	
+	return spell
+end
+
 function DeathNote:FormatEntry(entry)
 	local event = entry[4]
 	local formatter = event_formatter_table[event]
@@ -275,7 +289,7 @@ function DeathNote:FormatEntry(entry)
 	if formatter and formatter[1] then
 		amount, spell, source = formatter[1](unpack(entry, 11))
 	else
-		amount, spell, source = "No handler", event, nil
+		-- amount, spell, source = "No handler", event, nil
 		return nil
 	end
 	
@@ -284,13 +298,13 @@ function DeathNote:FormatEntry(entry)
 		FormatHealth[self.settings.display.health](entry[1], entry[2]),
 		amount,
 		spell, 
-		source or FormatUnit(entry[5], entry[6], entry[7]),
+		source or self:FormatUnit(entry[5], entry[6], entry[7]),
 	}
 end
 
 -- Name List
 function DeathNote:FormatNameListEntry(v)
-	return string.format("[%s] %s", date("%X", v[1]), FormatUnit(v[2], v[3], v[4]))
+	return string.format("[%s] %s", date("%X", v[1]), self:FormatUnit(v[2], v[3], v[4]))
 end
 
 -- Chat
@@ -302,15 +316,32 @@ function DeathNote:FormatChatHealth(entry)
 	return FormatHealthFull(entry[1], entry[2])
 end
 
+local iconBitMap = {
+	[COMBATLOG_OBJECT_RAIDTARGET1] = "{rt1}",
+	[COMBATLOG_OBJECT_RAIDTARGET2] = "{rt2}",
+	[COMBATLOG_OBJECT_RAIDTARGET3] = "{rt3}",
+	[COMBATLOG_OBJECT_RAIDTARGET4] = "{rt4}",
+	[COMBATLOG_OBJECT_RAIDTARGET5] = "{rt5}",
+	[COMBATLOG_OBJECT_RAIDTARGET6] = "{rt6}",
+	[COMBATLOG_OBJECT_RAIDTARGET7] = "{rt7}",
+	[COMBATLOG_OBJECT_RAIDTARGET8] = "{rt8}",
+}
+
+function DeathNote:CleanForChat(text)
+	return text:
+		gsub("(|c........)", ""):
+		gsub("(|r)", ""):	
+		gsub("(|Hunit.-|h(.-)|h)", "%2"):
+		gsub("(|Hicon:(.-):.-|h.-|h)", function(_, iconBit) return iconBitMap[tonumber(iconBit)] or "" end):
+		gsub("(|Hspell:(.-):.-|h.-|h)", function(_, id) return GetSpellLink(id) end)
+end
+
+function DeathNote:FormatCombatLog(entry)
+	return CombatLog_OnEvent(DEFAULT_COMBATLOG_FILTER_TEMPLATE, unpack(entry, 3))
+end
+
 function DeathNote:FormatChatAmount(entry)
-	local text = CombatLog_OnEvent(DEFAULT_COMBATLOG_FILTER_TEMPLATE, unpack(entry, 3))
-	text = gsub(text, "(|c........)", "")
-	text = gsub(text, "(|r)", "")
-	text = gsub(text, "(|Hunit.-|h(.-)|h)", "%2")
-	text = gsub(text, "(|Hicon.-|h.-|h)", "")
-	text = gsub(text, "(|Hspell:(.-):.-|h.-|h)", function(_, id) return GetSpellLink(id) end)
-	-- TODO: item links
-	return text
+	return self:CleanForChat(self:FormatCombatLog(entry))
 end
 
 function DeathNote:FormatChatSpell(entry)
@@ -325,7 +356,7 @@ function DeathNote:FormatChatSpell(entry)
 end
 
 function DeathNote:FormatChatSource(entry)
-	return FormatUnit(entry[5], entry[6], entry[7])
+	return self:CleanForChat(self:FormatUnit(entry[5], entry[6], entry[7]))
 end
 
 -- Tooltip
