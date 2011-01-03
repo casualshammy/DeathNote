@@ -200,8 +200,10 @@ function DeathNote:IsEntryOverThreshold(entry)
 end
 
 local auras_broken = {} -- dispel, steal, break
+local survival_stack = {}
 function DeathNote:ResetFiltering()
 	wipe(auras_broken)
+	wipe(survival_stack)
 end
 
 function DeathNote:IsEntryFiltered(entry)
@@ -215,10 +217,33 @@ function DeathNote:IsEntryFiltered(entry)
 		end
 	end	
 	
+	if self.settings.display_filters.highlight_survival then
+		if self.SurvivalIDs[auraSpellId] then
+			if auraGain then
+				for i = 1, #survival_stack do
+					if survival_stack[i] == auraSpellId then
+						table.remove(survival_stack, i)
+						break
+					end
+				end
+				
+				if self.settings.display_filters.survival_buffs then
+					return true, auraSpellId
+				end
+			else
+				table.insert(survival_stack, 1, auraSpellId)
+				
+				if self.settings.display_filters.survival_buffs then
+					return true, survival_stack[1]
+				end
+			end
+		end	
+	end
+	
 	if self.settings.display_filters.survival_buffs then
 		if self.SurvivalIDs[auraSpellId] then
 			return true
-		end	
+		end
 	end
 	
 	if not self.settings.display_filters.buff_gains then
@@ -269,5 +294,5 @@ function DeathNote:IsEntryFiltered(entry)
 		end
 	end
 	
-	return true
+	return true, survival_stack[1]
 end

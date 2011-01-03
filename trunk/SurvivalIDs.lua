@@ -1,5 +1,5 @@
 DeathNote.SurvivalIDs = {
-	[48707] = "DEATHKNIGHT",	-- Anti-Magic Shell
+	-- [48707] = "DEATHKNIGHT",	-- Anti-Magic Shell
 	[49222] = "DEATHKNIGHT",	-- Bone Shield
 	[48792] = "DEATHKNIGHT",	-- Icebound Fortitude
 	[55233] = "DEATHKNIGHT",	-- Vampiric Blood
@@ -22,6 +22,7 @@ DeathNote.SurvivalIDs = {
 	[47585] = "PRIEST",			-- Dispersion
 	[33206] = "PRIEST",			-- Pain Suppression
 	[47788] = "PRIEST",			-- Guardian Spirit
+	[81782] = "PRIEST",			-- Power Word: Barrier
 
 	[31224] = "ROGUE",			-- Cloak of Shadows
 	[1966] = "ROGUE",			-- Feint
@@ -32,3 +33,13 @@ DeathNote.SurvivalIDs = {
 	[2565] = "WARRIOR",			-- Shield Block
 	[871] = "WARRIOR",			-- Shield Wall
 }
+
+do
+	DeathNote.SurvivalColors = {}
+	
+	for class, color in pairs(RAID_CLASS_COLORS) do		
+		local class_color = RAID_CLASS_COLORS[class]
+		local color = { r = class_color.r, g  = class_color.g, b = class_color.b, a = 0.2 }
+		DeathNote.SurvivalColors[class] = color
+	end
+end

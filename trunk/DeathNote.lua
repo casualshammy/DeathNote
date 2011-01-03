@@ -46,6 +46,7 @@ function DeathNote:OnInitialize()
 				debuff_fades = false,
 				survival_buffs = true,
 				consolidate_auras = false,
+				highlight_survival = true,
 				
 				spell_filter = {},
 				source_filter = {},
@@ -54,6 +55,7 @@ function DeathNote:OnInitialize()
 			announce = {
 				enable = true,
 				announce_unknown = false,
+				limit = 5,
 				channel = "CHATFRAME",
 				style = "FORMATTED",
 				format_damage = true,
@@ -98,13 +100,6 @@ function DeathNote:OnInitialize()
 		end,
 	})
 	
-	-- UnitPopupMenu support
-	UnitPopupButtons["SHOW_DEATH_NOTE"] = {
-		text = "Show Death Note",
-		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
-		dist = 0,
-	}
-
 	self:DataCapture_Initialize()
 end
 
@@ -129,6 +124,7 @@ end
 function DeathNote:OnDisable()
 	self:RemoveFromUnitPopup()
 	self:UnregisterAllEvents()
+	self:CancelAllTimers()
 end
 
 function DeathNote:Debug(...)

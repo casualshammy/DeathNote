@@ -8,6 +8,10 @@ local function CommaNumber(num)
 	return num
 end
 
+local function Capitalize(str)
+	return string.gsub(str, "%a", string.upper, 1)
+end
+
 local FormatTimestamp = {}
 FormatTimestamp[1] = function(timestamp)
 	return string.format("%.01f s", floor((timestamp - DeathNote.current_death[1]) * 10 + 0.05) / 10)
@@ -177,7 +181,7 @@ local function FormatHeal(amount, critical)
 end
 
 local function FormatMiss(missType)
-	return _G["ACTION_SPELL_MISSED_" .. missType]
+	return Capitalize(_G["ACTION_SPELL_MISSED_" .. missType] or "Miss")
 end
 
 -- ListBox formatters
@@ -190,7 +194,7 @@ local function SpellMissed(spellId, spellName, spellSchool, missType)
 end
 
 local function SpellInstakill(spellId, spellName, spellSchool)
-	return "|cFFFF0000" .. ACTION_SPELL_INSTAKILL, FormatSpell(spellId, spellName, spellSchool)
+	return "|cFFFF0000" .. Capitalize(ACTION_SPELL_INSTAKILL), FormatSpell(spellId, spellName, spellSchool)
 end
 
 local function SwingDamage(amount, overkill, school, resisted, blocked, absorbed, critical)
@@ -401,10 +405,11 @@ local iconBitMap = {
 function DeathNote:CleanForChat(text)
 	return text:
 		gsub("(|c........)", ""):
-		gsub("(|r)", ""):	
+		gsub("(|r)", ""):
+		gsub("(|T.-|t", ""):
 		gsub("(|Hunit.-|h(.-)|h)", "%2"):
 		gsub("(|Hicon:(.-):.-|h.-|h)", function(_, iconBit) return iconBitMap[tonumber(iconBit)] or "" end):
-		gsub("(|Hspell:(.-):.-|h.-|h)", function(_, id) return GetSpellLink(id) end)
+		gsub("(|Hspell:(%d*).-|h.-|h)", function(_, id) return GetSpellLink(id) end)
 end
 
 function DeathNote:FormatCombatLog(entry)

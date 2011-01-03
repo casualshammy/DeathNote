@@ -21,9 +21,9 @@ local DraggerBackdrop  = {
 
 local filters_label_open = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-open.tga]] .. ":0|t Filters"
 local filters_label_closed = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-closed.tga]] .. ":0|t Filters"
-local normal_hilight = { r = 0, g = 0.3, b = 0.8, a = 0.4 }
-local spell_hilight = { r = 0.5, g = 0.5, b = 0, a = 0.4 }
-local source_hilight = { r = 0.2, g = 0.4, b = 0.8, a = 0.4 }
+local normal_hilight = { r = 0.5, g = 0.5, b = 0.5, a = 0.4 }
+local spell_hilight = { r = 0.25, g = 0.25, b = 0.5, a = 0.4 }
+local source_hilight = { r = 0, g = 0, b = 0.6, a = 0.4 }
 
 function DeathNote:Show()
 	if not self.frame then
@@ -409,13 +409,21 @@ function DeathNote:Show()
 							get = function() return DeathNote.settings.display_filters.survival_buffs end,
 							set = function(_, v) DeathNote:SetDisplayFilter("survival_buffs", v) end,
 						},
+						highlight_survival = {
+							order = 6,
+							name = "Highlight survival cooldowns",
+							type = "toggle",
+							-- width = "double",
+							get = function() return DeathNote.settings.display_filters.highlight_survival end,
+							set = function(_, v) DeathNote:SetDisplayFilter("highlight_survival", v) end,
+						},
 					},
 				},
 				consolidate = {
 					order = 2,
 					name = "Consolidate consecutive auras",
 					type = "toggle",
-					width = "full",
+					width = "double",
 					get = function() return DeathNote.settings.display_filters.consolidate_auras end,
 					set = function(_, v) DeathNote:SetDisplayFilter("consolidate_auras", v) end,
 				},
@@ -868,6 +876,12 @@ function DeathNote:ShowUnit(name)
 end
 
 function DeathNote:AddToUnitPopup()
+	UnitPopupButtons["SHOW_DEATH_NOTE"] = {
+		text = "Show Death Note",
+		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
+		dist = 0,
+	}
+
 	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET" }
 	
 	for i, v in ipairs(types) do
@@ -878,16 +892,18 @@ function DeathNote:AddToUnitPopup()
 end
 
 function DeathNote:RemoveFromUnitPopup()
-	self:UnhookAll()
+	self:Unhook("UnitPopup_ShowMenu")
 	
 	for mtype in pairs(UnitPopupMenus) do
-		for i = 1, #UnitPopupMenus[mtype] do
+		for i = #UnitPopupMenus[mtype], 1, -1 do
 			if UnitPopupMenus[mtype][i] == "SHOW_DEATH_NOTE" then
 				tremove(UnitPopupMenus[mtype], i)
 				break
 			end
 		end
 	end
+
+	UnitPopupButtons["SHOW_DEATH_NOTE"] = nil
 end
 
 function DeathNote.UnitPopupClick()
@@ -1195,20 +1211,26 @@ local prev
 local group -- { { entries }, "type", hp, hpmax, t1, t2, { spells }, { sources } }
 function DeathNote:ProcessDeathEntry(entry)
 	if entry then
-		if self:IsEntryFiltered(entry) then
+		local filtered, highlight_spellid = self:IsEntryFiltered(entry)
+		if filtered then
 			if self:IsEntryOverThreshold(entry) then
-				self:AddDeathEntry(entry)
+				self:AddDeathEntry(entry, highlight_spellid)
 			end
 		end
 	else
 	end
 end
 
-function DeathNote:AddDeathEntry(entry)
+function DeathNote:AddDeathEntry(entry, highlight_spellid)
 	local line = self:FormatEntry(entry)
 	
 	if line then
-		self.logframe:AddLine(line, entry)
+		local nline = self.logframe:AddLine(line, entry)
+
+		if highlight_spellid then
+			local highlight = self.SurvivalColors[self.SurvivalIDs[highlight_spellid]]
+			self.logframe:SetLineHighlight(nline, highlight)
+		end
 	end
 end
 
@@ -1414,8 +1436,10 @@ function ListBox_Column_OnMouseUp(frame, button)
 end
 
 function ListBox_Column_OnEnter(frame)
-	if not frame.line.static_hili then	
+	if not frame.line.static_hili then
 		frame.line.hili:Show()
+	else
+		frame.line.hili:SetTexture(normal_hilight.r, normal_hilight.g, normal_hilight.b, normal_hilight.a)
 	end
 	
 	if frame.line.obj.column_onenter then
@@ -1424,8 +1448,10 @@ function ListBox_Column_OnEnter(frame)
 end
 
 function ListBox_Column_OnLeave(frame)
-	if not frame.line.static_hili then	
+	if not frame.line.static_hili then
 		frame.line.hili:Hide()
+	else
+		frame.line.hili:SetTexture(frame.line.static_hili.r, frame.line.static_hili.g, frame.line.static_hili.b, frame.line.static_hili.a)
 	end
 	
 	if frame.line.obj.column_onleave then
@@ -1445,6 +1471,7 @@ local function ListBox_CreateLine(self)
 		
 		local hili = line:CreateTexture(nil, "OVERLAY")
 		hili:Hide()
+		hili:SetTexture(normal_hilight.r, normal_hilight.g, normal_hilight.b, normal_hilight.a)
 		hili:SetAllPoints()
 		hili:SetBlendMode("ADD")
 		line.hili = hili
@@ -1479,8 +1506,10 @@ local function ListBox_AddLine(self, values, userdata)
 	local line = self:CreateLine()
 	
 	line.userdata = userdata
-
+	
 	self:UpdateLine(#self.lines, values)
+	
+	return #self.lines
 end
 
 function ListBox_UpdateComplete(self)
@@ -1504,8 +1533,13 @@ end
 
 local function ListBox_Line_Column_OnSizeChanged(frame)
 	if frame.bartex then
-		local width = (frame:GetWidth() - 2) * frame.value
-		frame.bartex:SetWidth(width)
+		if frame.value and frame.value > 0 then
+			local width = (frame:GetWidth() - 2) * frame.value
+			frame.bartex:SetWidth(width)
+			frame.bartex:Show()
+		else
+			frame.bartex:Hide()
+		end
 	end
 end
 
@@ -1534,12 +1568,14 @@ local function ListBox_UpdateLine(self, nline, values)
 			if line.columns[i].bartex then
 				line.columns[i]:SetScript("OnSizeChanged", nil)
 				line.columns[i].bartex:Hide()
+				line.columns[i].value = nil
 			end
 			
 			if not line.columns[i].fs then
 				local fs = line.columns[i]:CreateFontString(nil, "OVERLAY")
 				fs:SetAllPoints(line.columns[i])
 				fs:SetFontObject(GameFontNormalSmall)
+				fs:SetShadowColor(0, 0, 0, 0)
 				fs:SetJustifyH(c.align)
 				line.columns[i].fs = fs
 			end
@@ -1554,7 +1590,7 @@ local function ListBox_SetLineHighlight(self, nline, color)
 	local line = self.lines[nline]
 	
 	if color then
-		line.static_hili = true
+		line.static_hili = color
 		line.hili:SetTexture(color.r, color.g, color.b, color.a)
 		line.hili:Show()
 	elseif line.static_hili then
