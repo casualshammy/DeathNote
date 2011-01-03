@@ -194,6 +194,7 @@ DeathNote.Options = {
 						["RW"] = "Raid Warning",
 						["GUILD"] = "Guild",
 						["OFFICER"] = "Officer",
+						["WHISPER"] = "Whisper",
 					},
 					get = function() return DeathNote.settings.announce.channel end,
 					set = function(_, v) DeathNote.settings.announce.channel = v end,
