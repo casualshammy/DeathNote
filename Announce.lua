@@ -1,11 +1,32 @@
+local announced_deaths = {}
+local skipped_deaths = 0
+local skip_timer
+
 function DeathNote:AnnounceDeath(death)
-	if not self.settings.announce.enabled then
+	if not self.settings.announce.enable then
+		return
+	end
+	
+	local now = GetTime()
+	local tensecs = now - 10
+	
+	for i = #announced_deaths, 1, -1 do
+		if announced_deaths[i] < tensecs then
+			table.remove(announced_deaths, i)
+		end
+	end
+	
+	if #announced_deaths >= self.settings.announce.limit then
+		skipped_deaths = skipped_deaths + 1
+		self:CancelTimer(skip_timer, true)
+		skip_timer = self:ScheduleTimer("SkipAnnounce", 5)
 		return
 	end
 	
 	local entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing =  DeathNote:GetKillingBlow(death)
 	
-	local isoutputchat = self.settings.announce.channel ~= "CHATFRAME"	
+	local isoutputchat = self:O_IsChatOutput(self.settings.announce.channel)
+	
 	local text
 	
 	if not entry then
@@ -20,7 +41,8 @@ function DeathNote:AnnounceDeath(death)
 			text = self:FormatCombatLog(entry)
 		elseif self.settings.announce.style == "FORMATTED" then
 			local source = self:FormatUnit(entry[5], entry[6], entry[7])
-			local spell = isoutputchat and self:FormatChatSpell(entry) or self:FormatEntrySpell(entry)
+			-- local spell = isoutputchat and self:FormatChatSpell(entry) or self:FormatEntrySpell(entry)
+			local spell = self:FormatEntrySpell(entry)
 			
 			if source ~= "" then
 				text = string.format("%s|r was killed by %s's|r %s", self:FormatUnit(death[2], death[3], death[4]), source, spell)
@@ -28,10 +50,8 @@ function DeathNote:AnnounceDeath(death)
 				text = string.format("%s|r was killed by %s", self:FormatUnit(death[2], death[3], death[4]), spell)
 			end
 			
-			if self.settings.announce.format_damage then
-				if damage > 0 then
-					text = text .. string.format(" (%i %s", damage, DAMAGE)
-				end
+			if self.settings.announce.format_damage and damage > 0 then
+				text = text .. string.format(" (%i %s", damage, DAMAGE)
 			end
 			
 			if self.settings.announce.format_hittype then
@@ -46,7 +66,7 @@ function DeathNote:AnnounceDeath(death)
 				end
 			end
 
-			if self.settings.announce.format_damage then
+			if self.settings.announce.format_damage and damage > 0 then
 				text = text .. ") "
 			end
 			
@@ -73,8 +93,16 @@ function DeathNote:AnnounceDeath(death)
 	end
 	
 	if isoutputchat then
-		text = self:CleanForChat(text)
+		text = "DeathNote: " .. self:CleanForChat(text)
+		DeathNoteData.after = text
 	end
 	
-	self:Print(text)
+	self:O_Send(self.settings.announce.channel, text)
+	
+	table.insert(announced_deaths, now)
+end
+
+function DeathNote:SkipAnnounce()
+	self:Print(string.format("%i more deaths were not announced", skipped_deaths))
+	skipped_deaths = 0
 end

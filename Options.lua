@@ -152,8 +152,8 @@ DeathNote.Options = {
 					name = "Announce deaths",
 					type = "toggle",
 					width = "full",
-					get = function() return DeathNote.settings.announce.enabled end,
-					set = function(_, v) DeathNote.settings.announce.enabled = v end,
+					get = function() return DeathNote.settings.announce.enable end,
+					set = function(_, v) DeathNote.settings.announce.enable = v end,
 				},
 				
 				announce_unknown = {
@@ -161,20 +161,35 @@ DeathNote.Options = {
 					name = "Announce deaths with an unknown cause",
 					type = "toggle",
 					width = "full",
-					disabled = function() return not DeathNote.settings.announce.enabled end,
+					disabled = function() return not DeathNote.settings.announce.enable end,
 					get = function() return DeathNote.settings.announce.announce_unknown end,
 					set = function(_, v) DeathNote.settings.announce.announce_unknown = v end,
+				},
+				
+				announce_limit = {
+					order = 12,
+					name = "Announces/10 seconds limit",
+					type = "range",
+					min = 1,
+					softMax = 10,
+					step = 1,
+					width = "full",
+					disabled = function() return not DeathNote.settings.announce.enable end,
+					get = function() return DeathNote.settings.announce.limit end,
+					set = function(_, v) DeathNote.settings.announce.limit = v end,
 				},
 				
 				channel = {
 					order = 20,
 					name = "Output channel",
 					type = "select",
-					disabled = function() return not DeathNote.settings.announce.enabled end,
+					disabled = function() return not DeathNote.settings.announce.enable end,
 					values = {
 						["CHATFRAME"] = "Chat frame",
+						["SAY"] = "Say",
 						["PARTY"] = "Party",
 						["RAID"] = "Raid",
+						["BATTLEGROUND"] = "Battleground",
 						["GROUP"] = "Group (party or raid)",
 						["RW"] = "Raid Warning",
 						["GUILD"] = "Guild",
@@ -189,7 +204,7 @@ DeathNote.Options = {
 					name = "Style",
 					type = "select",
 					style = "radio",
-					disabled = function() return not DeathNote.settings.announce.enabled end,
+					disabled = function() return not DeathNote.settings.announce.enable end,
 					values = {
 						["COMBAT_LOG"] = "Combat log line",
 						["FORMATTED"] = "Formatted",
@@ -203,7 +218,7 @@ DeathNote.Options = {
 					name = "Formatted options",
 					type = "group",
 					inline = true,
-					disabled = function() return not DeathNote.settings.announce.enabled or DeathNote.settings.announce.style ~= "FORMATTED" end,
+					disabled = function() return not DeathNote.settings.announce.enable or DeathNote.settings.announce.style ~= "FORMATTED" end,
 					args = {
 						format_damage = {
 							order = 10,
