@@ -33,6 +33,9 @@ do
 		end
 	end
 	
+	local function whispermessage(msg)
+		SendChatMessage(msg[2], "WHISPER", nil, msg[1])
+	end
 	
 	DeathNote:O_RegisterOutput {
 		key = "CHATFRAME",
@@ -101,5 +104,12 @@ do
 		is_chat = true,
 		func = chatmessage,
 		arg = "OFFICER",
+	}
+	
+	DeathNote:O_RegisterOutput {
+		key = "WHISPER",
+		name = "Whisper",
+		is_chat = true,
+		func = whispermessage,
 	}
 end

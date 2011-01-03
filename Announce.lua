@@ -26,6 +26,7 @@ function DeathNote:AnnounceDeath(death)
 	local entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing =  DeathNote:GetKillingBlow(death)
 	
 	local isoutputchat = self:O_IsChatOutput(self.settings.announce.channel)
+	local iswhisper = self.settings.announce.channel == "WHISPER"
 	
 	local text
 	
@@ -44,10 +45,16 @@ function DeathNote:AnnounceDeath(death)
 			-- local spell = isoutputchat and self:FormatChatSpell(entry) or self:FormatEntrySpell(entry)
 			local spell = self:FormatEntrySpell(entry)
 			
-			if source ~= "" then
-				text = string.format("%s|r was killed by %s's|r %s", self:FormatUnit(death[2], death[3], death[4]), source, spell)
+			if iswhisper then
+				text = "You were killed by "
 			else
-				text = string.format("%s|r was killed by %s", self:FormatUnit(death[2], death[3], death[4]), spell)
+				text = string.format("%s|r was killed by ", self:FormatUnit(death[2], death[3], death[4]))
+			end
+			
+			if source ~= "" then
+				text = text .. string.format("%s's|r %s", source, spell)
+			else
+				text = text .. spell
 			end
 			
 			if self.settings.announce.format_damage and damage > 0 then
@@ -95,6 +102,10 @@ function DeathNote:AnnounceDeath(death)
 	if isoutputchat then
 		text = "DeathNote: " .. self:CleanForChat(text)
 		DeathNoteData.after = text
+	end
+	
+	if iswhisper then
+		text = { death[3], text }
 	end
 	
 	self:O_Send(self.settings.announce.channel, text)
