@@ -230,6 +230,17 @@ function DeathNote:IsEntryFiltered(entry)
 		end
 	end	
 	
+	-- Remove fades when a break is detected
+	if auraBroken then
+		auras_broken[auraSpellId] = timestamp
+	elseif auraSpellId and auras_broken[auraSpellId] then
+		local aurat = auras_broken[auraSpellId]
+		auras_broken[auraSpellId] = nil
+		if (aurat - timestamp) < 1 then
+			return false
+		end
+	end
+	
 	if self.settings.display_filters.highlight_survival then
 		if self.SurvivalIDs[auraSpellId] then
 			if auraGain then
@@ -279,17 +290,6 @@ function DeathNote:IsEntryFiltered(entry)
 	
 	if not self.settings.display_filters.debuff_fades then
 		if not auraGain and auraType == "DEBUFF" then
-			return false
-		end
-	end
-	
-	-- Remove fades when a break is detected
-	if auraBroken then
-		auras_broken[auraSpellId] = timestamp
-	elseif auraSpellId and auras_broken[auraSpellId] then
-		local aurat = auras_broken[auraSpellId]
-		auras_broken[auraSpellId] = nil
-		if (aurat - timestamp) < 1 then
 			return false
 		end
 	end
