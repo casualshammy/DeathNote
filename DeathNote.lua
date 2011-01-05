@@ -53,9 +53,9 @@ function DeathNote:OnInitialize()
 			},
 			
 			announce = {
-				enable = true,
+				enable = false,
 				announce_unknown = false,
-				limit = 5,
+				limit = 3,
 				channel = "CHATFRAME",
 				style = "FORMATTED",
 				format_damage = true,

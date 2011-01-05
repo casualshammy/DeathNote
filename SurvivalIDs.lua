@@ -1,5 +1,6 @@
 DeathNote.SurvivalIDs = {
 	-- [48707] = "DEATHKNIGHT",	-- Anti-Magic Shell
+	[50461] = "DEATHKNIGHT",	-- Anti-Magic Zone
 	[49222] = "DEATHKNIGHT",	-- Bone Shield
 	[48792] = "DEATHKNIGHT",	-- Icebound Fortitude
 	[55233] = "DEATHKNIGHT",	-- Vampiric Blood
