@@ -316,7 +316,7 @@ local event_formatter_table = {
 	["SPELL_AURA_REMOVED"]		= { AuraRemoved, SpellChat, SpellTooltip },
 	["SPELL_AURA_APPLIED_DOSE"]	= { AuraApplied, SpellChat, SpellTooltip },
 	["SPELL_AURA_REMOVED_DOSE"]	= { AuraRemoved, SpellChat, SpellTooltip },
-	["SPELL_AURA_REFRESH"]		= { AuraRefresh, SpellChat, SpellTooltip },
+	-- ["SPELL_AURA_REFRESH"]		= { AuraRefresh, SpellChat, SpellTooltip },
 	["SPELL_AURA_BROKEN"]		= { AuraRemoved, SpellChat, SpellTooltip },
 	["SPELL_AURA_BROKEN_SPELL"]	= { AuraBrokenSpell, SpellChat, SpellTooltip },
 	

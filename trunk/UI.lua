@@ -956,7 +956,7 @@ end
 		self.tools_dropdownframe.initialize = self.ToolsDropDownInitialize				
 	end
 	
-	ToggleDropDownMenu(1, nil, self.tools_dropdownframe, "cursor")
+	ToggleDropDownMenu(1, nil, self.tools_dropdownframe, self.tools_frame, 0, 0)
  
  end
 
@@ -966,20 +966,118 @@ function DeathNote.ToolsDropDownInitialize(self, level)
 	if not level then return end
 
 	if level == 1 then
+		info.text = "Sort deaths by"
+		info.value = "DL_ORDER"
+		info.hasArrow = 1
+		info.notCheckable = 1
+		info.func = function() DeathNote:ResetData() end
+		UIDropDownMenu_AddButton(info, level)
+
+		wipe(info)
+		info.disabled = 1
+		info.notCheckable = 1
+		UIDropDownMenu_AddButton(info, level)
+
+		wipe(info)
+		info.text = "Time format"
+		info.value = "COL_TIME"
+		info.hasArrow = 1
+		info.notCheckable = 1
+		UIDropDownMenu_AddButton(info, level)
+
+		info.text = "Health format"
+		info.value = "COL_HEALTH"
+		info.hasArrow = 1
+		info.notCheckable = 1
+		UIDropDownMenu_AddButton(info, level)
+
+		wipe(info)
+		info.disabled = 1
+		info.notCheckable = 1
+		UIDropDownMenu_AddButton(info, level)
+
+		wipe(info)
 		info.text = "Options"
 		info.value = "OPTIONS"
 		info.notCheckable = 1
 		info.func = function() InterfaceOptionsFrame_OpenToCategory("Death Note") end
 		UIDropDownMenu_AddButton(info, level)
 
+		wipe(info)
+		info.disabled = 1
+		info.notCheckable = 1
+		UIDropDownMenu_AddButton(info, level)
+		
+		wipe(info)
 		info.text = "Reset data"
 		info.value = "RESETDATA"
 		info.notCheckable = 1
 		info.func = function() DeathNote:ResetData() end
 		UIDropDownMenu_AddButton(info, level)
+	elseif level == 2 then
+		if UIDROPDOWNMENU_MENU_VALUE == "COL_TIME" then
+			info.text = "Seconds from death"
+			info.checked = function() return DeathNote.settings.display.timestamp == 1 end
+			info.func = function() DeathNote:SetTimestampDisplay(1) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = "Real time"
+			info.checked = function() return DeathNote.settings.display.timestamp == 2 end
+			info.func = function() DeathNote:SetTimestampDisplay(2) end
+			UIDropDownMenu_AddButton(info, level)		
+		elseif UIDROPDOWNMENU_MENU_VALUE == "COL_HEALTH" then
+			info.text = "Bar"
+			info.checked = function() return DeathNote.settings.display.health == 1 end
+			info.func = function() DeathNote:SetHealthDisplay(1) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = "HP %"
+			info.checked = function() return DeathNote.settings.display.health == 2 end
+			info.func = function() DeathNote:SetHealthDisplay(2) end
+			UIDropDownMenu_AddButton(info, level)
+			
+			info.text = "HP"
+			info.checked = function() return DeathNote.settings.display.health == 3 end
+			info.func = function() DeathNote:SetHealthDisplay(3) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = "HP/HPMax"
+			info.checked = function() return DeathNote.settings.display.health == 4 end
+			info.func = function() DeathNote:SetHealthDisplay(4) end
+			UIDropDownMenu_AddButton(info, level)
+		elseif UIDROPDOWNMENU_MENU_VALUE == "DL_ORDER" then
+			info.text = "Name"
+			info.checked = function() return DeathNote.settings.display.namelist == 1 end
+			info.func = function() DeathNote:SetNameListDisplay(1) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = "Time"
+			info.checked = function() return DeathNote.settings.display.namelist == 2 end
+			info.func = function() DeathNote:SetNameListDisplay(2) end
+			UIDropDownMenu_AddButton(info, level)
+		end
 	end
 end
 
+------------------------------------------------------------------------------
+-- Display stuff
+------------------------------------------------------------------------------
+
+function DeathNote:SetNameListDisplay(n)
+	self.settings.display.namelist = n
+	DeathNote:UpdateNameList()
+	DeathNote:ScrollNameListToCurrentDeath()
+end
+
+function DeathNote:SetTimestampDisplay(n)
+	self.settings.display.timestamp = n
+	self:RefreshDeath()
+end
+
+function DeathNote:SetHealthDisplay(n)
+	self.settings.display.health = n
+	self:RefreshDeath()
+end
  
 ------------------------------------------------------------------------------
 -- Line menu
