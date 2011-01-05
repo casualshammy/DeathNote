@@ -756,6 +756,7 @@ function DeathNote:Show()
 			end)
 
 			-- hide on escape
+			--[[
 			local org_CloseSpecialWindows = CloseSpecialWindows
 			CloseSpecialWindows = function()
 				if not org_CloseSpecialWindows() then
@@ -763,6 +764,18 @@ function DeathNote:Show()
 					frame:Hide()
 					return found
 				end
+			end
+			]]
+			local org_CloseAllWindows = CloseAllWindows
+			CloseAllWindows = function(ignoreCenter)
+				local ret = org_CloseAllWindows(ignoreCenter)
+				if not ignoreCenter then
+					if frame:IsShown() then
+						frame:Hide()
+						ret = true
+					end
+				end
+				return ret
 			end
 		
 		self.frame = frame
@@ -1630,7 +1643,7 @@ function ListBox_ScrollFrame_OnSizeChanged(frame)
 		self.content:SetPoint("TOPRIGHT")
 		self.scrollbar:SetMinMaxValues(0, 0)
 		self.scrollbar:Hide()
-	else	
+	else
 		self.content:SetPoint("TOPRIGHT", -20, 0)
 		self.scrollbar:SetMinMaxValues(0, content_height - height)
 		self.scrollbar:Show()
@@ -1667,7 +1680,6 @@ local function ListBox_ScrollBar_OnValueChanged(frame, value)
 
 	value = value / self.content:GetScale()
 	self.content:SetPoint("TOPLEFT", 0, value)
-	self.content:SetPoint("TOPRIGHT", -20, value)
 end
 
 local function ListBox_ScrollToBottom(self)

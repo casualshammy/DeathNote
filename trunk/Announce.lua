@@ -37,7 +37,6 @@ function DeathNote:AnnounceDeath(death)
 			return
 		end
 	else
-		
 		if self.settings.announce.style == "COMBAT_LOG" then
 			text = self:FormatCombatLog(entry)
 		elseif self.settings.announce.style == "FORMATTED" then
@@ -77,7 +76,7 @@ function DeathNote:AnnounceDeath(death)
 				text = text .. ") "
 			end
 			
-			if self.settings.announce.format_resisted then
+			if self.settings.announce.format_resist then
 				if resisted and resisted > 0 then
 					text = text .. string.format(TEXT_MODE_A_STRING_RESULT_RESIST, resisted) .. " "
 				end
@@ -100,8 +99,10 @@ function DeathNote:AnnounceDeath(death)
 	end
 	
 	if isoutputchat then
-		text = "DeathNote: " .. self:CleanForChat(text)
+		text = self:CleanForChat(text)
 		DeathNoteData.after = text
+	else
+		text = text:gsub("|T(.-):.-|t", "|T%1:0|t")
 	end
 	
 	if iswhisper then

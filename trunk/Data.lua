@@ -209,7 +209,20 @@ end
 function DeathNote:IsEntryFiltered(entry)
 	local timestamp = entry[3]
 	local auraGain, auraType, _, auraSpellId, _, _, auraBroken = self:GetEntryAura(entry)
+	
+	if next(self.settings.display_filters.spell_filter) then
+		local _, spellname = self:GetEntrySpell(entry)
+		if self.settings.display_filters.spell_filter[string.lower(spellname or "")] then
+			return false
+		end
+	end
 
+	if next(self.settings.display_filters.source_filter) then
+		if self.settings.display_filters.source_filter[string.lower(entry[6] or "")] then
+			return false
+		end
+	end
+	
 	if self.settings.display_filters.hide_misses then
 		local miss = self:GetEntryMiss(entry)
 		if miss then
@@ -280,19 +293,6 @@ function DeathNote:IsEntryFiltered(entry)
 			return false
 		end
 	end
-	
-	if next(self.settings.display_filters.spell_filter) then
-		local _, spellname = self:GetEntrySpell(entry)
-		if self.settings.display_filters.spell_filter[string.lower(spellname or "")] then
-			return false
-		end
-	end
 
-	if next(self.settings.display_filters.source_filter) then
-		if self.settings.display_filters.source_filter[string.lower(entry[6] or "")] then
-			return false
-		end
-	end
-	
 	return true, survival_stack[1]
 end
