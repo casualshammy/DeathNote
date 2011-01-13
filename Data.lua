@@ -217,7 +217,7 @@ end
 -- Filtering functions
 function DeathNote:IsEntryOverThreshold(entry)
 	if entry.type then
-		return self:IsGroupEntryOverThreshold(entry)
+		return self:IsGroupOverThreshold(entry)
 	end
 
 	if self.settings.display_filters.damage_threshold > 0 then
@@ -238,9 +238,8 @@ function DeathNote:IsEntryOverThreshold(entry)
 end
 
 function DeathNote:GetGroupAmount(group)
-	local amount = 0
 	local func
-	-- make a table or something	
+	-- make this a table or something	
 	if group.type == "DAMAGE" then
 		func = self.GetEntryDamage
 	elseif group.type == "HEAL" then
@@ -248,6 +247,8 @@ function DeathNote:GetGroupAmount(group)
 	end
 	
 	if func then
+		local amount = 0
+		
 		for i = 1, #group do
 			amount = amount + func(self, group[i])
 		end	
@@ -256,7 +257,7 @@ function DeathNote:GetGroupAmount(group)
 	end
 end
 
-function DeathNote:IsGroupEntryOverThreshold(group)
+function DeathNote:IsGroupOverThreshold(group)
 	if group.type == "DAMAGE" and self.settings.display_filters.damage_threshold > 0 then
 		if self:GetGroupAmount(group) < self.settings.display_filters.damage_threshold then
 			return false

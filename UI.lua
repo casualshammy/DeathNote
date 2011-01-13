@@ -1368,13 +1368,25 @@ function DeathNote:ProcessDeathEntry(entry)
 			end
 		end
 	else
-		-- remove heals below threshold
+		-- remove heals below threshold, giving damage higher priority in case of collisions
 		if self.settings.display_filters.heal_threshold > 0 then
-			-- 
+			for g = #groups, 1, -1 do
+				local group = groups[g]
+				if group.type == "HEAL" then
+					if not self:IsGroupOverThreshold(group) then
+						tremove(groups, g)
+					end
+				end
+			end
 		end
 
+		-- consolidate + add
 		for g = 1, #groups do
 			local group = groups[g]
+			if not group then
+				-- consolidation can make groups shrink
+				break
+			end
 			
 			if self:IsTypeConsolidated(group.type) then
 				while #groups > g and groups[g + 1].type == group.type do
@@ -1383,7 +1395,6 @@ function DeathNote:ProcessDeathEntry(entry)
 					for i = 1, #group2 do
 						tinsert(group, group2[i])
 					end
-					
 					tremove(groups, g + 1)
 				end
 			end
