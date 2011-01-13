@@ -206,6 +206,25 @@ function DeathNote:ResetFiltering()
 	wipe(survival_stack)
 end
 
+function prio_insert(survival_stack, spellid)
+	local myprio = DeathNote.SurvivalIDs[spellid].priority	
+	local pos
+	
+	for i = 1, #survival_stack do
+		local thisprio = DeathNote.SurvivalIDs[survival_stack[i]].priority
+		if thisprio >= myprio then
+			pos = i
+			break
+		end
+	end
+	
+	if pos then
+		table.insert(survival_stack, pos, spellid)
+	else
+		table.insert(survival_stack, spellid)
+	end
+end
+
 function DeathNote:IsEntryFiltered(entry)
 	local timestamp = entry[3]
 	local auraGain, auraType, _, auraSpellId, _, _, auraBroken = self:GetEntryAura(entry)
@@ -241,6 +260,9 @@ function DeathNote:IsEntryFiltered(entry)
 		end
 	end
 	
+	-- Survival highlighting
+	local this_survivalid = survival_stack[1]
+	
 	if self.settings.display_filters.highlight_survival then
 		if self.SurvivalIDs[auraSpellId] then
 			if auraGain then
@@ -250,23 +272,17 @@ function DeathNote:IsEntryFiltered(entry)
 						break
 					end
 				end
-				
-				if self.settings.display_filters.survival_buffs then
-					return true, auraSpellId
-				end
 			else
-				table.insert(survival_stack, 1, auraSpellId)
-				
-				if self.settings.display_filters.survival_buffs then
-					return true, survival_stack[1]
-				end
+				-- table.insert(survival_stack, 1, auraSpellId)
+				prio_insert(survival_stack, auraSpellId)
+				this_survivalid = survival_stack[1]
 			end
 		end	
 	end
 	
 	if self.settings.display_filters.survival_buffs then
 		if self.SurvivalIDs[auraSpellId] then
-			return true
+			return true, this_survivalid
 		end
 	end
 	
@@ -294,5 +310,5 @@ function DeathNote:IsEntryFiltered(entry)
 		end
 	end
 
-	return true, survival_stack[1]
+	return true, this_survivalid
 end
