@@ -276,6 +276,10 @@ function DeathNote:PLAYER_LOGOUT()
 	end
 end
 
+function DeathNote:PLAYER_LEAVING_WORLD()
+	self:CleanData()
+end
+
 local function IsFiltered(sourceFlags, destFlags)
 	for i = 1, #unit_filters do
 		local f = unit_filters[i]
