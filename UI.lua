@@ -25,6 +25,8 @@ local normal_hilight = { r = 0.5, g = 0.5, b = 0.5, a = 0.4 }
 local spell_hilight = { r = 0.25, g = 0.25, b = 0.5, a = 0.4 }
 local source_hilight = { r = 0, g = 0, b = 0.6, a = 0.4 }
 
+local tinsert, tremove = table.insert, table.remove
+
 function DeathNote:Show()
 	if not self.frame then
 		local AceGUI = LibStub("AceGUI-3.0")
@@ -48,7 +50,7 @@ function DeathNote:Show()
 		
 		-- titlebar
 		local titlebar = frame:CreateTexture(nil, "BACKGROUND")
-		titlebar:SetTexture(1, 1, 1, 1)
+		titlebar:SetTexture(0.5, 0.5, 0.5, 1)
 		titlebar:SetGradient("HORIZONTAL", 0.6, 0.6, 0.6, 0.3, 0.3, 0.3)
 		titlebar:SetPoint("TOPLEFT", 4, -4)
 		titlebar:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -4, -28)
@@ -59,9 +61,9 @@ function DeathNote:Show()
 
 		local titleicon = frame:CreateTexture(nil, "ARTWORK")
 		titleicon:SetTexture([[Interface\AddOns\DeathNote\Textures\icon.tga]])
-		titleicon:SetPoint("TOPLEFT", titlebar, "TOPLEFT", 2, -1)
-		titleicon:SetWidth(22)
-		titleicon:SetHeight(22)
+		titleicon:SetPoint("TOPLEFT", titlebar, "TOPLEFT", 2, -2)
+		titleicon:SetWidth(20)
+		titleicon:SetHeight(20)
 		
 		local titletext = frame:CreateFontString(nil, "ARTWORK")
 		titletext:SetFontObject(GameFontNormal)
@@ -88,6 +90,7 @@ function DeathNote:Show()
 
 		local sizer_se_tex = frame:CreateTexture(nil, "BORDER")
 		sizer_se_tex:SetTexture([[Interface\AddOns\DeathNote\Textures\resize.tga]])
+		sizer_se_tex:SetVertexColor(0.4, 0.4, 0.4, 1)
 		sizer_se_tex:SetAllPoints(sizer_se)
 
 		local function save_frame_rect()
@@ -467,7 +470,7 @@ function DeathNote:Show()
 		local function format_filter(f)
 			local t = {}
 			for k, v in pairs(f) do
-				table.insert(t, v)
+				tinsert(t, v)
 			end
 			table.sort(t)
 			return table.concat(t, ",")
@@ -691,6 +694,8 @@ function DeathNote:Show()
 			
 		logframe:SetMouseCallbacks(
 			function(button, line, column, userdata)
+				if userdata.type then return end -- hack until implemented
+				
 				if IsModifiedClick("CHATLINK") then
 					if column == 1 then -- Time
 						ChatEdit_InsertLink(self:FormatChatTimestamp(userdata))
@@ -731,6 +736,8 @@ function DeathNote:Show()
 				end
 			end,
 			function(column, userdata)
+				if userdata.type then return end -- hack until implemented
+			
 				local have_tip = false
 				GameTooltip:SetOwner(logframe.frame, "ANCHOR_NONE")
 				GameTooltip:SetPoint("BOTTOMLEFT", logframe.frame, "BOTTOMRIGHT")
@@ -1219,7 +1226,7 @@ GetSortedDeathList[1] = function()
 	-- by name
 	local deaths = {}
 	for _, v in ipairs(DeathNoteData.deaths) do
-		table.insert(deaths, v)
+		tinsert(deaths, v)
 	end
 	
 	table.sort(deaths, SortDeathsByNameFunc)
@@ -1290,11 +1297,30 @@ end
 -- ShowDeath
 ------------------------------------------------------------------------------
 
+function DeathNote:IsTypeConsolidated(etype)
+	return (etype == "DAMAGE" and self.settings.display_filters.consolidate_damage) or
+		(etype == "HEAL" and self.settings.display_filters.consolidate_heals) or
+		(etype == "AURA" and self.settings.display_filters.consolidate_auras)	
+end
+
+local groups = {}
+
+local function AddGroup(etype, entry, highlight_spellid)
+	local group = {
+		type = etype,
+		highlight_spellid = highlight_spellid,
+	}
+	
+	tinsert(groups, group)
+	tinsert(group, entry)
+end
+
 function DeathNote:ShowDeath(death)
 	if self.settings.debugging then debugprofilestart() end
 
 	self.current_source_hilight = nil
 	self.current_spell_hilight = nil
+	wipe(groups)
 
 	self.logframe:ClearAllLines()
 
@@ -1313,33 +1339,77 @@ function DeathNote:ShowDeath(death)
 	if self.settings.debugging then self:Debug(string.format("Death shown in %.02f ms (%i lines)", debugprofilestop(), self.logframe:GetLineCount())) end
 end
 
-
-local function IsGroupEntry(entry)
-	return type(entry[1]) == "table"
-end
-
-local prev
-local group -- { { entries }, "type", hp, hpmax, t1, t2, { spells }, { sources } }
 function DeathNote:ProcessDeathEntry(entry)
 	if entry then
 		local filtered, highlight_spellid = self:IsEntryFiltered(entry)
 		if filtered then
-			if self:IsEntryOverThreshold(entry) then
-				self:AddDeathEntry(entry, highlight_spellid)
+			entry.highlight_spellid = highlight_spellid			
+			local etype = self:GetEntryType(entry)
+			
+			assert(etype, "Unknown event type")
+			
+			local group = groups[#groups]
+			
+			if self:IsTypeConsolidated(etype) then
+				if group then
+					if group.type == etype then
+						-- add to group
+						tinsert(group, entry)
+					else
+						-- start group
+						AddGroup(etype, entry, highlight_spellid)
+					end
+				end
+			else
+				-- start single group
+				if self:IsEntryOverThreshold(entry) then
+					AddGroup(etype, entry, highlight_spellid)
+				end
 			end
 		end
 	else
+		-- remove heals below threshold
+		if self.settings.display_filters.heal_threshold > 0 then
+			-- 
+		end
+
+		for g = 1, #groups do
+			local group = groups[g]
+			
+			if self:IsTypeConsolidated(group.type) then
+				while #groups > g and groups[g + 1].type == group.type do
+					-- merge, remove
+					local group2 = groups[g + 1]
+					for i = 1, #group2 do
+						tinsert(group, group2[i])
+					end
+					
+					tremove(groups, g + 1)
+				end
+			end
+			
+			self:AddDeathEntry(group, true)
+		end
 	end
 end
 
-function DeathNote:AddDeathEntry(entry, highlight_spellid)
+function DeathNote:AddDeathEntry(entry, check_threshold)
+	-- ungroup groups with just one entry
+	if entry.type and #entry == 1 then
+		entry = entry[1]
+	end
+	
+	if check_threshold and not self:IsEntryOverThreshold(entry) then
+		return
+	end
+	
 	local line = self:FormatEntry(entry)
 	
 	if line then
 		local nline = self.logframe:AddLine(line, entry)
 
-		if highlight_spellid then
-			local highlight = self.SurvivalColors[self.SurvivalIDs[highlight_spellid].class]
+		if entry.highlight_spellid then
+			local highlight = self.SurvivalColors[self.SurvivalIDs[entry.highlight_spellid].class]
 			self.logframe:SetLineHighlight(nline, highlight)
 		end
 	end
@@ -1488,7 +1558,7 @@ local function ListBox_Column_Dragger_OnMouseUp(frame)
 	if self.columns_callback then
 		local t = {}
 		for i = 1, #self.columns - 1 do
-			table.insert(t, self.columns[i]:GetWidth())
+			tinsert(t, self.columns[i]:GetWidth())
 		end
 		self.columns_callback(t)
 	end
@@ -1531,7 +1601,7 @@ local function ListBox_AddColumn(self, label, align, width)
 		dragger:SetScript("OnLeave", ListBox_Column_Dragger_OnLeave)
 	end
 	
-	table.insert(self.columns, column)
+	tinsert(self.columns, column)
 end
 
 function ListBox_SetMouseCallbacks(self, onmouseup, onenter, onleave)
@@ -1605,10 +1675,10 @@ local function ListBox_CreateLine(self)
 			line.columns[i] = f
 		end
 		
-		table.insert(self.line_cache, line)
+		tinsert(self.line_cache, line)
 	end
 	
-	table.insert(self.lines, line)
+	tinsert(self.lines, line)
 	
 	return line
 end
@@ -1689,6 +1759,24 @@ local function ListBox_UpdateLine(self, nline, values)
 				fs:SetShadowColor(0, 0, 0, 0)
 				fs:SetJustifyH(c.align)
 				line.columns[i].fs = fs
+				
+				-- hyperlink tips
+				--[[
+				local function Column_OnHyperlinkEnter(fs, linkData, link)
+					print(linkData)
+					GameTooltip:SetOwner(self.frame, "ANCHOR_NONE")
+					GameTooltip:SetPoint("BOTTOMLEFT", self.frame, "BOTTOMRIGHT")
+					GameTooltip:SetHyperlink(link)
+					GameTooltip:Show()
+				end
+				
+				local function Column_OnHyperlinkLeave(fs, linkData, link)
+					GameTooltip:Hide()
+				end
+				
+				fs:SetScript("OnHyperlinkEnter", Column_OnHyperlinkEnter)
+				fs:SetScript("OnHyperlinkLeave", Column_OnHyperlinkLeave)
+				]]
 			end
 			
 			line.columns[i].fs:Show()

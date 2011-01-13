@@ -35,18 +35,18 @@ function DeathNote:OnInitialize()
 			display_filters = {
 				damage_threshold = 0,
 				hide_misses = false,
-				consolidate_damage = false,
+				consolidate_damage = true,
 				
 				heal_threshold = 0,
-				consolidate_heals = false,
+				consolidate_heals = true,
 				
 				buff_gains = false,
 				buff_fades = false,
 				debuff_gains = false,
 				debuff_fades = false,
 				survival_buffs = true,
-				consolidate_auras = false,
 				highlight_survival = true,
+				consolidate_auras = true,
 				
 				spell_filter = {},
 				source_filter = {},
@@ -108,11 +108,9 @@ function DeathNote:OnEnable()
 	self:RegisterEvent("PLAYER_REGEN_ENABLED")
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
-	self:RegisterEvent("PLAYER_LOGOUT")
+	self:RegisterEvent("PLAYER_LEAVING_WORLD")
 	
 	self:AddToUnitPopup()
-	
-	self:CleanData()
 	
 	self:ScheduleRepeatingTimer("UpdateLDB", 5)
 	

@@ -1,3 +1,4 @@
+-- Death iterator
 local function DeathIterator(state)
 	repeat
 		local l = DeathNoteData.log[state.t]
@@ -95,51 +96,83 @@ local function AuraDispel(spellId, spellName, spellSchool, extraSpellId, extraSp
 	return false, auraType, 0, extraSpellId, extraSpellName, extraSpellSchool, true
 end
 
+-- Type readers
+local function TypeDamage()
+	return "DAMAGE"
+end
+
+local function TypeMiss()
+	return "MISS"
+end
+
+local function TypeHeal()
+	return "HEAL"
+end
+
+local function TypeAura()
+	return "AURA"
+end
+
+local function TypeInterrupt()
+	return "INTERRUPT"
+end
+
+local function TypeInstakill()
+	return "INSTAKILL"
+end
+
+local function TypeDeath()
+	return "DEATH"
+end
+
+local function TypeCast()
+	return "CAST"
+end
+
+-- type, damage, heal, spell, aura
 local event_reader_table = {
-	["SPELL_DAMAGE"] 			= { SpellDamageAmount, nil, SpellSpellId },
-	["SPELL_PERIODIC_DAMAGE"] 	= { SpellDamageAmount, nil, SpellSpellId },
-	["SPELL_BUILDING_DAMAGE"] 	= { SpellDamageAmount, nil, SpellSpellId },
-	["RANGE_DAMAGE"] 			= { SpellDamageAmount, nil, SpellSpellId },
-	["DAMAGE_SHIELD"] 			= { SpellDamageAmount, nil, SpellSpellId },
-	["DAMAGE_SPLIT"] 			= { SpellDamageAmount, nil, SpellSpellId },
+	["SPELL_DAMAGE"] 			= { TypeDamage, SpellDamageAmount, nil, SpellSpellId },
+	["SPELL_PERIODIC_DAMAGE"] 	= { TypeDamage, SpellDamageAmount, nil, SpellSpellId },
+	["SPELL_BUILDING_DAMAGE"] 	= { TypeDamage, SpellDamageAmount, nil, SpellSpellId },
+	["RANGE_DAMAGE"] 			= { TypeDamage, SpellDamageAmount, nil, SpellSpellId },
+	["DAMAGE_SHIELD"] 			= { TypeDamage, SpellDamageAmount, nil, SpellSpellId },
+	["DAMAGE_SPLIT"] 			= { TypeDamage, SpellDamageAmount, nil, SpellSpellId },
 
-	["SPELL_MISSED"] 			= { nil, nil, SpellSpellId, nil, true },
-	["SPELL_PERIODIC_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
-	["SPELL_BUILDING_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
-	["DAMAGE_SHIELD_MISSED"] 	= { nil, nil, SpellSpellId, nil, true },
+	["SPELL_MISSED"] 			= { TypeMiss, nil, nil, SpellSpellId, nil },
+	["SPELL_PERIODIC_MISSED"] 	= { TypeMiss, nil, nil, SpellSpellId, nil },
+	["SPELL_BUILDING_MISSED"] 	= { TypeMiss, nil, nil, SpellSpellId, nil },
+	["DAMAGE_SHIELD_MISSED"] 	= { TypeMiss, nil, nil, SpellSpellId, nil },
 
-	["SWING_DAMAGE"] 			= { SwingDamageAmount, nil, SwingSpellId },
+	["SWING_DAMAGE"] 			= { TypeDamage, SwingDamageAmount, nil, SwingSpellId },
 
-	["SWING_MISSED"] 			= { nil, nil, SwingSpellId, nil, true },
+	["SWING_MISSED"] 			= { TypeMiss, nil, nil, SwingSpellId, nil },
 
-	["ENVIRONMENTAL_DAMAGE"] 	= { EnvironmentalAmount, nil, EnvironmentalSpellId },
+	["ENVIRONMENTAL_DAMAGE"] 	= { TypeDamage, EnvironmentalAmount, nil, EnvironmentalSpellId },
 
-	["SPELL_HEAL"] 				= { nil, SpellHealAmount, SpellSpellId },
-	["SPELL_PERIODIC_HEAL"] 	= { nil, SpellHealAmount, SpellSpellId },
-	["SPELL_BUILDING_HEAL"] 	= { nil, SpellHealAmount, SpellSpellId },
+	["SPELL_HEAL"] 				= { TypeHeal, nil, SpellHealAmount, SpellSpellId },
+	["SPELL_PERIODIC_HEAL"] 	= { TypeHeal, nil, SpellHealAmount, SpellSpellId },
+	["SPELL_BUILDING_HEAL"] 	= { TypeHeal, nil, SpellHealAmount, SpellSpellId },
 	
-	["SPELL_AURA_APPLIED"]		= { nil, nil, SpellSpellId, AuraApplied },
-	["SPELL_AURA_REMOVED"]		= { nil, nil, SpellSpellId, AuraRemoved },
-	["SPELL_AURA_APPLIED_DOSE"]	= { nil, nil, SpellSpellId, AuraApplied },
-	["SPELL_AURA_REMOVED_DOSE"]	= { nil, nil, SpellSpellId, AuraRemoved },
-	["SPELL_AURA_REFRESH"]		= { nil, nil, SpellSpellId, AuraApplied },
-	["SPELL_AURA_BROKEN"]		= { nil, nil, SpellSpellId, AuraRemoved },
-	["SPELL_AURA_BROKEN_SPELL"]	= { nil, nil, SpellSpellId, AuraBrokenSpell },
+	["SPELL_AURA_APPLIED"]		= { TypeAura, nil, nil, SpellSpellId, AuraApplied },
+	["SPELL_AURA_REMOVED"]		= { TypeAura, nil, nil, SpellSpellId, AuraRemoved },
+	["SPELL_AURA_APPLIED_DOSE"]	= { TypeAura, nil, nil, SpellSpellId, AuraApplied },
+	["SPELL_AURA_REMOVED_DOSE"]	= { TypeAura, nil, nil, SpellSpellId, AuraRemoved },
+	["SPELL_AURA_REFRESH"]		= { TypeAura, nil, nil, SpellSpellId, AuraApplied },
+	["SPELL_AURA_BROKEN"]		= { TypeAura, nil, nil, SpellSpellId, AuraRemoved },
+	["SPELL_AURA_BROKEN_SPELL"]	= { TypeAura, nil, nil, SpellSpellId, AuraBrokenSpell },
 	
-	["SPELL_DISPEL"]			= { nil, nil, ExtraSpellId, AuraDispel },
+	["SPELL_DISPEL"]			= { TypeAura, nil, nil, ExtraSpellId, AuraDispel },
 	-- ["SPELL_DISPEL_FAILED"]		= true,
-	["SPELL_STOLEN"]			= { nil, nil, ExtraSpellId, AuraDispel },
+	["SPELL_STOLEN"]			= { TypeAura, nil, nil, ExtraSpellId, AuraDispel },
 
-	["SPELL_INTERRUPT"] 		= { nil, nil, ExtraSpellId },
+	["SPELL_INTERRUPT"] 		= { TypeInterrupt, nil, nil, ExtraSpellId },
 
-	-- ["SPELL_CAST_START"]		= { CastStart, CastChat, CastTooltip },
-	-- ["SPELL_CAST_FAILED"]		= { CastFailed, CastChat, CastTooltip },
-	-- ["SPELL_CAST_SUCCESS"]		= { CastSuccess, CastChat, CastTooltip },
+	["SPELL_CAST_START"]		= { TypeCast },
+	["SPELL_CAST_SUCCESS"]		= { TypeCast },	
 	
-	
-	["SPELL_INSTAKILL"]			= { SpellInstakillAmount, nil, SpellSpellId },
+	["SPELL_INSTAKILL"]			= { TypeInstakill, SpellInstakillAmount, nil, SpellSpellId },
 
-	-- ["UNIT_DIED"] 				= { nil, nil },
+	["UNIT_DIED"] 				= { TypeDeath },
 }
 
 local function GetEntryReader(entry, nreader)
@@ -150,24 +183,24 @@ local function GetEntryReader(entry, nreader)
 	end
 end
 
-function DeathNote:GetEntryDamage(entry)
+function DeathNote:GetEntryType(entry)
 	return GetEntryReader(entry, 1)
 end
 
-function DeathNote:GetEntryHeal(entry)
+function DeathNote:GetEntryDamage(entry)
 	return GetEntryReader(entry, 2)
 end
 
-function DeathNote:GetEntrySpell(entry)
+function DeathNote:GetEntryHeal(entry)
 	return GetEntryReader(entry, 3)
 end
 
-function DeathNote:GetEntryAura(entry)
+function DeathNote:GetEntrySpell(entry)
 	return GetEntryReader(entry, 4)
 end
 
-function DeathNote:GetEntryMiss(entry)
-	return event_reader_table[entry[4]] and event_reader_table[entry[4]][5]
+function DeathNote:GetEntryAura(entry)
+	return GetEntryReader(entry, 5)
 end
 
 function DeathNote:GetKillingBlow(death)	
@@ -181,7 +214,12 @@ function DeathNote:GetKillingBlow(death)
 	return nil
 end
 
+-- Filtering functions
 function DeathNote:IsEntryOverThreshold(entry)
+	if entry.type then
+		return self:IsGroupEntryOverThreshold(entry)
+	end
+
 	if self.settings.display_filters.damage_threshold > 0 then
 		local damage = self:GetEntryDamage(entry)
 		if damage and damage < self.settings.display_filters.damage_threshold then
@@ -192,6 +230,41 @@ function DeathNote:IsEntryOverThreshold(entry)
 	if self.settings.display_filters.heal_threshold > 0 then
 		local heal = self:GetEntryHeal(entry)
 		if heal and heal < self.settings.display_filters.heal_threshold then
+			return false
+		end
+	end
+
+	return true
+end
+
+function DeathNote:GetGroupAmount(group)
+	local amount = 0
+	local func
+	-- make a table or something	
+	if group.type == "DAMAGE" then
+		func = self.GetEntryDamage
+	elseif group.type == "HEAL" then
+		func = self.GetEntryHeal
+	end
+	
+	if func then
+		for i = 1, #group do
+			amount = amount + func(self, group[i])
+		end	
+	
+		return amount
+	end
+end
+
+function DeathNote:IsGroupEntryOverThreshold(group)
+	if group.type == "DAMAGE" and self.settings.display_filters.damage_threshold > 0 then
+		if self:GetGroupAmount(group) < self.settings.display_filters.damage_threshold then
+			return false
+		end
+	end
+	
+	if group.type == "HEAL" and self.settings.display_filters.heal_threshold > 0 then
+		if self:GetGroupAmount(group) < self.settings.display_filters.heal_threshold then
 			return false
 		end
 	end
@@ -226,6 +299,12 @@ function prio_insert(survival_stack, spellid)
 end
 
 function DeathNote:IsEntryFiltered(entry)
+	-- hack to remove obnoxious events that will never be shown unless a filter is added for them
+	local event = entry[4]
+	if event == "SPELL_AURA_REFRESH" or event == "SPELL_CAST_START" or event == "SPELL_CAST_SUCCESS" then
+		return false
+	end
+
 	local timestamp = entry[3]
 	local auraGain, auraType, _, auraSpellId, _, _, auraBroken = self:GetEntryAura(entry)
 	
@@ -243,8 +322,7 @@ function DeathNote:IsEntryFiltered(entry)
 	end
 	
 	if self.settings.display_filters.hide_misses then
-		local miss = self:GetEntryMiss(entry)
-		if miss then
+		if self:GetEntryType(entry) == "MISS" then
 			return false
 		end
 	end	
