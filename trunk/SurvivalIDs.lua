@@ -1,38 +1,38 @@
 DeathNote.SurvivalIDs = {
-	-- [48707] = "DEATHKNIGHT",	-- Anti-Magic Shell
-	[50461] = "DEATHKNIGHT",	-- Anti-Magic Zone
-	[49222] = "DEATHKNIGHT",	-- Bone Shield
-	[48792] = "DEATHKNIGHT",	-- Icebound Fortitude
-	[55233] = "DEATHKNIGHT",	-- Vampiric Blood
+	-- [48707] = { class = "DEATHKNIGHT", priority = 1 },	-- Anti-Magic Shell
+	[50461] = { class = "DEATHKNIGHT", priority = 2  },	-- Anti-Magic Zone
+	[49222] = { class = "DEATHKNIGHT", priority = 2  },	-- Bone Shield
+	[48792] = { class = "DEATHKNIGHT", priority = 1  },	-- Icebound Fortitude
+	[55233] = { class = "DEATHKNIGHT", priority = 3  },	-- Vampiric Blood
 
-	[22812] = "DRUID",			-- Barkskin
-	[22842] = "DRUID",			-- Frenzied Regeneration
-	[61336] = "DRUID",			-- Survival Instincts
+	[22812] = { class = "DRUID", priority = 2 },		-- Barkskin
+	[22842] = { class = "DRUID", priority = 3 },		-- Frenzied Regeneration
+	[61336] = { class = "DRUID", priority = 1 },		-- Survival Instincts
 
-	[45438] = "MAGE",			-- Ice Block
+	[45438] = { class = "MAGE", priority = 1 },			-- Ice Block
 
-	[86659] = "PALADIN",		-- Guardian of Ancient Kings
-	[31850] = "PALADIN",		-- Ardent Defender
-	[70940] = "PALADIN",		-- Divine Guardian
-	[498] = "PALADIN",			-- Divine Protection
-	[64205] = "PALADIN",		-- Divine Sacrifice
-	[642] = "PALADIN",			-- Divine Shield
-	[1022] = "PALADIN",			-- Hand of Protection
-	[6940] = "PALADIN",			-- Hand of Sacrifice
+	[86659] = { class = "PALADIN", priority = 1 },		-- Guardian of Ancient Kings
+	[31850] = { class = "PALADIN", priority = 1 },		-- Ardent Defender
+	[70940] = { class = "PALADIN", priority = 2 },		-- Divine Guardian
+	[498] =   { class = "PALADIN", priority = 2 },		-- Divine Protection
+	[64205] = { class = "PALADIN", priority = 1 },		-- Divine Sacrifice
+	[642] =   { class = "PALADIN", priority = 1 },		-- Divine Shield
+	[1022] =  { class = "PALADIN", priority = 2 },		-- Hand of Protection
+	[6940] =  { class = "PALADIN", priority = 1 },		-- Hand of Sacrifice
 
-	[47585] = "PRIEST",			-- Dispersion
-	[33206] = "PRIEST",			-- Pain Suppression
-	[47788] = "PRIEST",			-- Guardian Spirit
-	[81782] = "PRIEST",			-- Power Word: Barrier
+	[47585] = { class = "PRIEST", priority = 1 },		-- Dispersion
+	[33206] = { class = "PRIEST", priority = 1 },		-- Pain Suppression
+	[47788] = { class = "PRIEST", priority = 1 },		-- Guardian Spirit
+	[81782] = { class = "PRIEST", priority = 1 },		-- Power Word: Barrier
 
-	[31224] = "ROGUE",			-- Cloak of Shadows
-	[1966] = "ROGUE",			-- Feint
+	[31224] = { class = "ROGUE", priority = 1 },		-- Cloak of Shadows
+	[1966] =  { class = "ROGUE", priority = 2 },		-- Feint
 
-	[30823] = "SHAMAN",			-- Shamanistic Rage
+	[30823] = { class = "SHAMAN", priority = 1 },		-- Shamanistic Rage
 
-	[12975] = "WARRIOR",		-- Last Stand
-	[2565] = "WARRIOR",			-- Shield Block
-	[871] = "WARRIOR",			-- Shield Wall
+	[12975] = { class = "WARRIOR", priority = 3 },		-- Last Stand
+	-- [2565] =  { class = "WARRIOR", priority = 3 },		-- Shield Block
+	[871] =   { class = "WARRIOR", priority = 1 },		-- Shield Wall
 }
 
 do

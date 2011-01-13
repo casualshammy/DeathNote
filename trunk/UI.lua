@@ -59,7 +59,7 @@ function DeathNote:Show()
 
 		local titleicon = frame:CreateTexture(nil, "ARTWORK")
 		titleicon:SetTexture([[Interface\AddOns\DeathNote\Textures\icon.tga]])
-		titleicon:SetPoint("TOPLEFT", titlebar, "TOPLEFT", 2, -2)
+		titleicon:SetPoint("TOPLEFT", titlebar, "TOPLEFT", 2, -1)
 		titleicon:SetWidth(22)
 		titleicon:SetHeight(22)
 		
@@ -1339,7 +1339,7 @@ function DeathNote:AddDeathEntry(entry, highlight_spellid)
 		local nline = self.logframe:AddLine(line, entry)
 
 		if highlight_spellid then
-			local highlight = self.SurvivalColors[self.SurvivalIDs[highlight_spellid]]
+			local highlight = self.SurvivalColors[self.SurvivalIDs[highlight_spellid].class]
 			self.logframe:SetLineHighlight(nline, highlight)
 		end
 	end

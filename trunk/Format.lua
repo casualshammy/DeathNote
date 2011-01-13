@@ -2,7 +2,7 @@ local function CommaNumber(num)
 	local found
 	
 	repeat
-		num, found = string.gsub(num, "(%d)(%d%d%d)$", "%1,%2")
+		num, found = string.gsub(num, "^(-?%d+)(%d%d%d)", "%1,%2")
 	until found == 0
 	
 	return num
