@@ -1368,19 +1368,67 @@ function DeathNote:ProcessDeathEntry(entry)
 			end
 		end
 	else
-		-- remove heals below threshold, giving damage higher priority in case of collisions
-		if self.settings.display_filters.heal_threshold > 0 then
-			for g = #groups, 1, -1 do
-				local group = groups[g]
-				if group.type == "HEAL" then
-					if not self:IsGroupOverThreshold(group) then
-						tremove(groups, g)
+		-- if thresholds > 0 and consolidate damage or heal then
+
+		-- sum until barrier
+		local prev_barrier
+		local tsum = {}		
+		------------------
+		local function barrier(g)
+			local group = groups[g]		
+			if next(tsum) then
+				local keep_type
+				
+				if group and tsum[group.type] then
+					-- choose by barrier type
+					keep_type = group.type
+				else
+					if prev_barrier and tsum[prev_barrier.type] then
+						-- choose by PREV barrier type
+						keep_type = prev_barrier.type
+					else
+						-- choose by amount - threshold
+						local best_amount, best_type = 0, nil
+						for type, amount in pairs(tsum) do
+							local at = amount - self:GetTypeThreshold(type)
+							if at > best_amount then
+								best_amount = at
+								best_type = type
+							end
+						end							
+						keep_type = best_type
+					end
+				end
+				
+				local gg = g + 1
+				while groups[gg] ~= prev_barrier do
+					if groups[gg].type ~= keep_type then
+						tremove(groups, gg)
+					else					
+						gg = gg + 1
 					end
 				end
 			end
+			prev_barrier = group
+			wipe(tsum)
 		end
-
-		-- consolidate + add
+		-----------------
+		for g = #groups, 1, -1 do
+			local group = groups[g]
+			if self:IsGroupOverThreshold(group) then
+				-- BARRIER!
+				barrier(g)
+			else
+				if not tsum[group.type] then
+					tsum[group.type] = 0
+				end
+				
+				tsum[group.type] = tsum[group.type] + self:GetGroupAmount(group)
+			end
+		end
+		barrier(1)
+		
+		-- consolidate again + add
 		for g = 1, #groups do
 			local group = groups[g]
 			if not group then
@@ -1774,7 +1822,6 @@ local function ListBox_UpdateLine(self, nline, values)
 				-- hyperlink tips
 				--[[
 				local function Column_OnHyperlinkEnter(fs, linkData, link)
-					print(linkData)
 					GameTooltip:SetOwner(self.frame, "ANCHOR_NONE")
 					GameTooltip:SetPoint("BOTTOMLEFT", self.frame, "BOTTOMRIGHT")
 					GameTooltip:SetHyperlink(link)
