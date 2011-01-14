@@ -237,14 +237,17 @@ function DeathNote:IsEntryOverThreshold(entry)
 	return true
 end
 
-function DeathNote:GetGroupAmount(group)
-	local func
+function DeathNote:GetAmountFunc(type)
 	-- make this a table or something	
-	if group.type == "DAMAGE" then
-		func = self.GetEntryDamage
-	elseif group.type == "HEAL" then
-		func = self.GetEntryHeal
+	if type == "DAMAGE" then
+		return self.GetEntryDamage
+	elseif type == "HEAL" then
+		return self.GetEntryHeal
 	end
+end
+
+function DeathNote:GetGroupAmount(group)
+	local func = self:GetAmountFunc(group.type)
 	
 	if func then
 		local amount = 0
@@ -254,6 +257,16 @@ function DeathNote:GetGroupAmount(group)
 		end	
 	
 		return amount
+	end
+end
+
+function DeathNote:GetTypeThreshold(type)
+	if type == "DAMAGE" then
+		return self.settings.display_filters.damage_threshold
+	end
+	
+	if type == "HEAL" then
+		return self.settings.display_filters.heal_threshold
 	end
 end
 

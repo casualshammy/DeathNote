@@ -503,16 +503,18 @@ local function FormatGroupTimestamp(group)
 	if first[3] == last[3] then
 		return FormatTimestamp[DeathNote.settings.display.timestamp](last[3])
 	else
-		return string.format("%s|cFFFFFFFF..|r%s", FormatTimestamp[DeathNote.settings.display.timestamp](last[3]), FormatTimestamp[DeathNote.settings.display.timestamp](first[3]))
+		return string.format("%s|cFFFFFFFF .. |r%s", FormatTimestamp[DeathNote.settings.display.timestamp](last[3]), FormatTimestamp[DeathNote.settings.display.timestamp](first[3]))
 	end
 end
 
 local function FormatGroupHealth(group)
-	local entry = group[#group]
+	local entry = group[1]
 	return FormatHealth[DeathNote.settings.display.health](entry[1], entry[2])
 end
 
 local function FormatGroup(group)
+	local func = DeathNote:GetAmountFunc(group.type)
+	
 	local spells = {}
 	local sources = {}
 	
@@ -521,26 +523,54 @@ local function FormatGroup(group)
 		local event = entry[4]
 		local formatter = event_formatter_table[event]		
 		if formatter and formatter[1] then
-			local amount, spell, source = formatter[1](unpack(entry, 11))
+			local _, spell, source = formatter[1](unpack(entry, 11))
 			source = source or DeathNote:FormatUnit(entry[5], entry[6], entry[7])
+			if not spell then spell = "" end
+			if not source then source = "" end
+			local amount = func and func(DeathNote, entry) or 0
 			
-			spells[spell or ""] = (spells[spell or ""] or 0) + 1
-			sources[source or ""] = (sources[source or ""] or 0) + 1
+			local spellv = spells[spell] or { amount = 0, hits = 0 }
+			local srcv = sources[source] or { amount = 0, hits = 0 }
+			
+			spellv.amount = spellv.amount + amount
+			spellv.hits = spellv.hits + 1
+			
+			srcv.amount = srcv.amount + amount
+			srcv.hits = srcv.hits + 1
+
+			spells[spell] = spellv
+			sources[source] = srcv
 		end
 	end
 	
 	local sorted_spells = {}
 	local sorted_sources = {}
-	for s, a in pairs(spells) do
-		tinsert(sorted_spells, a == 1 and s or string.format("%s (x%i)", s, a))
-	end
-	for s, a in pairs(sources) do
-		tinsert(sorted_sources, a == 1 and s or string.format("%s (x%i)", s, a))
-	end
-	table.sort(sorted_spells)
-	table.sort(sorted_sources)
 	
-	return table.concat(sorted_spells, ", "), table.concat(sorted_sources, ", ")
+	
+	for s, a in pairs(spells) do
+		local v = { a, a.hits == 1 and s or string.format("%s (x%i)", s, a.hits) }
+		tinsert(sorted_spells, v)
+	end
+	
+	for s, a in pairs(sources) do
+		local v = { a, a.hits == 1 and s or string.format("%s (x%i)", s, a.hits) }
+		tinsert(sorted_sources, v)
+	end
+
+	table.sort(sorted_spells, function(a, b) return a[1].amount > b[1].amount end)
+	table.sort(sorted_sources, function(a, b) return a[1].amount > b[1].amount end)
+
+	local spellsstr
+	for i, s in ipairs(sorted_spells) do
+		spellsstr = spellsstr and (spellsstr .. ", " .. s[2]) or s[2]
+	end
+	
+	local sourcesstr
+	for i, s in ipairs(sorted_sources) do
+		sourcesstr = sourcesstr and (sourcesstr .. ", " .. s[2]) or s[2]
+	end
+
+	return spellsstr, sourcesstr
 end
 
 local function FormatGroupAmount(group)
