@@ -19,14 +19,22 @@ do
 	end
 
 	local function chatmessage(msg, arg)
+		local ispvp = select(2, IsInInstance()) == "pvp"
+		local israid = GetNumRaidMembers() > 0
+		local isparty = GetNumPartyMembers() > 0
+		
+		if (arg == "PARTY" and not isparty) or
+		   (arg == "RAID" and not israid) or		   
+		   (arg == "BATTLEGROUND" and not ispvp) or
+		   (arg == "RAID_WARNING" and not IsPartyLeader()) then
+			return
+		end
+		
 		SendChatMessage(msg, arg)
 	end
 
 	local function groupmessage(msg)
-		local _, instanceType = IsInInstance()   
-		if instanceType == "pvp" then
-			SendChatMessage(msg, "BATTLEGROUND")
-		elseif GetNumRaidMembers() > 0 then
+		if GetNumRaidMembers() > 0 then
 			SendChatMessage(msg, "RAID")
 		elseif GetNumPartyMembers() > 0 then
 			SendChatMessage(msg, "PARTY")
@@ -34,7 +42,9 @@ do
 	end
 	
 	local function whispermessage(msg)
-		SendChatMessage(msg[2], "WHISPER", nil, msg[1])
+		if UnitExists(msg[1]) then
+			SendChatMessage(msg[2], "WHISPER", nil, msg[1])
+		end
 	end
 	
 	DeathNote:O_RegisterOutput {

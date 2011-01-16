@@ -525,27 +525,26 @@ local function FormatGroup(group)
 		if formatter and formatter[1] then
 			local _, spell, source = formatter[1](unpack(entry, 11))
 			source = source or DeathNote:FormatUnit(entry[5], entry[6], entry[7])
-			if not spell then spell = "" end
-			if not source then source = "" end
 			local amount = func and func(DeathNote, entry) or 0
-			
-			local spellv = spells[spell] or { amount = 0, hits = 0 }
-			local srcv = sources[source] or { amount = 0, hits = 0 }
-			
-			spellv.amount = spellv.amount + amount
-			spellv.hits = spellv.hits + 1
-			
-			srcv.amount = srcv.amount + amount
-			srcv.hits = srcv.hits + 1
 
-			spells[spell] = spellv
-			sources[source] = srcv
+			if spell and spell ~= "" then
+				local spellv = spells[spell] or { amount = 0, hits = 0 }
+				spellv.amount = spellv.amount + amount
+				spellv.hits = spellv.hits + 1
+				spells[spell] = spellv
+			end
+			
+			if source and source ~= "" then
+				local srcv = sources[source] or { amount = 0, hits = 0 }
+				srcv.amount = srcv.amount + amount
+				srcv.hits = srcv.hits + 1
+				sources[source] = srcv
+			end
 		end
 	end
 	
 	local sorted_spells = {}
 	local sorted_sources = {}
-	
 	
 	for s, a in pairs(spells) do
 		local v = { a, a.hits == 1 and s or string.format("%s (x%i)", s, a.hits) }

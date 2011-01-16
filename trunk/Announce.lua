@@ -19,7 +19,7 @@ function DeathNote:AnnounceDeath(death)
 	if #announced_deaths >= self.settings.announce.limit then
 		skipped_deaths = skipped_deaths + 1
 		self:CancelTimer(skip_timer, true)
-		skip_timer = self:ScheduleTimer("SkipAnnounce", 5)
+		skip_timer = self:ScheduleTimer("SkipAnnounce", 10)
 		return
 	end
 	
@@ -100,7 +100,6 @@ function DeathNote:AnnounceDeath(death)
 	
 	if isoutputchat then
 		text = self:CleanForChat(text)
-		DeathNoteData.after = text
 	else
 		text = text:gsub("|T(.-):.-|t", "|T%1:0|t")
 	end
