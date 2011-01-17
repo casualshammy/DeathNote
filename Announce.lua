@@ -41,8 +41,7 @@ function DeathNote:AnnounceDeath(death)
 			text = self:FormatCombatLog(entry)
 		elseif self.settings.announce.style == "FORMATTED" then
 			local source = self:FormatUnit(entry[5], entry[6], entry[7])
-			-- local spell = isoutputchat and self:FormatChatSpell(entry) or self:FormatEntrySpell(entry)
-			local spell = self:FormatEntrySpell(entry)
+			local spell = self:FormatAnnounceSpell(entry)
 			
 			if iswhisper then
 				text = "You were killed by "

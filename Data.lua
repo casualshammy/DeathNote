@@ -58,8 +58,8 @@ local function SpellInstakillAmount()
 end
 
 -- Heal readers
-local function SpellHealAmount(spellId, spellName, spellSchool, amount)
-	return amount
+local function SpellHealAmount(spellId, spellName, spellSchool, ...)
+	return ...
 end
 
 -- SpellId readers
@@ -214,9 +214,12 @@ function DeathNote:GetKillingBlow(death)
 	return nil
 end
 
--- Filtering functions
+function DeathNote:IsEntryGroup(entry)
+	return not not entry.type
+end
+
 function DeathNote:IsEntryOverThreshold(entry)
-	if entry.type then
+	if self:IsEntryGroup(entry) then
 		return self:IsGroupOverThreshold(entry)
 	end
 
@@ -238,7 +241,6 @@ function DeathNote:IsEntryOverThreshold(entry)
 end
 
 function DeathNote:GetAmountFunc(type)
-	-- make this a table or something	
 	if type == "DAMAGE" then
 		return self.GetEntryDamage
 	elseif type == "HEAL" then
@@ -263,9 +265,7 @@ end
 function DeathNote:GetTypeThreshold(type)
 	if type == "DAMAGE" then
 		return self.settings.display_filters.damage_threshold
-	end
-	
-	if type == "HEAL" then
+	elseif type == "HEAL" then
 		return self.settings.display_filters.heal_threshold
 	end
 end
@@ -293,7 +293,7 @@ function DeathNote:ResetFiltering()
 	wipe(survival_stack)
 end
 
-function prio_insert(survival_stack, spellid)
+local function prio_insert(survival_stack, spellid)
 	local myprio = DeathNote.SurvivalIDs[spellid].priority	
 	local pos
 	
