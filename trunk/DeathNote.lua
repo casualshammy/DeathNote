@@ -152,13 +152,13 @@ function DeathNote:SendReport(channel)
 	end
 
 	local msg  = string.format("DeathNote: Death report for %s at %s", self.current_death[3], date("%X", self.current_death[1]))
-	ChatThrottleLib:SendChatMessage("BULK", "DeathNote", msg, channel, nil, target)
+	SendChatMessage(msg, channel, nil, target)
 	
 	for i = self.dropdown_line, math.max(1, self.dropdown_line - max_lines + 1), -1 do
 		local entry = self.logframe:GetLineUserdata(i)
 		local timestamp = entry[3]
 	
-		local msg = string.format("[%.01f s] %s", floor((timestamp - self.current_death[1]) * 10 + 0.05) / 10, self:FormatChatAmount(entry))
-		ChatThrottleLib:SendChatMessage("BULK", "DeathNote", msg, channel, nil, target)
+		local msg = string.format("[%.01f s] %s", timestamp - self.current_death[1], self:FormatChatAmount(entry))
+		SendChatMessage(msg, channel, nil, target)
 	end	
 end

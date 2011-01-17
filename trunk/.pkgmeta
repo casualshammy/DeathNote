@@ -21,8 +21,6 @@ externals:
         url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
     libs/LibStub:
         url: svn://svn.wowace.com/wow/libstub/mainline/trunk
-    libs/ChatThrottleLib:
-        url: svn://svn.wowace.com/wow/chatthrottlelib/mainline/trunk        
 
 tools-used:
     - libdatabroker-1-1

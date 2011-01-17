@@ -5,6 +5,13 @@ local WindowBackdrop = {
 	insets = { left = 3, right = 3, top = 3, bottom = 3 }
 }
 
+local TooltipBackdrop = {
+	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+	tile = true, tileSize = 16, edgeSize = 16,
+	insets = { left = 5, right = 5, top = 5, bottom = 5 }
+}
+
 local PaneBackdrop = {
 	bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -692,6 +699,31 @@ function DeathNote:Show()
 				self.settings.display.scale = scale
 			end)
 			
+		-- lograme tooltip
+		local lftip = CreateFrame("GameTooltip")
+		local prevl
+		for i = 1, 1 do
+			local l, r = lftip:CreateFontString(nil, "ARTWORK", "GameTooltipText"),
+						 lftip:CreateFontString(nil, "ARTWORK", "GameTooltipText")
+			l:SetFontObject(GameFontNormal)
+			r:SetFontObject(GameFontNormal)
+			
+			if not prevl then
+				l:SetPoint("TOPLEFT", 10, -10)
+			else
+				l:SetPoint("TOPLEFT", prevl, "BOTTOMLEFT", 0, -2)
+			end
+			r:SetPoint("RIGHT", l, "LEFT", 40, 0)
+			lftip:AddFontStrings(l, r)
+			
+			prevl = l
+		end		
+		lftip:SetFrameStrata("TOOLTIP")
+		lftip:SetClampedToScreen(true)
+		lftip:SetBackdrop(TooltipBackdrop)
+		lftip:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b);
+		lftip:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
+			
 		logframe:SetMouseCallbacks(
 			function(button, line, column, userdata)
 				if userdata.type then return end -- hack until implemented
@@ -725,6 +757,8 @@ function DeathNote:Show()
 							self:SetSpellHilight(userdata)
 						elseif column == 5 then
 							self:SetSourceHilight(userdata)
+						else
+							return
 						end
 						
 						self:RefreshDeath()
@@ -736,29 +770,33 @@ function DeathNote:Show()
 				end
 			end,
 			function(column, userdata)
-				if userdata.type then return end -- hack until implemented
-			
-				local have_tip = false
+				-- GameTooltip is used for spells, lftip for everything else
+				-- we take both but show only the appropiate one
+				lftip:SetOwner(logframe.frame, "ANCHOR_NONE")
+				lftip:SetPoint("BOTTOMLEFT", logframe.frame, "BOTTOMRIGHT")
 				GameTooltip:SetOwner(logframe.frame, "ANCHOR_NONE")
 				GameTooltip:SetPoint("BOTTOMLEFT", logframe.frame, "BOTTOMRIGHT")
 
-				if column == 1 then -- Time
-					have_tip = self:FormatTooltipTimestamp(userdata)
-				elseif column == 2 then -- HP
-					have_tip = self:FormatTooltipHealth(userdata)
-				elseif column == 3 then -- Amount
-					have_tip = self:FormatTooltipAmount(userdata)
-				elseif column == 4 then -- Spell
-					have_tip = self:FormatTooltipSpell(userdata)
-				elseif column == 5 then -- Source
-					have_tip = self:FormatTooltipSource(userdata)
-				end				
+				local have_tip = false
 				
+				if column == 1 then -- Time
+					have_tip = self:FormatTooltipTimestamp(lftip, userdata)
+				elseif column == 2 then -- HP
+					have_tip = self:FormatTooltipHealth(lftip, userdata)
+				elseif column == 3 then -- Amount
+					have_tip = self:FormatTooltipAmount(lftip, userdata)
+				elseif column == 4 then -- Spell
+					have_tip = self:FormatTooltipSpell(lftip, userdata)
+				elseif column == 5 then -- Source
+					have_tip = self:FormatTooltipSource(lftip, userdata)
+				end				
+
 				if have_tip then
-					GameTooltip:Show()
+					have_tip:Show()
 				end
 			end,
 			function(column, userdata)
+				lftip:Hide()
 				GameTooltip:Hide()
 			end)
 
@@ -1188,7 +1226,7 @@ local function NameList_OnEnter(frame)
 
 	local entry = DeathNote:GetKillingBlow(frame.userdata)
 
-	local have_tip = entry and DeathNote:FormatTooltipAmount(entry)
+	local have_tip = entry and DeathNote:FormatTooltipAmount(GameTooltip, entry)
 	
 	if have_tip then
 		GameTooltip:Show()
@@ -1218,7 +1256,7 @@ end
 
 local GetSortedDeathList = {}
 
-function SortDeathsByNameFunc(a, b)
+local function SortDeathsByNameFunc(a, b)
 	return a[3] > b[3] or (a[3] == b[3] and a[1] < b[1])
 end
 
@@ -1454,7 +1492,7 @@ end
 
 function DeathNote:AddDeathEntry(entry, check_threshold)
 	-- ungroup groups with just one entry
-	if entry.type and #entry == 1 then
+	if self:IsEntryGroup(entry) and #entry == 1 then
 		entry = entry[1]
 	end
 	
@@ -1509,16 +1547,24 @@ function DeathNote:AddSourceFilter(entry)
 end
 
 function DeathNote:SetSpellHilight(entry)
+	if self:IsEntryGroup(entry) then
+		return
+	end
+	
 	local spellid = self:GetEntrySpell(entry)
 	
 	local count = self.logframe:GetLineCount()
 	for i = 1, count do
-		local userdata = self.logframe:GetLineUserdata(i)
+		local lentry = self.logframe:GetLineUserdata(i)
+		local line_highlight = nil
+		if lentry.highlight_spellid then
+			line_highlight = self.SurvivalColors[self.SurvivalIDs[lentry.highlight_spellid].class]
+		end
 		
 		if not spellid or spellid == self.current_spell_hilight then
-			self.logframe:SetLineHighlight(i, nil)
+			self.logframe:SetLineHighlight(i, line_highlight)
 		else		
-			self.logframe:SetLineHighlight(i, self:GetEntrySpell(userdata) == spellid and spell_hilight)
+			self.logframe:SetLineHighlight(i, self:GetEntrySpell(lentry) == spellid and spell_hilight or line_highlight)
 		end
 	end
 
@@ -1527,16 +1573,25 @@ function DeathNote:SetSpellHilight(entry)
 end
 
 function DeathNote:SetSourceHilight(entry)
+	if self:IsEntryGroup(entry) then
+		return
+	end
+
 	local source = entry[5]
 	
 	local count = self.logframe:GetLineCount()
 	for i = 1, count do
-		local userdata = self.logframe:GetLineUserdata(i)
+		local lentry = self.logframe:GetLineUserdata(i)
+		
+		local line_highlight = nil
+		if lentry.highlight_spellid then
+			line_highlight = self.SurvivalColors[self.SurvivalIDs[lentry.highlight_spellid].class]
+		end
 		
 		if source == self.current_source_hilight then
-			self.logframe:SetLineHighlight(i, nil)
+			self.logframe:SetLineHighlight(i, line_highlight)
 		else
-			self.logframe:SetLineHighlight(i, userdata[5] == source and source_hilight)
+			self.logframe:SetLineHighlight(i, lentry[5] == source and source_hilight or line_highlight)
 		end
 	end
 	
@@ -1586,7 +1641,7 @@ local function ListBox_Column_Dragger_OnMouseDown(frame)
 	frame.prev:StartSizing("RIGHT")
 end
 
-local function ListBox_PlaceColumn(self, column, prev, width)	
+local function ListBox_PlaceColumn(self, column, prev, width)
 	column:ClearAllPoints()
 	
 	if not prev then
@@ -1663,19 +1718,19 @@ local function ListBox_AddColumn(self, label, align, width)
 	tinsert(self.columns, column)
 end
 
-function ListBox_SetMouseCallbacks(self, onmouseup, onenter, onleave)
+local function ListBox_SetMouseCallbacks(self, onmouseup, onenter, onleave)
 	self.column_onmouseup = onmouseup
 	self.column_onenter = onenter
 	self.column_onleave = onleave
 end
 
-function ListBox_Column_OnMouseUp(frame, button)
+local function ListBox_Column_OnMouseUp(frame, button)
 	if frame.line.obj.column_onmouseup then
 		frame.line.obj.column_onmouseup(button, frame.nline, frame.column, frame.line.userdata)
 	end
 end
 
-function ListBox_Column_OnEnter(frame)
+local function ListBox_Column_OnEnter(frame)
 	if not frame.line.static_hili then
 		frame.line.hili:Show()
 	else
@@ -1687,7 +1742,7 @@ function ListBox_Column_OnEnter(frame)
 	end
 end
 
-function ListBox_Column_OnLeave(frame)
+local function ListBox_Column_OnLeave(frame)
 	if not frame.line.static_hili then
 		frame.line.hili:Hide()
 	else
@@ -1697,6 +1752,64 @@ function ListBox_Column_OnLeave(frame)
 	if frame.line.obj.column_onleave then
 		frame.line.obj.column_onleave(frame.column, frame.line.userdata)
 	end
+end
+
+local function ListBox_Line_Column_OnSizeChanged(frame)
+	if frame.bartex then
+		if frame.value and frame.value > 0 then
+			local width = (frame:GetWidth() - 2) * frame.value
+			frame.bartex:SetWidth(width)
+			frame.bartex:Show()
+		else
+			frame.bartex:Hide()
+		end
+	end
+end
+
+local function ListBox_ScrollFrame_OnSizeChanged(frame)
+	local self = frame.obj
+	
+	-- Update Scrollbar	
+	local height = self.scrollframe:GetHeight()
+	local content_height = #self.lines * 12 + 8
+
+	self.content:SetHeight(content_height)
+	
+	local cscale = self.content:GetScale()
+	
+	content_height = content_height * cscale
+	
+	
+	if height >= content_height then
+		self.content:SetPoint("TOPRIGHT")
+		self.scrollbar:SetMinMaxValues(0, 0)
+		self.scrollbar:Hide()
+	else
+		self.content:SetPoint("TOPRIGHT", -20, 0)
+		self.scrollbar:SetMinMaxValues(0, content_height - height)
+		self.scrollbar:Show()
+	end
+end
+
+local function ListBox_ScrollFrame_OnMouseWheel(frame, value)
+	local self = frame.obj
+	
+	if IsControlKeyDown() then
+		local scale = self.content:GetScale() + 0.05 * -value
+		if scale >= 0.5 and scale <= 2.0 then
+			ListBox_SetScale(self, scale)
+		end
+	else	
+		local l, h = self.scrollbar:GetMinMaxValues()
+		self.scrollbar:SetValue(min(max(self.scrollbar:GetValue() - value * 36 * self.content:GetScale(), l), h))
+	end
+end
+	
+local function ListBox_ScrollBar_OnValueChanged(frame, value)
+	local self = frame.obj
+
+	value = value / self.content:GetScale()
+	self.content:SetPoint("TOPLEFT", 0, value)
 end
 
 local function ListBox_CreateLine(self)
@@ -1752,7 +1865,7 @@ local function ListBox_AddLine(self, values, userdata)
 	return #self.lines
 end
 
-function ListBox_UpdateComplete(self)
+local function ListBox_UpdateComplete(self)
 	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
 
 	for nline = #self.lines, 1, -1 do
@@ -1769,18 +1882,6 @@ function ListBox_UpdateComplete(self)
 		
 		self.lines[nline]:Show()
 	end	
-end
-
-local function ListBox_Line_Column_OnSizeChanged(frame)
-	if frame.bartex then
-		if frame.value and frame.value > 0 then
-			local width = (frame:GetWidth() - 2) * frame.value
-			frame.bartex:SetWidth(width)
-			frame.bartex:Show()
-		else
-			frame.bartex:Hide()
-		end
-	end
 end
 
 local function ListBox_UpdateLine(self, nline, values)
@@ -1869,63 +1970,6 @@ local function ListBox_ClearAllLines(self)
 	wipe(self.lines)
 end
 
-function ListBox_ScrollFrame_OnSizeChanged(frame)
-	local self = frame.obj
-	
-	-- Update Scrollbar	
-	local height = self.scrollframe:GetHeight()
-	local content_height = #self.lines * 12 + 8
-
-	self.content:SetHeight(content_height)
-	
-	local cscale = self.content:GetScale()
-	
-	content_height = content_height * cscale
-	
-	
-	if height >= content_height then
-		self.content:SetPoint("TOPRIGHT")
-		self.scrollbar:SetMinMaxValues(0, 0)
-		self.scrollbar:Hide()
-	else
-		self.content:SetPoint("TOPRIGHT", -20, 0)
-		self.scrollbar:SetMinMaxValues(0, content_height - height)
-		self.scrollbar:Show()
-	end
-end
-
-local function ListBox_SetScale(self, scale)
-	DeathNote:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
-	self.content:SetScale(scale)
-	
-	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
-	
-	if self.scale_callback then
-		self.scale_callback(scale)
-	end
-end
-
-local function ListBox_ScrollFrame_OnMouseWheel(frame, value)
-	local self = frame.obj
-	
-	if IsControlKeyDown() then
-		local scale = self.content:GetScale() + 0.05 * -value
-		if scale >= 0.5 and scale <= 2.0 then
-			ListBox_SetScale(self, scale)
-		end
-	else	
-		local l, h = self.scrollbar:GetMinMaxValues()
-		self.scrollbar:SetValue(min(max(self.scrollbar:GetValue() - value * 36 * self.content:GetScale(), l), h))
-	end
-end
-	
-local function ListBox_ScrollBar_OnValueChanged(frame, value)
-	local self = frame.obj
-
-	value = value / self.content:GetScale()
-	self.content:SetPoint("TOPLEFT", 0, value)
-end
-
 local function ListBox_ScrollToBottom(self)
 	if self.scrollbar:IsShown() then
 		self.scrollbar:SetValue(select(2, self.scrollbar:GetMinMaxValues()))
@@ -1943,6 +1987,17 @@ end
 local function ListBox_SetSettingsCallback(self, columns_callback, scale_callback)
 	self.columns_callback = columns_callback
 	self.scale_callback = scale_callback
+end
+
+local function ListBox_SetScale(self, scale)
+	DeathNote:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
+	self.content:SetScale(scale)
+	
+	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
+	
+	if self.scale_callback then
+		self.scale_callback(scale)
+	end
 end
 
 function DeathNote:CreateListBox(parent, scale)

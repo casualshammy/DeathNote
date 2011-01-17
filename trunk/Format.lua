@@ -264,6 +264,7 @@ local function CastFailed(spellId, spellName, spellSchool)
 end
 
 -- Chat formatters
+
 local function SpellChat(spellId, spellName, spellSchool)
 	return GetSpellLink(spellId)
 end
@@ -285,22 +286,23 @@ local function ExtraSpellChat(spellId, spellName, spellSchool, extraSpellId, ext
 end
 
 -- Tooltip formatters
-local function SpellTooltip(spellId, spellName, spellSchool)
+
+local function SpellTooltip(tip, spellId, spellName, spellSchool)
 	GameTooltip:SetSpellByID(spellId)
-	return true
+	return GameTooltip
 end
 
-local function SwingTooltip()
+local function SwingTooltip(tip)
 	return false
 end
 
-local function EnvironmentalTooltip(environmentalType, amount)
+local function EnvironmentalTooltip(tip, environmentalType, amount)
 	return false
 end
 
-local function ExtraSpellTooltip(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSchool)
+local function ExtraSpellTooltip(tip, spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSchool)
 	GameTooltip:SetSpellByID(extraSpellId)
-	return true
+	return GameTooltip
 end
 
 local function UnitDiedTooltip()
@@ -353,12 +355,62 @@ local event_formatter_table = {
 	["UNIT_DIED"] 				= { UnitDied, UnitDiedChat, UnitDiedTooltip },
 }
 
+-- Misc
+
+local function GetGroupFormatInfo(group)
+	local func = DeathNote:GetAmountFunc(group.type)
+	
+	local spells = {}
+	local sources = {}
+	
+	local guid_name_cache = {}
+	
+	for i = #group, 1, -1 do
+		local entry = group[i]
+		local event = entry[4]
+		local formatter = event_formatter_table[event]		
+		if formatter and formatter[1] then
+			local _, spell, source = formatter[1](unpack(entry, 11))
+			if not source or source == "" then
+				if entry[6] then
+					if not guid_name_cache[entry[5]] then
+						guid_name_cache[entry[5]] = DeathNote:FormatUnit(entry[5], entry[6], entry[7])
+					end
+					source = guid_name_cache[entry[5]]
+				else
+					source = "|cFFFFFFFFNone|r"
+				end
+			end
+			
+			if not spell or spell == "" then
+				spell = "|cFFFFFFFFUnknown|r"
+			end
+
+			local amount = func and func(DeathNote, entry) or 0			
+
+			local spellv = spells[spell] or { amount = 0, hits = 0 }
+			spellv.amount = spellv.amount + amount
+			spellv.hits = spellv.hits + 1
+			spells[spell] = spellv
+			
+			local srcv = sources[source] or { amount = 0, hits = 0 }
+			srcv.amount = srcv.amount + amount
+			srcv.hits = srcv.hits + 1
+			sources[source] = srcv
+		end
+	end
+	
+	return spells, sources
+end
+
 -- Name List
+
 function DeathNote:FormatNameListEntry(v)
 	return string.format("[%s] %s", date("%X", v[1]), self:FormatUnit(v[2], v[3], v[4]))
 end
 
 -- Chat
+
 function DeathNote:FormatChatTimestamp(entry)
 	return FormatTimestamp[self.settings.display.timestamp](entry[3])
 end
@@ -411,43 +463,170 @@ function DeathNote:FormatChatSource(entry)
 	return self:CleanForChat(self:FormatUnit(entry[5], entry[6], entry[7]))
 end
 
--- Tooltip
-function DeathNote:FormatTooltipTimestamp(entry)
+-- Tooltip (single)
+
+function DeathNote:FormatTooltipTimestamp(tip, entry)
+	if self:IsEntryGroup(entry) then
+		return self:FormatTooltipTimestampGroup(tip, entry)
+	end
+	
 	local text = FormatTimestamp[self.settings.display.timestamp % #FormatTimestamp + 1](entry[3])
-	GameTooltip:SetText(text, 1, .82, 0, 1)
-	return true
+	tip:SetText(text, 1, .82, 0, 1)
+	return tip
 end
 
-function DeathNote:FormatTooltipHealth(entry)
-	GameTooltip:SetText(FormatHealthFull(entry[1], entry[2]))
-	return true
+function DeathNote:FormatTooltipHealth(tip, entry)
+	if self:IsEntryGroup(entry) then
+		return self:FormatTooltipHealthGroup(tip, entry)
+	end
+	
+	tip:SetText(FormatHealthFull(entry[1], entry[2]))
+	return tip
 end
 
-function DeathNote:FormatTooltipAmount(entry)
+function DeathNote:FormatTooltipAmount(tip, entry)
+	if self:IsEntryGroup(entry) then
+		return self:FormatTooltipAmountGroup(tip, entry)
+	end
+	
 	local text, r, g, b = CombatLog_OnEvent(DEFAULT_COMBATLOG_FILTER_TEMPLATE, unpack(entry, 3))
-	GameTooltip:SetText(text, r, g, b)
-	return true
+	tip:SetText(text, r, g, b)
+	return tip
 end
 
-function DeathNote:FormatTooltipSpell(entry)
+function DeathNote:FormatTooltipSpell(tip, entry)
+	if self:IsEntryGroup(entry) then
+		return self:FormatTooltipSpellGroup(tip, entry)
+	end
+
 	local event = entry[4]
 	local formatter = event_formatter_table[event]
 	
 	if formatter and formatter[3] then
-		return formatter[3](unpack(entry, 11))
+		return formatter[3](tip, unpack(entry, 11))
 	else
 		return false
 	end
 end
 
-function DeathNote:FormatTooltipSource(entry)
+function DeathNote:FormatTooltipSource(tip, entry)
+	if self:IsEntryGroup(entry) then
+		return self:FormatTooltipSourceGroup(tip, entry)
+	end
+	
 	if entry[5] and entry[6] and entry[7] then
-		GameTooltip:SetHyperlink(format(TEXT_MODE_A_STRING_SOURCE_UNIT, "", entry[5], entry[6], entry[7]))
-		return true
+		tip:SetHyperlink(format(TEXT_MODE_A_STRING_SOURCE_UNIT, "", entry[5], entry[6], entry[7]))
+		return tip
 	else
 		return false
 	end
 end
+
+-- Tooltip (group)
+
+local max_tip_lines = 15
+	
+function DeathNote:FormatTooltipTimestampGroup(tip, group)
+	local first = group[1]
+	local last = group[#group]
+	
+	if first[3] == last[3] then
+		return self:FormatTooltipTimestamp(tip, first)
+	end
+
+	local text = string.format("%s .. %s (%0.1f s)",
+				FormatTimestamp[self.settings.display.timestamp % #FormatTimestamp + 1](last[3]),
+				FormatTimestamp[self.settings.display.timestamp % #FormatTimestamp + 1](first[3]),
+				first[3] - last[3])
+	
+	tip:SetText(text, 1, .82, 0, 1)
+	
+	return tip
+end
+
+function DeathNote:FormatTooltipHealthGroup(tip, group)
+	local entry = group[1]
+	
+	tip:SetText(FormatHealthFull(entry[1], entry[2]))
+	return tip
+end
+
+function DeathNote:FormatTooltipAmountGroup(tip, group)
+	local limited
+	if #group > max_tip_lines then
+		limited = true
+	else
+		limited = false
+	end
+	
+	for i = #group, math.max(#group - max_tip_lines + 1 + (limited and 1 or 0), 1), -1 do
+		local entry = group[i]
+		local text, r, g, b = CombatLog_OnEvent(DEFAULT_COMBATLOG_FILTER_TEMPLATE, unpack(entry, 3))
+		tip:AddLine(text, r, g, b)
+	end
+	
+	if limited then
+		tip:AddLine(string.format("(%i more lines not shown)", #group - max_tip_lines + 1), 0.8, 0.8, 0.8)
+	end
+	
+	return tip
+end
+
+local function GetFormatFunc(type)
+	if type == "HEAL" then
+		return FormatHeal
+	elseif type == "DAMAGE" then
+		return FormatDamage
+	end
+end
+
+local function FormatTooltipList(tip, type, list)
+	local sorted_list = {}
+	
+	for s, a in pairs(list) do
+		local v = { a, a.hits == 1 and s or string.format("%s (x%i)", s, a.hits) }
+		tinsert(sorted_list, v)
+	end
+
+	table.sort(sorted_list, function(a, b) return a[1].amount > b[1].amount end)
+	
+	local limited
+	if #sorted_list > max_tip_lines then
+		limited = true
+	else
+		limited = false
+	end
+	
+	local format_func = GetFormatFunc(type)
+	
+	for i = 1, math.min(max_tip_lines + 1 - (limited and 1 or 0), #sorted_list) do
+		local s = sorted_list[i]
+		
+		if format_func then
+			tip:AddDoubleLine(s[2], format_func(s[1].amount))
+		else
+			tip:AddLine(s[2])
+		end
+	end
+	
+	if limited then
+		tip:AddLine(string.format("(%i more lines not shown)", #sorted_list - max_tip_lines + 1), 0.8, 0.8, 0.8)
+	end
+	
+	return tip
+end
+
+function DeathNote:FormatTooltipSpellGroup(tip, group)
+	local spells = GetGroupFormatInfo(group)
+	return FormatTooltipList(tip, group.type, spells)
+end
+
+function DeathNote:FormatTooltipSourceGroup(tip, group)
+	local _, sources = GetGroupFormatInfo(group)
+	return FormatTooltipList(tip, group.type, sources)
+end
+
+-- Misc
 
 function DeathNote:CycleTimestampDisplay()
 	self.settings.display.timestamp = self.settings.display.timestamp % #FormatTimestamp + 1
@@ -457,7 +636,7 @@ function DeathNote:CycleHealthDisplay()
 	self.settings.display.health = self.settings.display.health % #FormatHealth + 1
 end
 
-function DeathNote:FormatEntrySpell(entry)
+function DeathNote:FormatAnnounceSpell(entry)
 	local event = entry[4]
 	local formatter = event_formatter_table[event]
 	local spell
@@ -471,8 +650,10 @@ function DeathNote:FormatEntrySpell(entry)
 	return spell
 end
 
+-- Entry
+
 function DeathNote:FormatEntry(entry)
-	if entry.type then
+	if self:IsEntryGroup(entry) then
 		return self:FormatGroupEntry(entry)
 	end
 	
@@ -495,7 +676,6 @@ function DeathNote:FormatEntry(entry)
 	}
 end
 
--- group stuff. move later
 local function FormatGroupTimestamp(group)
 	local first = group[1]
 	local last = group[#group]
@@ -513,35 +693,7 @@ local function FormatGroupHealth(group)
 end
 
 local function FormatGroup(group)
-	local func = DeathNote:GetAmountFunc(group.type)
-	
-	local spells = {}
-	local sources = {}
-	
-	for i = 1, #group do
-		local entry = group[i]
-		local event = entry[4]
-		local formatter = event_formatter_table[event]		
-		if formatter and formatter[1] then
-			local _, spell, source = formatter[1](unpack(entry, 11))
-			source = source or DeathNote:FormatUnit(entry[5], entry[6], entry[7])
-			local amount = func and func(DeathNote, entry) or 0
-
-			if spell and spell ~= "" then
-				local spellv = spells[spell] or { amount = 0, hits = 0 }
-				spellv.amount = spellv.amount + amount
-				spellv.hits = spellv.hits + 1
-				spells[spell] = spellv
-			end
-			
-			if source and source ~= "" then
-				local srcv = sources[source] or { amount = 0, hits = 0 }
-				srcv.amount = srcv.amount + amount
-				srcv.hits = srcv.hits + 1
-				sources[source] = srcv
-			end
-		end
-	end
+	local spells, sources = GetGroupFormatInfo(group)
 	
 	local sorted_spells = {}
 	local sorted_sources = {}
@@ -558,8 +710,8 @@ local function FormatGroup(group)
 
 	table.sort(sorted_spells, function(a, b) return a[1].amount > b[1].amount end)
 	table.sort(sorted_sources, function(a, b) return a[1].amount > b[1].amount end)
-
-	local spellsstr
+	
+ 	local spellsstr
 	for i, s in ipairs(sorted_spells) do
 		spellsstr = spellsstr and (spellsstr .. ", " .. s[2]) or s[2]
 	end
