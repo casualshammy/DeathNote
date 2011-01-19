@@ -17,7 +17,7 @@ DeathNote.Options = {
 					get = function() return DeathNote.settings.max_deaths end,
 					set = function(_, v) DeathNote.settings.max_deaths = v end,
 				},
-				
+
 				death_time = {
 					order = 2,
 					name = "Seconds to keep before each death (for the unit killed)",
@@ -32,6 +32,9 @@ DeathNote.Options = {
 						DeathNote.settings.others_death_time = math.min(v, DeathNote.settings.others_death_time)
 					end,
 				},
+
+				--[[
+				TODO: Reenable this once implemented
 				
 				others_death_time = {
 					order = 3,
@@ -48,6 +51,7 @@ DeathNote.Options = {
 						DeathNote.settings.death_time = math.max(v, DeathNote.settings.death_time)
 					end,
 				},
+				]]
 
 				filter_capture = {
 					order = 10,
@@ -60,7 +64,7 @@ DeathNote.Options = {
 							type = "description",
 							name = "Check the units you are interested in. Data for the units not filtered is discarded.",
 						},
-						
+
 						group = {
 							order = 1,
 							type = "toggle",
@@ -70,7 +74,7 @@ DeathNote.Options = {
 							get = function() return DeathNote.settings.unit_filters.group end,
 							set = function(_, v) DeathNote:SetUnitFilter("group", v) end,
 						},
-						
+
 						your_pet = {
 							order = 2,
 							type = "toggle",
@@ -78,7 +82,7 @@ DeathNote.Options = {
 							get = function() return DeathNote.settings.unit_filters.my_pet end,
 							set = function(_, v) DeathNote:SetUnitFilter("my_pet", v) end,
 						},
-						
+
 						other_pets = {
 							order = 3,
 							type = "toggle",
@@ -87,7 +91,7 @@ DeathNote.Options = {
 							get = function() return DeathNote.settings.unit_filters.other_pets end,
 							set = function(_, v) DeathNote:SetUnitFilter("other_pets", v) end,
 						},
-						
+
 						friendly_players = {
 							order = 4,
 							type = "toggle",
@@ -96,7 +100,7 @@ DeathNote.Options = {
 							get = function() return DeathNote.settings.unit_filters.friendly_players end,
 							set = function(_, v) DeathNote:SetUnitFilter("friendly_players", v) end,
 						},
-						
+
 						enemy_players = {
 							order = 5,
 							type = "toggle",
@@ -112,7 +116,7 @@ DeathNote.Options = {
 							get = function() return DeathNote.settings.unit_filters.friendly_npcs end,
 							set = function(_, v) DeathNote:SetUnitFilter("friendly_npcs", v) end,
 						},
-						
+
 						enemy_npcs = {
 							order = 7,
 							type = "toggle",
@@ -132,7 +136,7 @@ DeathNote.Options = {
 					get = function() return DeathNoteData.keep_data end,
 					set = function(_, v) DeathNoteData.keep_data = v end,
 				},
-				
+
 				reset_data = {
 					order = 30,
 					name = "Reset data",
@@ -141,7 +145,7 @@ DeathNote.Options = {
 				},
 			},
 		},
-		
+
 		announce = {
 			order = 2,
 			name = "Announce",
@@ -155,7 +159,7 @@ DeathNote.Options = {
 					get = function() return DeathNote.settings.announce.enable end,
 					set = function(_, v) DeathNote.settings.announce.enable = v end,
 				},
-				
+
 				announce_unknown = {
 					order = 11,
 					name = "Announce deaths with an unknown cause",
@@ -165,7 +169,7 @@ DeathNote.Options = {
 					get = function() return DeathNote.settings.announce.announce_unknown end,
 					set = function(_, v) DeathNote.settings.announce.announce_unknown = v end,
 				},
-				
+
 				announce_limit = {
 					order = 12,
 					name = "Announces/10 seconds limit",
@@ -178,7 +182,7 @@ DeathNote.Options = {
 					get = function() return DeathNote.settings.announce.limit end,
 					set = function(_, v) DeathNote.settings.announce.limit = v end,
 				},
-				
+
 				channel = {
 					order = 20,
 					name = "Output channel",
@@ -199,7 +203,7 @@ DeathNote.Options = {
 					get = function() return DeathNote.settings.announce.channel end,
 					set = function(_, v) DeathNote.settings.announce.channel = v end,
 				},
-				
+
 				format = {
 					order = 30,
 					name = "Style",
@@ -213,7 +217,7 @@ DeathNote.Options = {
 					get = function() return DeathNote.settings.announce.style end,
 					set = function(_, v) DeathNote.settings.announce.style = v end,
 				},
-				
+
 				format_style = {
 					order = 40,
 					name = "Formatted options",
@@ -253,10 +257,10 @@ DeathNote.Options = {
 							type = "toggle",
 							get = function() return DeathNote.settings.announce.format_overkill end,
 							set = function(_, v) DeathNote.settings.announce.format_overkill = v end,
-						},						
+						},
 					},
 				},
 			},
-		},		
+		},
 	},
 }

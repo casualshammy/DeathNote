@@ -37,8 +37,8 @@ DeathNote.SurvivalIDs = {
 
 do
 	DeathNote.SurvivalColors = {}
-	
-	for class, color in pairs(RAID_CLASS_COLORS) do		
+
+	for class, color in pairs(RAID_CLASS_COLORS) do
 		local class_color = RAID_CLASS_COLORS[class]
 		local color = { r = class_color.r, g  = class_color.g, b = class_color.b, a = 0.2 }
 		DeathNote.SurvivalColors[class] = color

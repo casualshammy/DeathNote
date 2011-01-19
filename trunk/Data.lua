@@ -15,7 +15,7 @@ local function DeathIterator(state)
 							return nil
 						end
 					end
-				
+
 					state.i = i - 1
 					return entry
 				end
@@ -24,10 +24,10 @@ local function DeathIterator(state)
 		end
 		state.t = state.t - 1
 	until state.t < state.endt
-	
+
 	return nil
 end
-	
+
 function DeathNote:IterateDeath(death, maxt)
 	local state = {
 		guid = death[2],
@@ -36,7 +36,7 @@ function DeathNote:IterateDeath(death, maxt)
 		endt = floor(death[1]) - maxt,
 		death_found = 0,
 	}
-	
+
 	return DeathIterator, state
 end
 
@@ -152,7 +152,7 @@ local event_reader_table = {
 	["SPELL_HEAL"] 				= { TypeHeal, nil, SpellHealAmount, SpellSpellId },
 	["SPELL_PERIODIC_HEAL"] 	= { TypeHeal, nil, SpellHealAmount, SpellSpellId },
 	["SPELL_BUILDING_HEAL"] 	= { TypeHeal, nil, SpellHealAmount, SpellSpellId },
-	
+
 	["SPELL_AURA_APPLIED"]		= { TypeAura, nil, nil, SpellSpellId, AuraApplied },
 	["SPELL_AURA_REMOVED"]		= { TypeAura, nil, nil, SpellSpellId, AuraRemoved },
 	["SPELL_AURA_APPLIED_DOSE"]	= { TypeAura, nil, nil, SpellSpellId, AuraApplied },
@@ -160,7 +160,7 @@ local event_reader_table = {
 	["SPELL_AURA_REFRESH"]		= { TypeAura, nil, nil, SpellSpellId, AuraApplied },
 	["SPELL_AURA_BROKEN"]		= { TypeAura, nil, nil, SpellSpellId, AuraRemoved },
 	["SPELL_AURA_BROKEN_SPELL"]	= { TypeAura, nil, nil, SpellSpellId, AuraBrokenSpell },
-	
+
 	["SPELL_DISPEL"]			= { TypeAura, nil, nil, ExtraSpellId, AuraDispel },
 	-- ["SPELL_DISPEL_FAILED"]		= true,
 	["SPELL_STOLEN"]			= { TypeAura, nil, nil, ExtraSpellId, AuraDispel },
@@ -168,8 +168,8 @@ local event_reader_table = {
 	["SPELL_INTERRUPT"] 		= { TypeInterrupt, nil, nil, ExtraSpellId },
 
 	["SPELL_CAST_START"]		= { TypeCast },
-	["SPELL_CAST_SUCCESS"]		= { TypeCast },	
-	
+	["SPELL_CAST_SUCCESS"]		= { TypeCast },
+
 	["SPELL_INSTAKILL"]			= { TypeInstakill, SpellInstakillAmount, nil, SpellSpellId },
 
 	["UNIT_DIED"] 				= { TypeDeath },
@@ -203,14 +203,14 @@ function DeathNote:GetEntryAura(entry)
 	return GetEntryReader(entry, 5)
 end
 
-function DeathNote:GetKillingBlow(death)	
+function DeathNote:GetKillingBlow(death)
 	for entry in self:IterateDeath(death, 3) do
 		local damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = self:GetEntryDamage(entry)
 		if damage and damage > 0 or damage == -1 then
 			return entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing
 		end
 	end
-	
+
 	return nil
 end
 
@@ -250,15 +250,15 @@ end
 
 function DeathNote:GetGroupAmount(group)
 	local func = self:GetAmountFunc(group.type)
-	
+
 	if func then
 		local amount = 0
-		
+
 		for i = 1, #group do
 			amount = amount + func(self, group[i])
-		end	
-	
-		return amount
+		end
+
+		return amount, select(2, func(self, group[1]))
 	end
 end
 
@@ -276,7 +276,7 @@ function DeathNote:IsGroupOverThreshold(group)
 			return false
 		end
 	end
-	
+
 	if group.type == "HEAL" and self.settings.display_filters.heal_threshold > 0 then
 		if self:GetGroupAmount(group) < self.settings.display_filters.heal_threshold then
 			return false
@@ -294,9 +294,9 @@ function DeathNote:ResetFiltering()
 end
 
 local function prio_insert(survival_stack, spellid)
-	local myprio = DeathNote.SurvivalIDs[spellid].priority	
+	local myprio = DeathNote.SurvivalIDs[spellid].priority
 	local pos
-	
+
 	for i = 1, #survival_stack do
 		local thisprio = DeathNote.SurvivalIDs[survival_stack[i]].priority
 		if thisprio >= myprio then
@@ -304,7 +304,7 @@ local function prio_insert(survival_stack, spellid)
 			break
 		end
 	end
-	
+
 	if pos then
 		table.insert(survival_stack, pos, spellid)
 	else
@@ -321,7 +321,7 @@ function DeathNote:IsEntryFiltered(entry)
 
 	local timestamp = entry[3]
 	local auraGain, auraType, _, auraSpellId, _, _, auraBroken = self:GetEntryAura(entry)
-	
+
 	if next(self.settings.display_filters.spell_filter) then
 		local _, spellname = self:GetEntrySpell(entry)
 		if self.settings.display_filters.spell_filter[string.lower(spellname or "")] then
@@ -334,13 +334,13 @@ function DeathNote:IsEntryFiltered(entry)
 			return false
 		end
 	end
-	
+
 	if self.settings.display_filters.hide_misses then
 		if self:GetEntryType(entry) == "MISS" then
 			return false
 		end
-	end	
-	
+	end
+
 	-- Remove fades when a break is detected
 	if auraBroken then
 		auras_broken[auraSpellId] = timestamp
@@ -351,10 +351,10 @@ function DeathNote:IsEntryFiltered(entry)
 			return false
 		end
 	end
-	
+
 	-- Survival highlighting
 	local this_survivalid = survival_stack[1]
-	
+
 	if self.settings.display_filters.highlight_survival then
 		if self.SurvivalIDs[auraSpellId] then
 			if auraGain then
@@ -365,19 +365,18 @@ function DeathNote:IsEntryFiltered(entry)
 					end
 				end
 			else
-				-- table.insert(survival_stack, 1, auraSpellId)
 				prio_insert(survival_stack, auraSpellId)
 				this_survivalid = survival_stack[1]
 			end
-		end	
+		end
 	end
-	
+
 	if self.settings.display_filters.survival_buffs then
 		if self.SurvivalIDs[auraSpellId] then
 			return true, this_survivalid
 		end
 	end
-	
+
 	if not self.settings.display_filters.buff_gains then
 		if auraGain and auraType == "BUFF" then
 			return false
@@ -395,7 +394,7 @@ function DeathNote:IsEntryFiltered(entry)
 			return false
 		end
 	end
-	
+
 	if not self.settings.display_filters.debuff_fades then
 		if not auraGain and auraType == "DEBUFF" then
 			return false
