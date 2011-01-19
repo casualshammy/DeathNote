@@ -14,7 +14,7 @@ function DeathNote:OnInitialize()
 
 			unit_filters = {
 				group = true,
-				my_pet = true,
+				my_pet = false,
 				other_pets = false,
 				friendly_players = false,
 				enemy_players = false,
@@ -46,7 +46,7 @@ function DeathNote:OnInitialize()
 				debuff_fades = true,
 				survival_buffs = true,
 				highlight_survival = true,
-				consolidate_auras = true,
+				consolidate_auras = false,
 
 				spell_filter = {},
 				source_filter = {},
