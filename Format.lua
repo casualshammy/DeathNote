@@ -889,7 +889,7 @@ function DeathNote:FormatReportCompact(entry, channel, target)
 		local spells, sources = FormatGroupInfo(entry, 3)
 
 		if entry.type == "DAMAGE" then
-			local amount, overkill = self:GetGroupAmount(entry)
+			local amount, critical, overkill = self:GetGroupAmount(entry)
 			msg = string.format("-%s (%i hits) (%s)", CommaNumber(amount), #entry, sources)
 			 if overkill and overkill > 0 then
 				msg = msg .. string.format(" (%s overkill)", overkill)
