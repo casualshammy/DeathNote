@@ -1,3 +1,69 @@
+DeathNote.OptionsDefaults = {
+	profile = {
+		debugging = false,
+		max_deaths = 50,
+		death_time = 30,
+		others_death_time = 0,
+
+		unit_filters = {
+			group = true,
+			my_pet = false,
+			other_pets = false,
+			friendly_players = false,
+			enemy_players = false,
+			friendly_npcs = false,
+			enemy_npcs = false,
+		},
+
+		display = {
+			x = 0, y = 0, w = 700, h = 500,
+			namelist_width = 220,
+			namelist = 1,
+			timestamp = 1,
+			health = 1,
+			scale = 1,
+			columns = { 60, 90, 60, 100 },
+		},
+
+		display_filters = {
+			damage_threshold = 0,
+			hide_misses = false,
+			consolidate_damage = false,
+
+			heal_threshold = 0,
+			consolidate_heals = false,
+
+			buff_gains = true,
+			buff_fades = true,
+			debuff_gains = true,
+			debuff_fades = true,
+			survival_buffs = true,
+			highlight_survival = true,
+			consolidate_auras = false,
+
+			spell_filter = {},
+			source_filter = {},
+		},
+
+		announce = {
+			enable = false,
+			announce_unknown = false,
+			limit = 3,
+			channel = "CHATFRAME",
+			style = "FORMATTED",
+			format_damage = true,
+			format_resist = true,
+			format_overkill = true,
+			format_hittype = true,
+		},
+		
+		report = {
+			max_lines = 15,
+			style = "COMBAT_LOG",
+		},
+	},
+}
+
 DeathNote.Options = {
 	type = "group",
 	args = {

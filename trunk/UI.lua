@@ -57,7 +57,7 @@ function DeathNote:Show()
 
 		-- titlebar
 		local titlebar = frame:CreateTexture(nil, "BACKGROUND")
-		titlebar:SetTexture(0.5, 0.5, 0.5, 1)
+		titlebar:SetTexture(0.5, 0.5, 0.5)
 		titlebar:SetGradient("HORIZONTAL", 0.6, 0.6, 0.6, 0.3, 0.3, 0.3)
 		titlebar:SetPoint("TOPLEFT", 4, -4)
 		titlebar:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -4, -28)
@@ -118,12 +118,21 @@ function DeathNote:Show()
 			save_frame_rect()
 		end)
 
+		sizer_se:SetScript("OnEnter", function()
+			sizer_se_tex:SetVertexColor(0.8, 0.8, 0.8, 1)
+		end)
+
+		sizer_se:SetScript("OnLeave", function()
+			sizer_se_tex:SetVertexColor(0.4, 0.4, 0.4, 1)
+		end)
+
 		sizer_se:SetScript("OnMouseDown", function()
 			frame:SetMinResize(600, 270)
 			frame:SetMaxResize(2000, 2000)
 
 			frame:StartSizing()
 		end)
+
 		sizer_se:SetScript("OnMouseUp", function()
 			frame:StopMovingOrSizing()
 
@@ -132,7 +141,7 @@ function DeathNote:Show()
 
 		-- filters
 		local filters_frame = CreateFrame("Frame", nil, frame)
-		filters_frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -34)
+		filters_frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -30)
 		filters_frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 		filters_frame:SetHeight(30)
 
@@ -801,16 +810,6 @@ function DeathNote:Show()
 			end)
 
 			-- hide on escape
-			--[[
-			local org_CloseSpecialWindows = CloseSpecialWindows
-			CloseSpecialWindows = function()
-				if not org_CloseSpecialWindows() then
-					local found = frame:IsShown() and 1
-					frame:Hide()
-					return found
-				end
-			end
-			]]
 			local org_CloseAllWindows = CloseAllWindows
 			CloseAllWindows = function(ignoreCenter)
 				local ret = org_CloseAllWindows(ignoreCenter)

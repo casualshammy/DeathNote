@@ -240,25 +240,32 @@ function DeathNote:IsEntryOverThreshold(entry)
 	return true
 end
 
+-- returns function, critical arg position
 function DeathNote:GetAmountFunc(type)
 	if type == "DAMAGE" then
-		return self.GetEntryDamage
+		return self.GetEntryDamage, 7
 	elseif type == "HEAL" then
-		return self.GetEntryHeal
+		return self.GetEntryHeal, 4
 	end
 end
 
 function DeathNote:GetGroupAmount(group)
-	local func = self:GetAmountFunc(group.type)
+	local func, critpos = self:GetAmountFunc(group.type)
 
 	if func then
 		local amount = 0
+		local crit = false
+		local over = 0
 
 		for i = 1, #group do
-			amount = amount + func(self, group[i])
+			local data = { func(self, group[i]) }
+			amount = amount + data[1]
+			
+			crit = (data[critpos] == 1) or crit
+			over = over + (data[2] or 0)
 		end
 
-		return amount, select(2, func(self, group[1]))
+		return amount, crit, over
 	end
 end
 
