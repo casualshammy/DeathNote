@@ -122,7 +122,6 @@ function DeathNote:DataCapture_Initialize()
 		DeathNoteData = {
 			log = {},
 			deaths = {},
-			keep_data = false,
 		}
 	end
 
@@ -134,11 +133,11 @@ end
 function DeathNote:ResetData(silent)
 	wipe(log)
 	wipe(deaths)
-	collectgarbage("collect")
 	self:UpdateNameList()
 
 	if not silent then
 		self:Print("Data has been reset")
+		collectgarbage("collect")
 	end
 end
 
@@ -152,6 +151,8 @@ function DeathNote:CleanData(manual)
 		for i = 1, count do
 			tremove(deaths, 1)
 		end
+
+		self:UpdateNameList()
 	end
 
 	-- limits number of automatic cleans over time
@@ -160,10 +161,7 @@ function DeathNote:CleanData(manual)
 			return
 		end
 	end
-
 	last_clean = GetTime()
-
-	self:UpdateNameList()
 
 	local death_time = self.settings.death_time
 	local others_death_time = self.settings.others_death_time
@@ -283,14 +281,16 @@ function DeathNote:PLAYER_FLAGS_CHANGED(_, unitid)
 	end
 end
 
-function DeathNote:PLAYER_LOGOUT()
-	if not DeathNoteData.keep_data then
-		self:ResetData(true)
-	end
-end
-
 function DeathNote:PLAYER_LEAVING_WORLD()
 	self:CleanData()
+end
+
+function DeathNote:OnDatabaseShutdown()
+	if self.settings.keep_data then
+		self:CleanData()
+	else
+		self:ResetData(true)
+	end
 end
 
 local function IsFiltered(sourceFlags, destFlags)

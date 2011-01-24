@@ -1,6 +1,7 @@
 DeathNote.OptionsDefaults = {
 	profile = {
 		debugging = false,
+		keep_data = true,
 		max_deaths = 50,
 		death_time = 30,
 		others_death_time = 0,
@@ -199,8 +200,8 @@ DeathNote.Options = {
 					desc = "Enable this if you want the data to persist after logging out or after a reload ui.\nKeep in mind that depending on your options this may generate a very big SavedVariables file and may impact your login/logout and reload ui times.",
 					type = "toggle",
 					width = "full",
-					get = function() return DeathNoteData.keep_data end,
-					set = function(_, v) DeathNoteData.keep_data = v end,
+					get = function() return DeathNote.settings.keep_data end,
+					set = function(_, v) DeathNote.settings.keep_data = v end,
 				},
 
 				reset_data = {
