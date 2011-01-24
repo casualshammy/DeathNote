@@ -10,7 +10,7 @@ function DeathNote:OnInitialize()
 	self.settings = self.db.profile
 	
 	-- Clean options -- TODO: remove this when implemented
-	self.settings.others_death_time = nil
+	self.settings.others_death_time = 0
 
 	-- Register options
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note", self.Options)
