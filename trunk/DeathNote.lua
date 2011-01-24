@@ -10,7 +10,7 @@ function DeathNote:OnInitialize()
 	self.settings = self.db.profile
 	
 	-- Clean options -- TODO: remove this when implemented
-	self.settings.others_death_time = 0
+	self.settings.others_death_time = nil
 
 	-- Register options
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note", self.Options)
@@ -43,9 +43,10 @@ function DeathNote:OnInitialize()
 			tooltip:AddLine("|cFFEDA55FClick|r to open DeathNote. |cFFEDA55FRight-Click|r to show options. |cFFEDA55FShift-Click|r to optimize data. |cFFEDA55FCtrl-Click|r to reset data.", 0.2, 1, 0.2, 1)
 		end,
 	})
-	self:UpdateLDB()
 
 	self:DataCapture_Initialize()
+
+	self:UpdateLDB()
 end
 
 function DeathNote:OnEnable()
@@ -54,6 +55,7 @@ function DeathNote:OnEnable()
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
+	self.db.RegisterCallback(self, "OnDatabaseShutdown")
 
 	self:AddToUnitPopup()
 
@@ -67,6 +69,7 @@ end
 function DeathNote:OnDisable()
 	self:RemoveFromUnitPopup()
 	self:UnregisterAllEvents()
+	self.db.UnregisterAllCallbacks(self)
 	self:CancelAllTimers()
 end
 
