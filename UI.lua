@@ -705,6 +705,7 @@ function DeathNote:Show()
 				self.settings.display.columns = columns
 			end,
 			function(scale)
+				self:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
 				self.settings.display.scale = scale
 			end)
 
@@ -1902,7 +1903,7 @@ local function ListBox_ScrollFrame_OnMouseWheel(frame, value)
 	if IsControlKeyDown() then
 		local scale = self.content:GetScale() + 0.05 * -value
 		if scale >= 0.5 and scale <= 2.0 then
-			ListBox_SetScale(self, scale)
+			self:SetScale(scale)
 		end
 	else
 		local l, h = self.scrollbar:GetMinMaxValues()
@@ -2081,7 +2082,6 @@ local function ListBox_SetSettingsCallback(self, columns_callback, scale_callbac
 end
 
 local function ListBox_SetScale(self, scale)
-	DeathNote:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
 	self.content:SetScale(scale)
 
 	ListBox_ScrollFrame_OnSizeChanged(self.scrollframe)
@@ -2149,6 +2149,7 @@ function DeathNote:CreateListBox(parent, scale)
 		UpdateLine = ListBox_UpdateLine,
 		SetLineHighlight = ListBox_SetLineHighlight,
 		UpdateComplete = ListBox_UpdateComplete,
+		SetScale = ListBox_SetScale,
 
 		frame = frame,
 		iframe = iframe,
