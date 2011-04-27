@@ -335,7 +335,7 @@ local function tuple(...)
 end
 
 
-function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
 	local handler = event_handler_table[event]
 	if handler and IsFiltered(sourceFlags, destFlags) then
 		local hp = destName and UnitHealth(destName) or 0
