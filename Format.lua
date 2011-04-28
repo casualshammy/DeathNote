@@ -2,11 +2,13 @@ local tinsert, tremove = table.insert, table.remove
 
 
 -- 4.1 temp fix
-local orig_CombatLog_OnEvent = CombatLog_OnEvent
-local function CombatLog_OnEvent(filterSettings, timestamp, event, ...)
-	return orig_CombatLog_OnEvent(filterSettings, timestamp, event, false, ...)
+local function temp_CombatLog_OnEvent(filterSettings, timestamp, event, ...)
+	return CombatLog_OnEvent(filterSettings, timestamp, event, false, ...)
 end
+
+local CombatLog_OnEvent = temp_CombatLog_OnEvent
 --/
+
 
 
 local function CommaNumber(num)
