@@ -33,6 +33,7 @@ DeathNote.SurvivalIDs = {
 	[12975] = { class = "WARRIOR", priority = 3 },		-- Last Stand
 	-- [2565] =  { class = "WARRIOR", priority = 3 },		-- Shield Block
 	[871] =   { class = "WARRIOR", priority = 1 },		-- Shield Wall
+	[97463] = { class = "WARRIOR", priority = 3 },		-- Rallying Cry
 }
 
 do
