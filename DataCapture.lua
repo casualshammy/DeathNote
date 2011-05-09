@@ -14,39 +14,40 @@ local SPELLID_SOR = 27827
 
 local SorSkipTable = {}
 
-local function SpellAuraRemovedFilter(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
+local function SpellAuraRemovedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
 	if spellId == SPELLID_SOR then
 		-- Ignore next UNIT_DIED for sourceGUID
 		SorSkipTable[sourceGUID] = timestamp
 	end
 end
 
-local function SpellCastSuccessFilter(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool)
+local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool)
 	if spellId == SPELLID_LIFETAP then
 		-- Generate fake SPELL_DAMAGE with the Life Tap damage
 		local hpmax = UnitHealthMax(sourceName) or 0
 		local amount = floor(hpmax * 0.15 + 0.5)
 
 		DeathNote:COMBAT_LOG_EVENT_UNFILTERED(
-			"COMBAT_LOG_EVENT_UNFILTERED",
-			timestamp,
-			"SPELL_DAMAGE",
-			sourceGUID,
-			sourceName,
-			sourceFlags,
-			sourceGUID,
-			sourceName,
-			sourceFlags,
-			spellId,
-			spellName,
-			spellSchool,
-			amount,
-			-1,
-			spellSchool)
+			"COMBAT_LOG_EVENT_UNFILTERED",	-- _
+			timestamp,						-- timestamp
+			"SPELL_DAMAGE",                 -- event
+			false,                          -- hideCaster
+			sourceGUID,                     -- sourceGUID
+			sourceName,                     -- sourceName
+			sourceFlags,                    -- sourceFlags
+			sourceGUID,                     -- destGUID
+			sourceName,                     -- destName
+			sourceFlags,                    -- destFlags
+			spellId,                        -- 
+			spellName,                      -- 
+			spellSchool,                    -- 
+			amount,                         -- 
+			-1,                             -- 
+			spellSchool)                    -- 
 	end
 end
 
-local function UnitDiedFilter(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags)
+local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags)
 	if not destName then
 		return
 	end
@@ -351,7 +352,7 @@ function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, 
 		tinsert(log[t], entry)
 
 		if handler ~= true then
-			handler(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+			handler(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
 		end
 	end
 end
