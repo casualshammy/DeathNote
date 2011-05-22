@@ -27,6 +27,7 @@ libs\AceHook-3.0\AceHook-3.0.xml
 libs\AceTimer-3.0\AceTimer-3.0.xml
 #@end-no-lib-strip@
 
+Locales.lua
 DeathNote.lua
 DataCapture.lua
 UI.lua

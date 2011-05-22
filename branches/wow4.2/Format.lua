@@ -1,3 +1,5 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+
 local tinsert, tremove = table.insert, table.remove
 
 local function CommaNumber(num)
@@ -101,7 +103,6 @@ function DeathNote:FormatUnit(guid, name, flags, raidflags)
 		return ""
 	end
 
-	self:Print(guid, name, flags, raidflags)
 	if bit.band(flags, COMBATLOG_OBJECT_RAIDTARGET_MASK) > 0 then
 		return string.format("%s%s%s|r", CombatLog_String_GetIcon(raidflags, "dest"), GetUnitColor(guid, name, raidflags), name)
 	else
@@ -156,27 +157,27 @@ local function FormatAuraRemoved(auraType, amount)
 end
 
 local function FormatAuraRefresh(auraType)
-	return string.format("%s<Refresh>|r", GetAuraTypeColor(auraType))
+	return string.format("%s" .. L["<Refresh>"] .. "|r", GetAuraTypeColor(auraType))
 end
 
 local function FormatAuraBroken(auraType)
-	return string.format("%s<Break>|r", GetAuraTypeColor(auraType))
+	return string.format("%s" .. L["<Break>"] .. "|r", GetAuraTypeColor(auraType))
 end
 
 local function FormatDispel(auraType)
-	return string.format("%s<Dispel>|r", GetInverseAuraTypeColor(auraType))
+	return string.format("%s" .. L["<Dispel>"] .. "|r", GetInverseAuraTypeColor(auraType))
 end
 
 local function FormatDispelFailed(auraType)
-	return string.format("%s<Dispel failed>|r", GetAuraTypeColor(auraType))
+	return string.format("%s" .. L["<Dispel failed>"] .. "|r", GetAuraTypeColor(auraType))
 end
 
 local function FormatStolen(auraType)
-	return string.format("%s<Steal>|r", GetInverseAuraTypeColor(auraType))
+	return string.format("%s" .. L["<Steal>"] .. "|r", GetInverseAuraTypeColor(auraType))
 end
 
 local function FormatInterrupt()
-	return "|cFFFF0000<Interrupt>|r"
+	return "|cFFFF0000" .. L["<Interrupt>"] .. "|r"
 end
 
 local function FormatSwing()
@@ -202,7 +203,7 @@ local function FormatHeal(amount, critical)
 end
 
 local function FormatMiss(missType)
-	return Capitalize(_G["ACTION_SPELL_MISSED_" .. missType] or "Miss")
+	return Capitalize(_G["ACTION_SPELL_MISSED_" .. missType] or L["Miss"])
 end
 
 ------------------------------------------------------------------------------
@@ -298,7 +299,7 @@ local function EnvironmentalChat(environmentalType, amount)
 end
 
 local function UnitDiedChat()
-	return "Death"
+	return L["Death"]
 end
 
 local function ExtraSpellChat(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSchool)
@@ -405,12 +406,12 @@ local function GetGroupFormatInfo(group)
 					end
 					source = guid_name_cache[entry.sourceGUID]
 				else
-					source = "|cFFFFFFFFNone|r"
+					source = "|cFFFFFFFF" .. L["None"] .. "|r"
 				end
 			end
 
 			if not spell or spell == "" then
-				spell = "|cFFFFFFFFUnknown|r"
+				spell = "|cFFFFFFFF" .. L["Unknown"] .. "|r"
 			end
 
 			local amount = func and func(DeathNote, entry) or 0
@@ -570,7 +571,7 @@ function DeathNote:FormatTooltipSource(tip, entry)
 	end
 
 	if entry.sourceGUID and entry.sourceName and entry.sourceRaidFlags then
-		tip:SetHyperlink(format(TEXT_MODE_A_STRING_SOURCE_UNIT, "", entry.sourceGUID, entry.sourceName, entry.sourceRaidFlags))
+		tip:SetHyperlink(format(TEXT_MODE_A_STRING_SOURCE_UNIT, "", entry.sourceGUID, entry.sourceName, entry.sourceName))
 		return tip
 	else
 		return false
@@ -587,14 +588,14 @@ function DeathNote:FormatTooltipTimestampGroup(tip, group)
 	local first = group[1]
 	local last = group[#group]
 
-	if first[3] == last[3] then
+	if first.timestamp == last.timestamp then
 		return self:FormatTooltipTimestamp(tip, first)
 	end
 
 	local text = string.format("%s .. %s (%0.1f s)",
-				FormatTimestamp[self.settings.display.timestamp % #FormatTimestamp + 1](last[3]),
-				FormatTimestamp[self.settings.display.timestamp % #FormatTimestamp + 1](first[3]),
-				first[3] - last[3])
+				FormatTimestamp[self.settings.display.timestamp % #FormatTimestamp + 1](last.timestamp),
+				FormatTimestamp[self.settings.display.timestamp % #FormatTimestamp + 1](first.timestamp),
+				first.timestamp - last.timestamp)
 
 	tip:SetText(text, 1, .82, 0, 1)
 
@@ -623,7 +624,7 @@ function DeathNote:FormatTooltipAmountGroup(tip, group)
 	end
 
 	if limited then
-		tip:AddLine(string.format("(%i more lines not shown)", #group - max_tip_lines + 1), 0.8, 0.8, 0.8)
+		tip:AddLine(string.format(L["(%i more lines not shown)"], #group - max_tip_lines + 1), 0.8, 0.8, 0.8)
 	end
 
 	return tip
@@ -667,7 +668,7 @@ local function FormatTooltipList(tip, type, list)
 	end
 
 	if limited then
-		tip:AddLine(string.format("(%i more lines not shown)", #sorted_list - max_tip_lines + 1), 0.8, 0.8, 0.8)
+		tip:AddLine(string.format(L["(%i more lines not shown)"], #sorted_list - max_tip_lines + 1), 0.8, 0.8, 0.8)
 	end
 
 	return tip
@@ -719,10 +720,10 @@ local function FormatGroupTimestamp(group)
 	local first = group[1]
 	local last = group[#group]
 
-	if first[3] == last[3] then
-		return FormatTimestamp[DeathNote.settings.display.timestamp](last[3])
+	if first.timestamp == last.timestamp then
+		return FormatTimestamp[DeathNote.settings.display.timestamp](last.timestamp)
 	else
-		return string.format("%s|cFFFFFFFF .. |r%s", FormatTimestamp[DeathNote.settings.display.timestamp](last[3]), FormatTimestamp[DeathNote.settings.display.timestamp](first[3]))
+		return string.format("%s|cFFFFFFFF .. |r%s", FormatTimestamp[DeathNote.settings.display.timestamp](last.timestamp), FormatTimestamp[DeathNote.settings.display.timestamp](first.timestamp))
 	end
 end
 
@@ -876,7 +877,7 @@ function DeathNote:FormatReportCompact(entry, channel, target)
 		local last = entry[#entry]
 
 		--[[
-		if first[3] == last[3] then
+		if first.timestamp == last.timestamp then
 			timestamp = string.format("[%.01f s]", first.timestamp - self.current_death.timestamp)
 		else
 			timestamp = string.format("[%.01f s .. %.01f s]", last.timestamp - self.current_death.timestamp, first.timestamp - self.current_death.timestamp)
@@ -891,30 +892,30 @@ function DeathNote:FormatReportCompact(entry, channel, target)
 
 		if entry.type == "DAMAGE" then
 			local amount, critical, overkill = self:GetGroupAmount(entry)
-			msg = string.format("-%s (%i hits) (%s)", CommaNumber(amount), #entry, sources)
+			msg = string.format(L["-%s (%i hits) (%s)"], CommaNumber(amount), #entry, sources)
 			 if overkill and overkill > 0 then
-				msg = msg .. string.format(" (%s overkill)", overkill)
+				msg = msg .. string.format(" " .. L["(%s overkill)"], overkill)
 			 end
 		elseif entry.type == "HEAL" then
 			local amount = self:GetGroupAmount(entry)
-			msg = string.format("+%s (%i heals) (%s)", CommaNumber(amount), #entry, sources)
+			msg = string.format(L["+%s (%i heals) (%s)"], CommaNumber(amount), #entry, sources)
 		elseif entry.type == "AURA" then
 			local auras = self:GetGroupAurasInfo(entry)
 			local rlist = {}
 			if auras.BUFF.gain > 0 then
-				tinsert(rlist, string.format("<+%i buffs>", auras.BUFF.gain))
+				tinsert(rlist, string.format(L["<+%i buffs>"], auras.BUFF.gain))
 			end
 
 			if auras.DEBUFF.gain > 0 then
-				tinsert(rlist, string.format("<+%i debuffs>", auras.DEBUFF.gain))
+				tinsert(rlist, string.format(L["<+%i debuffs>"], auras.DEBUFF.gain))
 			end
 
 			if auras.BUFF.fade > 0 then
-				tinsert(rlist, string.format("<-%i buffs>", auras.BUFF.fade))
+				tinsert(rlist, string.format(L["<-%i buffs>"], auras.BUFF.fade))
 			end
 
 			if auras.DEBUFF.fade > 0 then
-				tinsert(rlist, string.format("<-%i debuffs>", auras.DEBUFF.fade))
+				tinsert(rlist, string.format(L["<-%i debuffs>"], auras.DEBUFF.fade))
 			end
 
 			msg = string.format("%s (%s)", table.concat(rlist, " "), spells)
@@ -935,7 +936,7 @@ function DeathNote:FormatReportCompact(entry, channel, target)
 				msg = string.format("-%s (%s)", CommaNumber(amount), spell)
 			end
 			 if overkill and overkill > 0 then
-				msg = msg .. string.format(" (%s overkill)", overkill)
+				msg = msg .. string.format(" " .. L["(%s overkill)"], overkill)
 			 end
 		elseif type == "HEAL" then
 			local amount = self:GetEntryHeal(entry)

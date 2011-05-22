@@ -1,22 +1,4 @@
---[[
-DeathNote.EntryIndexInfo = {
-	hp					= 1,
-	hpMax				= 2,
-	timestamp			= 3,
-	event				= 4,
-	sourceGUID			= 5,
-	sourceName			= 6,
-	sourceFlags			= 7,
-	destGUID			= 8,
-	destName			= 9,
-	destFlags			= 10,
-	eventArgs			= 11,
-	
-	sourceRaidFlags		= 9,
-	destRaidFlags		= 13,
-	hideCaster			= 5,
-}
-]]
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
 
 DeathNote.EntryIndexInfo = {
 	hp					= 1,
@@ -49,14 +31,12 @@ local dii = DeathNote.DeathIndexInfo
 
 local entrymeta = {
 	__index = function(self, idx)
-		DeathNote:Print("entry:", idx, "=>", rawget(self, eii[idx]))
 		return rawget(self, eii[idx])
 	end
 }
 
 local deathmeta = {
 	__index = function(self, idx)
-		DeathNote:Print("death:", idx, "=>", rawget(self, dii[idx]))
 		return rawget(self, dii[idx])
 	end
 }
@@ -206,7 +186,7 @@ function DeathNote:DataCapture_Initialize()
 		end
 		t = next(log, t)
 	end
-	self:Print(count .. " entries set")
+
 	for i = 1, #deaths do
 		setmetatable(deaths[i], deathmeta)
 	end
@@ -221,7 +201,7 @@ function DeathNote:ResetData(silent)
 	self:UpdateNameList()
 
 	if not silent then
-		self:Print("Data has been reset")
+		self:Print(L["Data has been reset"])
 		collectgarbage("collect")
 	end
 end
@@ -250,7 +230,7 @@ function DeathNote:CleanData(manual)
 
 	local death_time = self.settings.death_time
 	local others_death_time = self.settings.others_death_time
-	local min_time = deaths[1] and (deaths[1][1] - death_time) or 0
+	local min_time = deaths[1] and (deaths[1].timestamp - death_time) or 0
 	local max_time = time() - death_time
 
 	wipe(keep_guid)
@@ -258,8 +238,8 @@ function DeathNote:CleanData(manual)
 
 	for i = 1, #deaths do
 		local deathsi = deaths[i]
-		local timestamp = floor(deathsi[1])
-		local guid = deathsi[2]
+		local timestamp = floor(deathsi.timestamp)
+		local guid = deathsi.GUID
 		for t = timestamp - death_time, timestamp - others_death_time do
 			if not keep_guid[t] then
 				keep_guid[t] = {}
@@ -275,26 +255,36 @@ function DeathNote:CleanData(manual)
 	local t = next(log)
 	while t do
 		local logt = log[t]
+		local del = false
 		if logt then
 			if t < min_time then
-				log[t] = nil
+				del = true
 			elseif t < max_time and not keep_all[t] then
 				local keep_guidt = keep_guid[t]
 				if not keep_guidt then
-					log[t] = nil
+					del = true
 				else
 					for i = #logt, 1, -1 do
-						if not keep_guidt[logt[i].destGUID] then
+						-- index is destGUID. Referenced directly by array index for performance reasons
+						if not keep_guidt[logt[i][10]] then
 							tremove(logt, i)
 						end
+					end
+					if #logt == 0 then
+						del = true
 					end
 				end
 			end
 		end
-		t = next(log, t)
+		
+		local t2 = next(log, t)
+		if del then
+			log[t] = nil
+		end
+		t = t2
 	end
 
-	if manual or self.settings.debugging then self:Debug(string.format("Data optimization took %.02f ms", debugprofilestop())) end
+	if manual or self.settings.debugging then self:Print(string.format(L["Data optimization done in %.02f ms"], debugprofilestop())) end
 end
 
 function DeathNote:SetUnitFilter(filter, value)

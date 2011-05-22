@@ -1,3 +1,5 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+
 local announced_deaths = {}
 local skipped_deaths = 0
 local skip_timer
@@ -32,7 +34,7 @@ function DeathNote:AnnounceDeath(death)
 
 	if not entry then
 		if self.settings.announce.announce_unknown then
-			text = string.format("%s|r has died of a heart attack", self:FormatUnit(death.GUID, death.name, death.flags, death.raidFlags))
+			text = string.format(L["%s|r has died of a heart attack"], self:FormatUnit(death.GUID, death.name, death.flags, death.raidFlags))
 		else
 			return
 		end
@@ -44,13 +46,13 @@ function DeathNote:AnnounceDeath(death)
 			local spell = self:FormatEntrySpell(entry)
 
 			if iswhisper then
-				text = "You were killed by "
+				text = L["You were killed by"] .. " "
 			else
-				text = string.format("%s|r was killed by ", self:FormatUnit(death.GUID, death.name, death.flags, death.raidFlags))
+				text = string.format(L["%s|r was killed by"] .. " ", self:FormatUnit(death.GUID, death.name, death.flags, death.raidFlags))
 			end
 
 			if source ~= "" then
-				text = text .. string.format("%s's|r %s", source, spell)
+				text = text .. string.format(L["%s's|r %s"], source, spell)
 			else
 				text = text .. spell
 			end
@@ -114,6 +116,6 @@ function DeathNote:AnnounceDeath(death)
 end
 
 function DeathNote:SkipAnnounce()
-	self:Print(string.format("%i more deaths were not announced", skipped_deaths))
+	self:Print(string.format(L["%i more deaths were not announced"], skipped_deaths))
 	skipped_deaths = 0
 end

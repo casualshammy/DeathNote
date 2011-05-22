@@ -1,3 +1,5 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+
 local outputs = {}
 
 function DeathNote:O_RegisterOutput(output)
@@ -49,13 +51,13 @@ do
 	
 	DeathNote:O_RegisterOutput {
 		key = "CHATFRAME",
-		name = "Chat Frame",
+		name = L["Chat frame"],
 		func = printmessage
 	}
 
 	DeathNote:O_RegisterOutput {
 		key = "SAY",
-		name = "Say",
+		name = L["Say"],
 		is_chat = true,
 		func = chatmessage,
 		arg = "SAY",
@@ -63,7 +65,7 @@ do
 
 	DeathNote:O_RegisterOutput {
 		key = "PARTY",
-		name = "Party",
+		name = L["Party"],
 		is_chat = true,
 		func = chatmessage,
 		arg = "PARTY",
@@ -71,7 +73,7 @@ do
 
 	DeathNote:O_RegisterOutput {
 		key = "RAID",
-		name = "Raid",
+		name = L["Raid"],
 		is_chat = true,
 		func = chatmessage,
 		arg = "RAID",
@@ -79,7 +81,7 @@ do
 
 	DeathNote:O_RegisterOutput {
 		key = "BATTLEGROUND",
-		name = "Battleground",
+		name = L["Battleground"],
 		is_chat = true,
 		func = chatmessage,
 		arg = "BATTLEGROUND",
@@ -87,14 +89,14 @@ do
 
 	DeathNote:O_RegisterOutput {
 		key = "GROUP",
-		name = "Group (party/raid/battleground)",
+		name = L["Group (party or raid)"],
 		is_chat = true,
 		func = groupmessage,
 	}
 
 	DeathNote:O_RegisterOutput {
 		key = "RW",
-		name = "Raid Warning",
+		name = L["Raid Warning"],
 		is_chat = true,
 		func = chatmessage,
 		arg = "RAID_WARNING",
@@ -102,7 +104,7 @@ do
 
 	DeathNote:O_RegisterOutput {
 		key = "GUILD",
-		name = "Guild",
+		name = L["Guild"],
 		is_chat = true,
 		func = chatmessage,
 		arg = "GUILD",
@@ -110,7 +112,7 @@ do
 
 	DeathNote:O_RegisterOutput {
 		key = "OFFICER",
-		name = "Officer",
+		name = L["Officer"],
 		is_chat = true,
 		func = chatmessage,
 		arg = "OFFICER",
@@ -118,7 +120,7 @@ do
 	
 	DeathNote:O_RegisterOutput {
 		key = "WHISPER",
-		name = "Whisper",
+		name = L["Whisper"],
 		is_chat = true,
 		func = whispermessage,
 	}

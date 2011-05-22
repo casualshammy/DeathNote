@@ -1,3 +1,5 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+
 DeathNote.OptionsDefaults = {
 	profile = {
 		debugging = false,
@@ -70,12 +72,12 @@ DeathNote.Options = {
 	args = {
 		data_capture = {
 			order = 1,
-			name = "Data capture",
+			name = L["Data capture"],
 			type = "group",
 			args = {
 				max_deaths = {
 					order = 1,
-					name = "Maximum number of deaths",
+					name = L["Maximum number of deaths"],
 					type = "range",
 					min = 5,
 					max = 500,
@@ -87,7 +89,7 @@ DeathNote.Options = {
 
 				death_time = {
 					order = 2,
-					name = "Seconds to keep before each death (for the unit killed)",
+					name = L["Seconds to keep before each death (for the unit killed)"],
 					type = "range",
 					min = 5,
 					max = 120,
@@ -105,8 +107,8 @@ DeathNote.Options = {
 				
 				others_death_time = {
 					order = 3,
-					name = "Seconds to keep before each death (for other units)",
-					desc = "This data is used to display actions of other players when a death happened. Set this value to 0 unless you want to use this feature, as it can use a large amount of memory.",
+					name = L["Seconds to keep before each death (for other units)"],
+					desc = L["This data is used to display actions of other players when a death happened. Set this value to 0 unless you want to use this feature, as it can use a large amount of memory."],
 					type = "range",
 					min = 0,
 					max = 120,
@@ -122,21 +124,21 @@ DeathNote.Options = {
 
 				filter_capture = {
 					order = 10,
-					name = "Units filters",
+					name = L["Units filters"],
 					type = "group",
 					inline = true,
 					args = {
 						help = {
 							order = 0,
 							type = "description",
-							name = "Check the units you are interested in. Data for the units not filtered is discarded.",
+							name = L["Check the units you are interested in. Data for the units not filtered is discarded."],
 						},
 
 						group = {
 							order = 1,
 							type = "toggle",
-							name = "Group players",
-							desc = "Party and raid members, including yourself",
+							name = L["Group players"],
+							desc = L["Party and raid members, including yourself"],
 							width = "full",
 							get = function() return DeathNote.settings.unit_filters.group end,
 							set = function(_, v) DeathNote:SetUnitFilter("group", v) end,
@@ -145,7 +147,7 @@ DeathNote.Options = {
 						your_pet = {
 							order = 2,
 							type = "toggle",
-							name = "Your pet",
+							name = L["Your pet"],
 							get = function() return DeathNote.settings.unit_filters.my_pet end,
 							set = function(_, v) DeathNote:SetUnitFilter("my_pet", v) end,
 						},
@@ -153,8 +155,8 @@ DeathNote.Options = {
 						other_pets = {
 							order = 3,
 							type = "toggle",
-							name = "Other pets",
-							desc = "The effect of this filter depends on the other filters. For example, if you have the friendly players filter inactive, their pets deaths won't be recorded either, even with this filter activated.",
+							name = L["Other pets"],
+							desc = L["The effect of this filter depends on the other filters. For example, if you have the friendly players filter inactive, their pets deaths won't be recorded either, even with this filter activated."],
 							get = function() return DeathNote.settings.unit_filters.other_pets end,
 							set = function(_, v) DeathNote:SetUnitFilter("other_pets", v) end,
 						},
@@ -162,8 +164,8 @@ DeathNote.Options = {
 						friendly_players = {
 							order = 4,
 							type = "toggle",
-							name = "Friendly players",
-							desc = "All friendly players, including those not in your group",
+							name = L["Friendly players"],
+							desc = L["All friendly players, including those not in your group"],
 							get = function() return DeathNote.settings.unit_filters.friendly_players end,
 							set = function(_, v) DeathNote:SetUnitFilter("friendly_players", v) end,
 						},
@@ -171,7 +173,7 @@ DeathNote.Options = {
 						enemy_players = {
 							order = 5,
 							type = "toggle",
-							name = "Enemy players",
+							name = L["Enemy players"],
 							get = function() return DeathNote.settings.unit_filters.enemy_players end,
 							set = function(_, v) DeathNote:SetUnitFilter("enemy_players", v) end,
 						},
@@ -179,7 +181,7 @@ DeathNote.Options = {
 						friendly_npcs = {
 							order = 6,
 							type = "toggle",
-							name = "Friendly NPCs",
+							name = L["Friendly NPCs"],
 							get = function() return DeathNote.settings.unit_filters.friendly_npcs end,
 							set = function(_, v) DeathNote:SetUnitFilter("friendly_npcs", v) end,
 						},
@@ -187,7 +189,7 @@ DeathNote.Options = {
 						enemy_npcs = {
 							order = 7,
 							type = "toggle",
-							name = "Enemy NPCs",
+							name = L["Enemy NPCs"],
 							get = function() return DeathNote.settings.unit_filters.enemy_npcs end,
 							set = function(_, v) DeathNote:SetUnitFilter("enemy_npcs", v) end,
 						},
@@ -196,8 +198,8 @@ DeathNote.Options = {
 
 				keep_data = {
 					order = 20,
-					name = "Keep data between sessions",
-					desc = "Enable this if you want the data to persist after logging out or after a reload ui.\nKeep in mind that depending on your options this may generate a very big SavedVariables file and may impact your login/logout and reload ui times.",
+					name = L["Keep data between sessions"],
+					desc = L["Enable this if you want the data to persist after logging out or after a reload ui.\nKeep in mind that depending on your options this may generate a very big SavedVariables file and may impact your login/logout and reload ui times."],
 					type = "toggle",
 					width = "full",
 					get = function() return DeathNote.settings.keep_data end,
@@ -206,7 +208,7 @@ DeathNote.Options = {
 
 				reset_data = {
 					order = 30,
-					name = "Reset data",
+					name = L["Reset data"],
 					type = "execute",
 					func = function() DeathNote:ResetData() end
 				},
@@ -215,12 +217,12 @@ DeathNote.Options = {
 
 		announce = {
 			order = 2,
-			name = "Announce",
+			name = L["Announce"],
 			type = "group",
 			args = {
 				announce = {
 					order = 10,
-					name = "Announce deaths",
+					name = L["Announce deaths"],
 					type = "toggle",
 					width = "full",
 					get = function() return DeathNote.settings.announce.enable end,
@@ -229,7 +231,7 @@ DeathNote.Options = {
 
 				announce_unknown = {
 					order = 11,
-					name = "Announce deaths with an unknown cause",
+					name = L["Announce deaths with an unknown cause"],
 					type = "toggle",
 					width = "full",
 					disabled = function() return not DeathNote.settings.announce.enable end,
@@ -239,7 +241,7 @@ DeathNote.Options = {
 
 				announce_limit = {
 					order = 12,
-					name = "Announces/10 seconds limit",
+					name = L["Announces/10 seconds limit"],
 					type = "range",
 					min = 1,
 					softMax = 10,
@@ -252,20 +254,20 @@ DeathNote.Options = {
 
 				channel = {
 					order = 20,
-					name = "Output channel",
+					name = L["Output channel"],
 					type = "select",
 					disabled = function() return not DeathNote.settings.announce.enable end,
 					values = {
-						["CHATFRAME"] = "Chat frame",
-						["SAY"] = "Say",
-						["PARTY"] = "Party",
-						["RAID"] = "Raid",
-						["BATTLEGROUND"] = "Battleground",
-						["GROUP"] = "Group (party or raid)",
-						["RW"] = "Raid Warning",
-						["GUILD"] = "Guild",
-						["OFFICER"] = "Officer",
-						["WHISPER"] = "Whisper",
+						["CHATFRAME"] 		= L["Chat frame"],
+						["SAY"] 			= L["Say"],
+						["PARTY"] 			= L["Party"],
+						["RAID"] 			= L["Raid"],
+						["BATTLEGROUND"] 	= L["Battleground"],
+						["GROUP"] 			= L["Group (party or raid)"],
+						["RW"] 				= L["Raid Warning"],
+						["GUILD"] 			= L["Guild"],
+						["OFFICER"] 		= L["Officer"],
+						["WHISPER"] 		= L["Whisper"],
 					},
 					get = function() return DeathNote.settings.announce.channel end,
 					set = function(_, v) DeathNote.settings.announce.channel = v end,
@@ -278,8 +280,8 @@ DeathNote.Options = {
 					style = "radio",
 					disabled = function() return not DeathNote.settings.announce.enable end,
 					values = {
-						["COMBAT_LOG"] = "Combat log line",
-						["FORMATTED"] = "Formatted",
+						["COMBAT_LOG"] 		= L["Combat log lines"],
+						["FORMATTED"] 		= L["Formatted"],
 					},
 					get = function() return DeathNote.settings.announce.style end,
 					set = function(_, v) DeathNote.settings.announce.style = v end,
@@ -287,14 +289,14 @@ DeathNote.Options = {
 
 				format_style = {
 					order = 40,
-					name = "Formatted options",
+					name = L["Formatted style options"],
 					type = "group",
 					inline = true,
 					disabled = function() return not DeathNote.settings.announce.enable or DeathNote.settings.announce.style ~= "FORMATTED" end,
 					args = {
 						format_damage = {
 							order = 10,
-							name = "Include damage",
+							name = L["Include damage"],
 							type = "toggle",
 							get = function() return DeathNote.settings.announce.format_damage end,
 							set = function(_, v) DeathNote.settings.announce.format_damage = v end,
@@ -302,7 +304,7 @@ DeathNote.Options = {
 
 						format_resisted = {
 							order = 20,
-							name = "Include amount resisted/blocked/absorbed",
+							name = L["Include amount resisted/blocked/absorbed"],
 							type = "toggle",
 							width = "double",
 							get = function() return DeathNote.settings.announce.format_resist end,
@@ -311,7 +313,7 @@ DeathNote.Options = {
 
 						format_hittype = {
 							order = 30,
-							name = "Include hit type (critical, crushing, etc)",
+							name = L["Include hit type (critical, crushing, etc)"],
 							type = "toggle",
 							width = "double",
 							get = function() return DeathNote.settings.announce.format_hittype end,
@@ -320,7 +322,7 @@ DeathNote.Options = {
 
 						format_overkill = {
 							order = 40,
-							name = "Include overkill",
+							name = L["Include overkill"],
 							type = "toggle",
 							get = function() return DeathNote.settings.announce.format_overkill end,
 							set = function(_, v) DeathNote.settings.announce.format_overkill = v end,
