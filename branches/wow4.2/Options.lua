@@ -257,18 +257,13 @@ DeathNote.Options = {
 					name = L["Output channel"],
 					type = "select",
 					disabled = function() return not DeathNote.settings.announce.enable end,
-					values = {
-						["CHATFRAME"] 		= L["Chat frame"],
-						["SAY"] 			= L["Say"],
-						["PARTY"] 			= L["Party"],
-						["RAID"] 			= L["Raid"],
-						["BATTLEGROUND"] 	= L["Battleground"],
-						["GROUP"] 			= L["Group (party or raid)"],
-						["RW"] 				= L["Raid Warning"],
-						["GUILD"] 			= L["Guild"],
-						["OFFICER"] 		= L["Officer"],
-						["WHISPER"] 		= L["Whisper"],
-					},
+					values = function()
+						local v = {}
+						for k, o in DeathNote:O_IterateOutputs() do
+							v[k] = o.name
+						end
+						return v
+					end,
 					get = function() return DeathNote.settings.announce.channel end,
 					set = function(_, v) DeathNote.settings.announce.channel = v end,
 				},
@@ -280,8 +275,8 @@ DeathNote.Options = {
 					style = "radio",
 					disabled = function() return not DeathNote.settings.announce.enable end,
 					values = {
-						["COMBAT_LOG"] 		= L["Combat log lines"],
-						["FORMATTED"] 		= L["Formatted"],
+						["COMBAT_LOG"]	= L["Combat log lines"],
+						["FORMATTED"]	= L["Formatted"],
 					},
 					get = function() return DeathNote.settings.announce.style end,
 					set = function(_, v) DeathNote.settings.announce.style = v end,

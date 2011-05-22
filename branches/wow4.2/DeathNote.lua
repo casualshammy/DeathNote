@@ -51,7 +51,9 @@ function DeathNote:OnInitialize()
 	})
 
 	self:DataCapture_Initialize()
-
+	
+	self:O_Initialize()
+	
 	self:UpdateLDB()
 end
 
@@ -61,6 +63,7 @@ function DeathNote:OnEnable()
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
+	self:RegisterEvent("CHANNEL_UI_UPDATE")
 	self.db.RegisterCallback(self, "OnDatabaseShutdown")
 
 	self:AddToUnitPopup()
@@ -77,6 +80,19 @@ function DeathNote:OnDisable()
 	self:UnregisterAllEvents()
 	self.db.UnregisterAllCallbacks(self)
 	self:CancelAllTimers()
+end
+
+-- Replaces AceConsole:Print so that the addon name can be localized
+function DeathNote:Print(...)
+	local str = "|cff33ff99" .. L["Death Note"] .. "|r: "
+	local count = select("#", ...)
+	for i = 1, count do
+		str = str .. tostring(select(i, ...))
+		if i < count then
+			str = str .. " "
+		end
+	end
+	DEFAULT_CHAT_FRAME:AddMessage(str)
 end
 
 function DeathNote:Debug(...)

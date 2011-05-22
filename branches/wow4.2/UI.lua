@@ -1062,30 +1062,6 @@ local function CanSpeakOfficerChat()
 	return GetGuildRankFlag(4)
 end
 
-local function ArgsAsKeys(...)
-   local t = {}
-   for i = 1, select("#", ...) do
-	  t[select(i, ...)] = true
-   end
-   return t
-end
-
-local function GetPlayerChannels()
-	local server_channels = ArgsAsKeys(EnumerateServerChannels())
-	local channels = { GetChannelList() }
-	local result = {}
-
-	for i = 1, #channels, 2 do
-	   local id = channels[i]
-	   local name = channels[i+1]
-	   if not server_channels[name] then
-			tinsert(result, { id = id, name = name })
-	   end
-	end
-
-	return result
-end
-
 function DeathNote.LineDropDownInitialize(self, level)
 	local info = {}
 
@@ -1154,7 +1130,7 @@ function DeathNote.LineDropDownInitialize(self, level)
 			info.func = function() DeathNote:SendReport("WHISPER") end
 			UIDropDownMenu_AddButton(info, level)
 
-			if #GetPlayerChannels() > 0 then
+			if #DeathNote:O_GetPlayerChannels() > 0 then
 				info.colorCode = nil
 				info.text = L["Channel"]
 				info.hasArrow = 1
@@ -1164,7 +1140,7 @@ function DeathNote.LineDropDownInitialize(self, level)
 		end
 	elseif level == 3 then
 		if UIDROPDOWNMENU_MENU_VALUE == "CHANNEL" then
-			for _, c in ipairs(GetPlayerChannels()) do
+			for _, c in ipairs(DeathNote:O_GetPlayerChannels()) do
 				info.colorCode = GetChatColor("CHANNEL" .. c.id)
 				info.text = string.format("%i. %s", c.id, c.name)
 				info.notCheckable = 1
