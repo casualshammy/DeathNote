@@ -1,8 +1,10 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+
 DeathNote = LibStub("AceAddon-3.0"):NewAddon("DeathNote", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0", "AceConsole-3.0")
 
 -- Bindings text
-BINDING_HEADER_DEATH_NOTE = "Death Note"
-BINDING_NAME_DEATH_NOTE_SHOW_TARGET_DEATH = "Show target deaths"
+BINDING_HEADER_DEATH_NOTE = L["Death Note"]
+BINDING_NAME_DEATH_NOTE_SHOW_TARGET_DEATH = L["Show target deaths"]
 
 function DeathNote:OnInitialize()
 	-- AceDB options
@@ -14,13 +16,17 @@ function DeathNote:OnInitialize()
 
 	-- Register options
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note", self.Options)
-	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Death Note", "Death Note")
+	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Death Note", L["Death Note"])
+	
+	-- Register slash commands
+	self:RegisterChatCommand("deathnote", "Show")
+	self:RegisterChatCommand("dn", "Show")
 
 	-- Register LDB object
-	self.ldb = LibStub("LibDataBroker-1.1"):NewDataObject("DeathNote", {
+	self.ldb = LibStub("LibDataBroker-1.1"):NewDataObject("Death Note", {
 		type = "data source",
-		label = "|cFF8F8F8FDeath Note|r",
-		text = "|cFF8F8F8FDeath Note|r",
+		label = "|cFF8F8F8F" .. L["Death Note"] .. "|r",
+		text = "|cFF8F8F8F" .. L["Death Note"] .. "|r",
 		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
 		OnClick = function(self, button)
 			if button == "LeftButton" then
@@ -35,17 +41,19 @@ function DeathNote:OnInitialize()
 					DeathNote:ShowUnit(UnitName("target"))
 				end
 			elseif button == "RightButton" then
-				InterfaceOptionsFrame_OpenToCategory("Death Note")
+				InterfaceOptionsFrame_OpenToCategory(L["Death Note"])
 			end
 		end,
 		OnTooltipShow = function(tooltip)
-			tooltip:AddLine("DeathNote")
-			tooltip:AddLine("|cFFEDA55FClick|r to open DeathNote. |cFFEDA55FRight-Click|r to show options. |cFFEDA55FShift-Click|r to optimize data. |cFFEDA55FCtrl-Click|r to reset data.", 0.2, 1, 0.2, 1)
+			tooltip:AddLine(L["Death Note"])
+			tooltip:AddLine(L["|cFFEDA55FClick|r to open Death Note. |cFFEDA55FRight-Click|r to show options. |cFFEDA55FShift-Click|r to optimize data. |cFFEDA55FCtrl-Click|r to reset data."], 0.2, 1, 0.2, 1)
 		end,
 	})
 
 	self:DataCapture_Initialize()
-
+	
+	self:O_Initialize()
+	
 	self:UpdateLDB()
 end
 
@@ -55,6 +63,7 @@ function DeathNote:OnEnable()
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
+	self:RegisterEvent("CHANNEL_UI_UPDATE")
 	self.db.RegisterCallback(self, "OnDatabaseShutdown")
 
 	self:AddToUnitPopup()
@@ -73,6 +82,19 @@ function DeathNote:OnDisable()
 	self:CancelAllTimers()
 end
 
+-- Replaces AceConsole:Print so that the addon name can be localized
+function DeathNote:Print(...)
+	local str = "|cff33ff99" .. L["Death Note"] .. "|r: "
+	local count = select("#", ...)
+	for i = 1, count do
+		str = str .. tostring(select(i, ...))
+		if i < count then
+			str = str .. " "
+		end
+	end
+	DEFAULT_CHAT_FRAME:AddMessage(str)
+end
+
 function DeathNote:Debug(...)
 	if self.settings.debugging then
 		self:Print(...)
@@ -80,7 +102,7 @@ function DeathNote:Debug(...)
 end
 
 function DeathNote:UpdateLDB()
-	self.ldb.text = string.format("%i deaths", #DeathNoteData.deaths)
+	self.ldb.text = string.format(L["%i deaths"], #DeathNoteData.deaths)
 end
 
 ------------------------------------------------------------------------------
@@ -105,13 +127,13 @@ function DeathNote:SendReport(channel, arg)
 		func = self.FormatReportCompact
 	end
 
-	local msg = string.format("DeathNote: Death report for %s at %s", self.current_death[3], date("%X", self.current_death[1]))
+	local msg = string.format(L["Death Note: Death report for %s at %s"], self.current_death.name, date("%X", self.current_death.timestamp))
 	SendChatMessage(msg, channel, nil, target)
 
 	self.report_line_count = 0
 	for i = self.dropdown_line, 1, -1 do
 		if self.report_line_count >= self.settings.report.max_lines then
-			self:Print(string.format("Limiting report to %i lines", self.settings.report.max_lines))
+			self:Print(string.format(L["Limiting report to %i lines"], self.settings.report.max_lines))
 			break
 		end
 

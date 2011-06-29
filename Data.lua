@@ -8,8 +8,8 @@ local function DeathIterator(state)
 			end
 			for i = state.i, 1, -1 do
 				local entry = l[i]
-				if entry[8] == state.guid and entry[3] <= state.death_time then
-					if entry[4] == "UNIT_DIED" then
+				if entry.destGUID == state.guid and entry.timestamp <= state.death_time then
+					if entry.event == "UNIT_DIED" then
 						state.death_found = state.death_found + 1
 						if state.death_found > 1 then
 							return nil
@@ -30,10 +30,10 @@ end
 
 function DeathNote:IterateDeath(death, maxt)
 	local state = {
-		guid = death[2],
-		death_time = death[1],
-		t = floor(death[1]),
-		endt = floor(death[1]) - maxt,
+		guid = death.GUID,
+		death_time = death.timestamp,
+		t = floor(death.timestamp),
+		endt = floor(death.timestamp) - maxt,
 		death_found = 0,
 	}
 
@@ -176,10 +176,10 @@ local event_reader_table = {
 }
 
 local function GetEntryReader(entry, nreader)
-	local reader = event_reader_table[entry[4]] and event_reader_table[entry[4]][nreader]
+	local reader = event_reader_table[entry.event] and event_reader_table[entry.event][nreader]
 
 	if reader then
-		return reader(unpack(entry, 11))
+		return reader(unpack(entry, DeathNote.EntryIndexInfo.eventArgs))
 	end
 end
 
@@ -321,12 +321,12 @@ end
 
 function DeathNote:IsEntryFiltered(entry)
 	-- hack to remove obnoxious events that will never be shown unless a filter is added for them
-	local event = entry[4]
+	local event = entry.event
 	if event == "SPELL_AURA_REFRESH" or event == "SPELL_CAST_START" or event == "SPELL_CAST_SUCCESS" then
 		return false
 	end
 
-	local timestamp = entry[3]
+	local timestamp = entry.timestamp
 	local auraGain, auraType, _, auraSpellId, _, _, auraBroken = self:GetEntryAura(entry)
 
 	if next(self.settings.display_filters.spell_filter) then
@@ -337,7 +337,7 @@ function DeathNote:IsEntryFiltered(entry)
 	end
 
 	if next(self.settings.display_filters.source_filter) then
-		if self.settings.display_filters.source_filter[string.lower(entry[6] or "")] then
+		if self.settings.display_filters.source_filter[string.lower(entry.sourceName or "")] then
 			return false
 		end
 	end

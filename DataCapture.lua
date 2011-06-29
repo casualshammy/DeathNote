@@ -1,3 +1,47 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+
+DeathNote.EntryIndexInfo = {
+	hp					= 1,
+	hpMax				= 2,
+	cleArgs				= 3,
+	timestamp			= 3,
+	event				= 4,
+	hideCaster			= 5,
+	sourceGUID			= 6,
+	sourceName			= 7,
+	sourceFlags			= 8,
+	sourceRaidFlags		= 9,
+	destGUID			= 10,
+	destName			= 11,
+	destFlags			= 12,
+	destRaidFlags		= 13,
+	eventArgs			= 14,
+}
+
+DeathNote.DeathIndexInfo = {
+	timestamp			= 1,
+	GUID				= 2,
+	name				= 3,
+	flags				= 4,
+	raidFlags			= 5,	
+}
+
+local eii = DeathNote.EntryIndexInfo
+local dii = DeathNote.DeathIndexInfo
+
+local entrymeta = {
+	__index = function(self, idx)
+		return rawget(self, eii[idx])
+	end
+}
+
+local deathmeta = {
+	__index = function(self, idx)
+		return rawget(self, dii[idx])
+	end
+}
+
+
 local tinsert, tremove = table.insert, table.remove
 local floor = math.floor
 local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax
@@ -8,20 +52,19 @@ local log
 local deaths
 
 local unit_filters = {}
+local SorSkipTable = {}
 
 local SPELLID_LIFETAP = 1454
 local SPELLID_SOR = 27827
 
-local SorSkipTable = {}
-
-local function SpellAuraRemovedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
+local function SpellAuraRemovedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, auraType)
 	if spellId == SPELLID_SOR then
 		-- Ignore next UNIT_DIED for sourceGUID
 		SorSkipTable[sourceGUID] = timestamp
 	end
 end
 
-local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool)
+local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool)
 	if spellId == SPELLID_LIFETAP then
 		-- Generate fake SPELL_DAMAGE with the Life Tap damage
 		local hpmax = UnitHealthMax(sourceName) or 0
@@ -35,9 +78,11 @@ local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, 
 			sourceGUID,                     -- sourceGUID
 			sourceName,                     -- sourceName
 			sourceFlags,                    -- sourceFlags
+			sourceRaidFlags,				-- sourceRaidFlags
 			sourceGUID,                     -- destGUID
 			sourceName,                     -- destName
 			sourceFlags,                    -- destFlags
+			sourceRaidFlags,				-- destRaidFlags
 			spellId,                        -- 
 			spellName,                      -- 
 			spellSchool,                    -- 
@@ -47,7 +92,7 @@ local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, 
 	end
 end
 
-local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags)
+local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags)
 	if not destName then
 		return
 	end
@@ -64,7 +109,8 @@ local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceNa
 		end
 	end
 
-	local death = { timestamp, destGUID, destName, destFlags }
+	local death = { timestamp, destGUID, destName, destFlags, destRaidFlags }
+	setmetatable(death, deathmeta)
 	tinsert(deaths, death)
 
 	DeathNote:AnnounceDeath(death)
@@ -128,6 +174,24 @@ function DeathNote:DataCapture_Initialize()
 
 	log = DeathNoteData.log
 	deaths = DeathNoteData.deaths
+	
+	-- Restore metatables
+	local count = 0
+	local t = next(log)
+	while t do
+		local logt = log[t]
+		for i = 1, #logt do
+			setmetatable(logt[i], entrymeta)
+			count = count + 1
+		end
+		t = next(log, t)
+	end
+
+	for i = 1, #deaths do
+		setmetatable(deaths[i], deathmeta)
+	end
+	
+	
 	self:UpdateUnitFilters()
 end
 
@@ -137,7 +201,7 @@ function DeathNote:ResetData(silent)
 	self:UpdateNameList()
 
 	if not silent then
-		self:Print("Data has been reset")
+		self:Print(L["Data has been reset"])
 		collectgarbage("collect")
 	end
 end
@@ -166,7 +230,7 @@ function DeathNote:CleanData(manual)
 
 	local death_time = self.settings.death_time
 	local others_death_time = self.settings.others_death_time
-	local min_time = deaths[1] and (deaths[1][1] - death_time) or 0
+	local min_time = deaths[1] and (deaths[1].timestamp - death_time) or 0
 	local max_time = time() - death_time
 
 	wipe(keep_guid)
@@ -174,8 +238,8 @@ function DeathNote:CleanData(manual)
 
 	for i = 1, #deaths do
 		local deathsi = deaths[i]
-		local timestamp = floor(deathsi[1])
-		local guid = deathsi[2]
+		local timestamp = floor(deathsi.timestamp)
+		local guid = deathsi.GUID
 		for t = timestamp - death_time, timestamp - others_death_time do
 			if not keep_guid[t] then
 				keep_guid[t] = {}
@@ -191,26 +255,36 @@ function DeathNote:CleanData(manual)
 	local t = next(log)
 	while t do
 		local logt = log[t]
+		local del = false
 		if logt then
 			if t < min_time then
-				log[t] = nil
+				del = true
 			elseif t < max_time and not keep_all[t] then
 				local keep_guidt = keep_guid[t]
 				if not keep_guidt then
-					log[t] = nil
+					del = true
 				else
 					for i = #logt, 1, -1 do
-						if not keep_guidt[logt[i][8]] then
+						-- index is destGUID. Referenced directly by array index for performance reasons
+						if not keep_guidt[logt[i][10]] then
 							tremove(logt, i)
 						end
+					end
+					if #logt == 0 then
+						del = true
 					end
 				end
 			end
 		end
-		t = next(log, t)
+		
+		local t2 = next(log, t)
+		if del then
+			log[t] = nil
+		end
+		t = t2
 	end
 
-	if manual or self.settings.debugging then self:Debug(string.format("Data optimization took %.02f ms", debugprofilestop())) end
+	if manual or self.settings.debugging then self:Print(string.format(L["Data optimization done in %.02f ms"], debugprofilestop())) end
 end
 
 function DeathNote:SetUnitFilter(filter, value)
@@ -335,13 +409,14 @@ local function tuple(...)
 	return construct(...)
 end
 
-
-function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
 	local handler = event_handler_table[event]
 	if handler and IsFiltered(sourceFlags, destFlags) then
 		local hp = destName and UnitHealth(destName) or 0
 		local hpmax = destName and UnitHealthMax(destName) or 0
-		local entry = tuple(hp, hpmax, timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+		local entry = tuple(hp, hpmax, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
+		
+		setmetatable(entry, entrymeta)
 
 		local t = floor(timestamp)
 
@@ -352,7 +427,7 @@ function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, 
 		tinsert(log[t], entry)
 
 		if handler ~= true then
-			handler(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+			handler(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
 		end
 	end
 end

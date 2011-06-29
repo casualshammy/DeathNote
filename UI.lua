@@ -1,3 +1,5 @@
+local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+
 local WindowBackdrop = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -26,8 +28,8 @@ local DraggerBackdrop  = {
 	insets = { left = 3, right = 3, top = 7, bottom = 7 }
 }
 
-local filters_label_open = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-open.tga]] .. ":0|t Filters"
-local filters_label_closed = "|T" .. [[Interface\AddOns\DeathNote\Textures\tri-closed.tga]] .. ":0|t Filters"
+local filters_label_open =   "|TInterface\\AddOns\\DeathNote\\Textures\\tri-open.tga:0|t " .. L["Filters"]
+local filters_label_closed = "|TInterface\\AddOns\\DeathNote\\Textures\\tri-closed.tga:0|t " .. L["Filters"]
 local normal_hilight = { r = 0.5, g = 0.5, b = 0.5, a = 0.4 }
 local spell_hilight = { r = 0.25, g = 0.25, b = 0.5, a = 0.4 }
 local source_hilight = { r = 0, g = 0, b = 0.6, a = 0.4 }
@@ -79,7 +81,7 @@ function DeathNote:Show()
 		titletext:SetPoint("BOTTOMRIGHT", titlebar)
 
 		titletext:SetHeight(28)
-		titletext:SetText("Death Note")
+		titletext:SetText(L["Death Note"])
 		titletext:SetJustifyH("LEFT")
 		titletext:SetJustifyV("MIDDLE")
 
@@ -222,7 +224,7 @@ function DeathNote:Show()
 		local damage_tab_button = CreateFrame("Button", "DeathNoteFiltersTab1", filters_tab, "OptionsFrameTabButtonTemplate")
 		damage_tab_button.ntab = 1
 		damage_tab_button:SetPoint("BOTTOMLEFT", filters_tab, "TOPLEFT", 6, -3)
-		damage_tab_button:SetText("Damage")
+		damage_tab_button:SetText(L["Damage"])
 		damage_tab_button:SetFrameLevel(2)
 
 		local tabtext = DeathNoteFiltersTab1Text
@@ -243,7 +245,7 @@ function DeathNote:Show()
 			args = {
 				tgroup = {
 					order = 1,
-					name = "Threshold",
+					name = L["Threshold"],
 					type = "group",
 					inline = true,
 					args = {
@@ -262,7 +264,7 @@ function DeathNote:Show()
 				},
 				consolidate = {
 					order = 2,
-					name = "Consolidate consecutive hits",
+					name = L["Consolidate consecutive hits"],
 					type = "toggle",
 					width = "double",
 					get = function() return DeathNote.settings.display_filters.consolidate_damage end,
@@ -270,7 +272,7 @@ function DeathNote:Show()
 				},
 				misses = {
 					order = 3,
-					name = "Hide misses",
+					name = L["Hide misses"],
 					type = "toggle",
 					width = "normal",
 					get = function() return DeathNote.settings.display_filters.hide_misses end,
@@ -292,7 +294,7 @@ function DeathNote:Show()
 		local healing_tab_button = CreateFrame("Button", "DeathNoteFiltersTab2", filters_tab, "OptionsFrameTabButtonTemplate")
 		healing_tab_button.ntab = 2
 		healing_tab_button:SetPoint("TOPLEFT", damage_tab_button, "TOPRIGHT", -16, 0)
-		healing_tab_button:SetText("Healing")
+		healing_tab_button:SetText(L["Healing"])
 		healing_tab_button:SetFrameLevel(2)
 
 		tabtext = DeathNoteFiltersTab2Text
@@ -320,7 +322,7 @@ function DeathNote:Show()
 			args = {
 				tgroup = {
 					order = 1,
-					name = "Threshold",
+					name = L["Threshold"],
 					type = "group",
 					inline = true,
 					args = {
@@ -339,7 +341,7 @@ function DeathNote:Show()
 				},
 				consolidate = {
 					order = 2,
-					name = "Consolidate consecutive heals",
+					name = L["Consolidate consecutive heals"],
 					type = "toggle",
 					width = "full",
 					get = function() return DeathNote.settings.display_filters.consolidate_heals end,
@@ -361,7 +363,7 @@ function DeathNote:Show()
 		local auras_tab_button = CreateFrame("Button", "DeathNoteFiltersTab3", filters_tab, "OptionsFrameTabButtonTemplate")
 		auras_tab_button.ntab = 3
 		auras_tab_button:SetPoint("TOPLEFT", healing_tab_button, "TOPRIGHT", -16, 0)
-		auras_tab_button:SetText("Auras")
+		auras_tab_button:SetText(L["Auras"])
 		auras_tab_button:SetFrameLevel(2)
 
 		tabtext = DeathNoteFiltersTab3Text
@@ -389,48 +391,48 @@ function DeathNote:Show()
 			args = {
 				display = {
 					order = 1,
-					name = "Auras",
+					name = L["Auras"],
 					type = "group",
 					inline = true,
 					args = {
 						buff_gains = {
 							order = 1,
 							type = "toggle",
-							name = "Buff gains",
+							name = L["Buff gains"],
 							get = function() return DeathNote.settings.display_filters.buff_gains end,
 							set = function(_, v) DeathNote:SetDisplayFilter("buff_gains", v) end,
 						},
 						buff_fades = {
 							order = 2,
 							type = "toggle",
-							name = "Buff fades",
+							name = L["Buff fades"],
 							get = function() return DeathNote.settings.display_filters.buff_fades end,
 							set = function(_, v) DeathNote:SetDisplayFilter("buff_fades", v) end,
 						},
 						debuff_gains = {
 							order = 3,
 							type = "toggle",
-							name = "Debuff gains",
+							name = L["Debuff gains"],
 							get = function() return DeathNote.settings.display_filters.debuff_gains end,
 							set = function(_, v) DeathNote:SetDisplayFilter("debuff_gains", v) end,
 						},
 						debuff_fades = {
 							order = 4,
 							type = "toggle",
-							name = "Debuff fades",
+							name = L["Debuff fades"],
 							get = function() return DeathNote.settings.display_filters.debuff_fades end,
 							set = function(_, v) DeathNote:SetDisplayFilter("debuff_fades", v) end,
 						},
 						survival_buffs = {
 							order = 5,
 							type = "toggle",
-							name = "Survival cooldowns",
+							name = L["Survival cooldowns"],
 							get = function() return DeathNote.settings.display_filters.survival_buffs end,
 							set = function(_, v) DeathNote:SetDisplayFilter("survival_buffs", v) end,
 						},
 						highlight_survival = {
 							order = 6,
-							name = "Highlight survival cooldowns",
+							name = L["Highlight survival cooldowns"],
 							type = "toggle",
 							-- width = "double",
 							get = function() return DeathNote.settings.display_filters.highlight_survival end,
@@ -440,7 +442,7 @@ function DeathNote:Show()
 				},
 				consolidate = {
 					order = 2,
-					name = "Consolidate consecutive auras",
+					name = L["Consolidate consecutive auras"],
 					type = "toggle",
 					width = "double",
 					get = function() return DeathNote.settings.display_filters.consolidate_auras end,
@@ -461,7 +463,7 @@ function DeathNote:Show()
 		local others_tab_button = CreateFrame("Button", "DeathNoteFiltersTab4", filters_tab, "OptionsFrameTabButtonTemplate")
 		others_tab_button.ntab = 4
 		others_tab_button:SetPoint("TOPLEFT", auras_tab_button, "TOPRIGHT", -16, 0)
-		others_tab_button:SetText("Other")
+		others_tab_button:SetText(L["Others"])
 		others_tab_button:SetFrameLevel(2)
 
 		tabtext = DeathNoteFiltersTab4Text
@@ -498,8 +500,8 @@ function DeathNote:Show()
 			args = {
 				spell = {
 					order = 1,
-					name = "Spell filter",
-					desc = "Enter one or more spells, separated by commas.\nCtrl+Click on a spell column to add that spell.",
+					name = L["Spell filter"],
+					desc = L["Enter one or more spells, separated by commas.\nCtrl+Click on a spell column to add that spell."],
 					type = "input",
 					width = "full",
 					get = function() return format_filter(DeathNote.settings.display_filters.spell_filter) end,
@@ -507,8 +509,8 @@ function DeathNote:Show()
 				},
 				source = {
 					order = 2,
-					name = "Source filter",
-					desc = "Enter one or more sources, separated by commas.\nCtrl+Click on a source column to add that source.",
+					name = L["Source filter"],
+					desc = L["Enter one or more sources, separated by commas.\nCtrl+Click on a source column to add that source."],
 					type = "input",
 					width = "full",
 					get = function() return format_filter(DeathNote.settings.display_filters.source_filter) end,
@@ -516,7 +518,7 @@ function DeathNote:Show()
 				},
 				reset = {
 					order = 3,
-					name = "Reset",
+					name = L["Reset"],
 					type = "execute",
 					width = "half",
 					func = function() DeathNote:SetDisplayFilter("spell_filter", "") DeathNote:SetDisplayFilter("source_filter", "") end,
@@ -694,18 +696,18 @@ function DeathNote:Show()
 
 		self.logframe = logframe
 
-		logframe:AddColumn("Time", "RIGHT", self.settings.display.columns[1])
-		logframe:AddColumn("HP", "CENTER", self.settings.display.columns[2])
-		logframe:AddColumn("Amount", "RIGHT", self.settings.display.columns[3])
-		logframe:AddColumn("Spell", "LEFT", self.settings.display.columns[4])
-		logframe:AddColumn("Source", "LEFT")
+		logframe:AddColumn(L["Time"], "RIGHT", self.settings.display.columns[1])
+		logframe:AddColumn(L["HP"], "CENTER", self.settings.display.columns[2])
+		logframe:AddColumn(L["Amount"], "RIGHT", self.settings.display.columns[3])
+		logframe:AddColumn(L["Spell"], "LEFT", self.settings.display.columns[4])
+		logframe:AddColumn(L["Source"], "LEFT")
 
 		logframe:SetSettingsCallback(
 			function(columns)
 				self.settings.display.columns = columns
 			end,
 			function(scale)
-				self:Print(string.format("Setting scale to %i%%", floor(scale * 100 + 0.5)))
+				self:Print(string.format(L["Setting scale to %i%%"], floor(scale * 100 + 0.5)))
 				self.settings.display.scale = scale
 			end)
 
@@ -731,8 +733,8 @@ function DeathNote:Show()
 		lftip:SetFrameStrata("TOOLTIP")
 		lftip:SetClampedToScreen(true)
 		lftip:SetBackdrop(TooltipBackdrop)
-		lftip:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b);
-		lftip:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
+		lftip:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
+		lftip:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
 
 		logframe:SetMouseCallbacks(
 			function(button, nline, column, userdata)
@@ -924,7 +926,7 @@ function DeathNote:ShowUnit(name)
 	for i = 1, #self.name_items do
 		if self.name_items[i]:IsShown() then
 			local userdata = self.name_items[i].userdata
-			if userdata[3] == name then
+			if userdata.name == name then
 				self.name_scroll:SetValue((i - 3) * 18)
 				self.name_items[i]:Click()
 				return
@@ -935,7 +937,7 @@ end
 
 function DeathNote:AddToUnitPopup()
 	UnitPopupButtons["SHOW_DEATH_NOTE"] = {
-		text = "Show Death Note",
+		text = L["Show Death Note"],
 		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
 		dist = 0,
 	}
@@ -983,7 +985,7 @@ end
 function DeathNote:UnitPopup_ShowMenu(dropdownMenu, which, unit, name, userData, ...)
 	local button
 	for i=1, UIDROPDOWNMENU_MAXBUTTONS do
-		button = _G["DropDownList"..UIDROPDOWNMENU_MENU_LEVEL.."Button"..i];
+		button = _G["DropDownList"..UIDROPDOWNMENU_MENU_LEVEL.."Button"..i]
 		if button.value == "SHOW_DEATH_NOTE" then
 		    button.func = DeathNote.UnitPopupClick
 		end
@@ -1060,101 +1062,77 @@ local function CanSpeakOfficerChat()
 	return GetGuildRankFlag(4)
 end
 
-local function ArgsAsKeys(...)
-   local t = {}
-   for i = 1, select("#", ...) do
-	  t[select(i, ...)] = true
-   end
-   return t
-end
-
-local function GetPlayerChannels()
-	local server_channels = ArgsAsKeys(EnumerateServerChannels())
-	local channels = { GetChannelList() }
-	local result = {}
-
-	for i = 1, #channels, 2 do
-	   local id = channels[i]
-	   local name = channels[i+1]
-	   if not server_channels[name] then
-			tinsert(result, { id = id, name = name })
-	   end
-	end
-
-	return result
-end
-
 function DeathNote.LineDropDownInitialize(self, level)
 	local info = {}
 
 	if not level then return end
 
 	if level == 1 then
-		info.text = "Report style"
+		info.text = L["Report style"]
 		info.hasArrow = 1
 		info.value = "REPORT_FORMAT"
 		info.notCheckable = 1
 		UIDropDownMenu_AddButton(info, level)
 
-		info.text = "Send report from this line"
+		info.text = L["Send report from this line"]
 		info.hasArrow = 1
 		info.value = "REPORT"
 		info.notCheckable = 1
 		UIDropDownMenu_AddButton(info, level)
 	elseif level == 2 then
 		if UIDROPDOWNMENU_MENU_VALUE == "REPORT_FORMAT" then
-			info.text = "Compact"
+			info.text = L["Compact"]
 			info.checked = function() return DeathNote.settings.report.style == "FORMATTED" end
 			info.func = function() DeathNote.settings.report.style = "FORMATTED" end
 			UIDropDownMenu_AddButton(info, level)
 
-			info.text = "Combat log lines"
+			info.text = L["Combat log lines"]
 			info.checked = function() return DeathNote.settings.report.style == "COMBAT_LOG" end
 			info.func = function() DeathNote.settings.report.style = "COMBAT_LOG" end
 			UIDropDownMenu_AddButton(info, level)
 		elseif UIDROPDOWNMENU_MENU_VALUE == "REPORT" then
 			info.colorCode = GetChatColor("SAY")
-			info.text = "Say"
+			info.text = L["Say"]
 			info.func = function() DeathNote:SendReport("SAY") end
 			info.notCheckable = 1
 			UIDropDownMenu_AddButton(info, level)
 
 			if GetNumPartyMembers() > 0 then
 				info.colorCode = GetChatColor("PARTY")
-				info.text = "Party"
+				info.text = L["Party"]
 				info.func = function() DeathNote:SendReport("PARTY") end
 				UIDropDownMenu_AddButton(info, level)
 			end
 
 			if GetNumRaidMembers() > 0 then
 				info.colorCode = GetChatColor("RAID")
-				info.text = "Raid"
+				info.text = L["Raid"]
 				info.func = function() DeathNote:SendReport("RAID") end
 				UIDropDownMenu_AddButton(info, level)
 			end
 
 			if CanSpeakGuildChat() then
 				info.colorCode = GetChatColor("GUILD")
-				info.text = "Guild"
+				info.text = L["Guild"]
 				info.func = function() DeathNote:SendReport("GUILD") end
 				UIDropDownMenu_AddButton(info, level)
 			end
 
 			if CanSpeakOfficerChat() then
 				info.colorCode = GetChatColor("OFFICER")
-				info.text = "Officer"
+				info.text = L["Officer"]
 				info.func = function() DeathNote:SendReport("OFFICER") end
 				UIDropDownMenu_AddButton(info, level)
 			end
 
 			info.colorCode = GetChatColor("WHISPER")
-			info.text = "Whisper target"
+			info.text = L["Whisper target"]
 			info.func = function() DeathNote:SendReport("WHISPER") end
 			UIDropDownMenu_AddButton(info, level)
 
-			if #GetPlayerChannels() > 0 then
+			if #DeathNote:O_GetPlayerChannels() > 0 then
 				info.colorCode = nil
-				info.text = "Channel"
+				info.text = L["Channel"]
 				info.hasArrow = 1
 				info.value = "CHANNEL"
 				UIDropDownMenu_AddButton(info, level)
@@ -1162,7 +1140,7 @@ function DeathNote.LineDropDownInitialize(self, level)
 		end
 	elseif level == 3 then
 		if UIDROPDOWNMENU_MENU_VALUE == "CHANNEL" then
-			for _, c in ipairs(GetPlayerChannels()) do
+			for _, c in ipairs(DeathNote:O_GetPlayerChannels()) do
 				info.colorCode = GetChatColor("CHANNEL" .. c.id)
 				info.text = string.format("%i. %s", c.id, c.name)
 				info.notCheckable = 1
@@ -1193,7 +1171,7 @@ function DeathNote.ToolsDropDownInitialize(self, level)
 	if not level then return end
 
 	if level == 1 then
-		info.text = "Sort deaths by"
+		info.text = L["Sort deaths by"]
 		info.value = "DL_ORDER"
 		info.hasArrow = 1
 		info.notCheckable = 1
@@ -1206,14 +1184,20 @@ function DeathNote.ToolsDropDownInitialize(self, level)
 		UIDropDownMenu_AddButton(info, level)
 
 		wipe(info)
-		info.text = "Time format"
+		info.text = L["Time format"]
 		info.value = "COL_TIME"
 		info.hasArrow = 1
 		info.notCheckable = 1
 		UIDropDownMenu_AddButton(info, level)
 
-		info.text = "Health format"
+		info.text = L["Health format"]
 		info.value = "COL_HEALTH"
+		info.hasArrow = 1
+		info.notCheckable = 1
+		UIDropDownMenu_AddButton(info, level)
+
+		info.text = string.format(L["Scale: %i%%"], floor(DeathNote.settings.display.scale * 100 + 0.5))
+		info.value = "COL_SCALE"
 		info.hasArrow = 1
 		info.notCheckable = 1
 		UIDropDownMenu_AddButton(info, level)
@@ -1224,10 +1208,10 @@ function DeathNote.ToolsDropDownInitialize(self, level)
 		UIDropDownMenu_AddButton(info, level)
 
 		wipe(info)
-		info.text = "Options"
+		info.text = L["Options"]
 		info.value = "OPTIONS"
 		info.notCheckable = 1
-		info.func = function() InterfaceOptionsFrame_OpenToCategory("Death Note") end
+		info.func = function() InterfaceOptionsFrame_OpenToCategory(L["Death Note"]) end
 		UIDropDownMenu_AddButton(info, level)
 
 		wipe(info)
@@ -1236,51 +1220,71 @@ function DeathNote.ToolsDropDownInitialize(self, level)
 		UIDropDownMenu_AddButton(info, level)
 
 		wipe(info)
-		info.text = "Reset data"
+		info.text = L["Reset data"]
 		info.value = "RESETDATA"
 		info.notCheckable = 1
 		info.func = function() DeathNote:ResetData() end
 		UIDropDownMenu_AddButton(info, level)
 	elseif level == 2 then
-		if UIDROPDOWNMENU_MENU_VALUE == "COL_TIME" then
-			info.text = "Seconds from death"
-			info.checked = function() return DeathNote.settings.display.timestamp == 1 end
-			info.func = function() DeathNote:SetTimestampDisplay(1) end
-			UIDropDownMenu_AddButton(info, level)
-
-			info.text = "Real time"
-			info.checked = function() return DeathNote.settings.display.timestamp == 2 end
-			info.func = function() DeathNote:SetTimestampDisplay(2) end
-			UIDropDownMenu_AddButton(info, level)
-		elseif UIDROPDOWNMENU_MENU_VALUE == "COL_HEALTH" then
-			info.text = "Bar"
-			info.checked = function() return DeathNote.settings.display.health == 1 end
-			info.func = function() DeathNote:SetHealthDisplay(1) end
-			UIDropDownMenu_AddButton(info, level)
-
-			info.text = "HP %"
-			info.checked = function() return DeathNote.settings.display.health == 2 end
-			info.func = function() DeathNote:SetHealthDisplay(2) end
-			UIDropDownMenu_AddButton(info, level)
-
-			info.text = "HP"
-			info.checked = function() return DeathNote.settings.display.health == 3 end
-			info.func = function() DeathNote:SetHealthDisplay(3) end
-			UIDropDownMenu_AddButton(info, level)
-
-			info.text = "HP/HPMax"
-			info.checked = function() return DeathNote.settings.display.health == 4 end
-			info.func = function() DeathNote:SetHealthDisplay(4) end
-			UIDropDownMenu_AddButton(info, level)
-		elseif UIDROPDOWNMENU_MENU_VALUE == "DL_ORDER" then
-			info.text = "Name"
+		if UIDROPDOWNMENU_MENU_VALUE == "DL_ORDER" then
+			info.text = L["Name"]
 			info.checked = function() return DeathNote.settings.display.namelist == 1 end
 			info.func = function() DeathNote:SetNameListDisplay(1) end
 			UIDropDownMenu_AddButton(info, level)
 
-			info.text = "Time"
+			info.text = L["Time"]
 			info.checked = function() return DeathNote.settings.display.namelist == 2 end
 			info.func = function() DeathNote:SetNameListDisplay(2) end
+			UIDropDownMenu_AddButton(info, level)
+		elseif UIDROPDOWNMENU_MENU_VALUE == "COL_TIME" then
+			info.text = L["Seconds from death"]
+			info.checked = function() return DeathNote.settings.display.timestamp == 1 end
+			info.func = function() DeathNote:SetTimestampDisplay(1) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = L["Real time"]
+			info.checked = function() return DeathNote.settings.display.timestamp == 2 end
+			info.func = function() DeathNote:SetTimestampDisplay(2) end
+			UIDropDownMenu_AddButton(info, level)
+		elseif UIDROPDOWNMENU_MENU_VALUE == "COL_HEALTH" then
+			info.text = L["Bar"]
+			info.checked = function() return DeathNote.settings.display.health == 1 end
+			info.func = function() DeathNote:SetHealthDisplay(1) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = L["HP %"]
+			info.checked = function() return DeathNote.settings.display.health == 2 end
+			info.func = function() DeathNote:SetHealthDisplay(2) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = L["HP"]
+			info.checked = function() return DeathNote.settings.display.health == 3 end
+			info.func = function() DeathNote:SetHealthDisplay(3) end
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = L["HP/HPMax"]
+			info.checked = function() return DeathNote.settings.display.health == 4 end
+			info.func = function() DeathNote:SetHealthDisplay(4) end
+			UIDropDownMenu_AddButton(info, level)
+		elseif UIDROPDOWNMENU_MENU_VALUE == "COL_SCALE" then
+			info.text = L["Increase scale"]
+			info.func = function() 
+				local scale = DeathNote.settings.display.scale + 0.05
+				if scale >= 0.5 and scale <= 2.0 then
+					DeathNote.logframe:SetScale(scale)
+				end
+			end
+			info.notCheckable = 1
+			UIDropDownMenu_AddButton(info, level)
+
+			info.text = L["Decrease scale"]
+			info.func = function() 
+				local scale = DeathNote.settings.display.scale - 0.05
+				if scale >= 0.5 and scale <= 2.0 then
+					DeathNote.logframe:SetScale(scale)
+				end
+			end
+			info.notCheckable = 1
 			UIDropDownMenu_AddButton(info, level)
 		end
 	end
@@ -1358,7 +1362,7 @@ end
 local GetSortedDeathList = {}
 
 local function SortDeathsByNameFunc(a, b)
-	return a[3] > b[3] or (a[3] == b[3] and a[1] < b[1])
+	return a.name > b.name or (a.name == b.name and a.timestamp < b.timestamp)
 end
 
 GetSortedDeathList[1] = function()
@@ -1396,7 +1400,7 @@ function DeathNote:UpdateNameList()
 
 	local count = #deaths
 	for i = 1, count do
-		local v = deaths[count - i + 1]
+		local death = deaths[count - i + 1]
 
 		if not self.name_items[i] then
 			local button = CreateFrame("Button", "DeathNoteNameListButton" .. i, self.name_content, "OptionsListButtonTemplate")
@@ -1417,9 +1421,9 @@ function DeathNote:UpdateNameList()
 
 		local btn = self.name_items[i]
 
-		btn.userdata = v
-		btn:GetFontString():SetText(self:FormatNameListEntry(v))
-		if self.current_death == v then
+		btn.userdata = death
+		btn:GetFontString():SetText(self:FormatNameListEntry(death))
+		if self.current_death == death then
 			btn:LockHighlight()
 		else
 			btn:UnlockHighlight()
@@ -1647,7 +1651,7 @@ function DeathNote:AddSourceFilter(entry)
 		return
 	end
 
-	local source = entry[6] or ""
+	local source = entry.sourceName or ""
 
 	self.settings.display_filters.source_filter[string.lower(source)] = source
 	LibStub("AceConfigDialog-3.0"):Open("Death Note - Others", self.others_tab)
@@ -1673,7 +1677,7 @@ function DeathNote:SetSourceHilight(entry)
 		return
 	end
 
-	local source = entry[5]
+	local source = entry.sourceGUID
 
 	self.current_source_hilight = self.current_source_hilight ~= source and source or nil
 	self.current_spell_hilight = nil
@@ -1692,7 +1696,7 @@ function DeathNote:RefreshHighlight()
 		if self:IsEntryGroup(entry) then
 		else
 			local spellid = self:GetEntrySpell(entry)
-			local source = entry[5]
+			local source = entry.sourceGUID
 
 			if self.current_spell_hilight and self.current_spell_hilight == spellid then
 				self.logframe:SetLineHighlight(i, spell_hilight)
