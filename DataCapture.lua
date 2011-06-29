@@ -1,5 +1,7 @@
 local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
 
+DeathNote.CurrentDataVersion = 1
+
 DeathNote.EntryIndexInfo = {
 	hp					= 1,
 	hpMax				= 2,
@@ -25,6 +27,7 @@ DeathNote.DeathIndexInfo = {
 	flags				= 4,
 	raidFlags			= 5,	
 }
+
 
 local eii = DeathNote.EntryIndexInfo
 local dii = DeathNote.DeathIndexInfo
@@ -165,8 +168,9 @@ local event_handler_table = {
 }
 
 function DeathNote:DataCapture_Initialize()
-	if not DeathNoteData then
+	if not DeathNoteData or (DeathNoteData and (not DeathNoteData.v or DeathNoteData.v < self.CurrentDataVersion)) then
 		DeathNoteData = {
+			v = self.CurrentDataVersion,
 			log = {},
 			deaths = {},
 		}
