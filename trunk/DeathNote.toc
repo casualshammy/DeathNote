@@ -1,10 +1,11 @@
-﻿## Interface: 40100
+﻿## Interface: 40200
 ## Title: DeathNote
 ## Notes: Death analysis tool
 ## Author: Slaren
 ## Version: @project-version@
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3
-## SavedVariables: DeathNoteDB, DeathNoteData
+## SavedVariables: DeathNoteDB
+## SavedVariablesPerCharacter: DeathNoteData
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 
@@ -27,6 +28,7 @@ libs\AceHook-3.0\AceHook-3.0.xml
 libs\AceTimer-3.0\AceTimer-3.0.xml
 #@end-no-lib-strip@
 
+Locales.lua
 DeathNote.lua
 DataCapture.lua
 UI.lua
