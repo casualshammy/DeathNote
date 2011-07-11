@@ -25,7 +25,7 @@ DeathNote.DeathIndexInfo = {
 	GUID				= 2,
 	name				= 3,
 	flags				= 4,
-	raidFlags			= 5,	
+	raidFlags			= 5,
 }
 
 
