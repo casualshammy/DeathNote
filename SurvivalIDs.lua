@@ -34,6 +34,10 @@ DeathNote.SurvivalIDs = {
 	-- [2565] =  { class = "WARRIOR", priority = 3 },		-- Shield Block
 	[871] =   { class = "WARRIOR", priority = 1 },		-- Shield Wall
 	[97463] = { class = "WARRIOR", priority = 3 },		-- Rallying Cry
+	
+	-- bonus stuffs
+	[105914] = { class = "WARRIOR", priority = 2 },		-- Shield Fortress	
+	[105588] = { class = "DEATHKNIGHT", priority = 2  },-- Vampiric Brood
 }
 
 do
