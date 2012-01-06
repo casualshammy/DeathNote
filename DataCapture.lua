@@ -55,16 +55,19 @@ local log
 local deaths
 
 local unit_filters = {}
-local SorSkipTable = {}
+-- local SorSkipTable = {}
 
 local SPELLID_LIFETAP = 1454
-local SPELLID_SOR = 27827
+-- local SPELLID_SOR = 27827
 
 local function SpellAuraRemovedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, auraType)
+	-- old fix for SoR, no longer needed
+	--[[
 	if spellId == SPELLID_SOR then
 		-- Ignore next UNIT_DIED for sourceGUID
 		SorSkipTable[sourceGUID] = timestamp
 	end
+	]]
 end
 
 local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool)
@@ -104,6 +107,8 @@ local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceNa
 		return
 	end
 
+	-- old fix for SoR, no longer needed
+	--[[
 	local t = SorSkipTable[destGUID]
 	if t then
 		SorSkipTable[destGUID] = nil
@@ -111,6 +116,7 @@ local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceNa
 			return
 		end
 	end
+	]]
 
 	local death = { timestamp, destGUID, destName, destFlags, destRaidFlags }
 	setmetatable(death, deathmeta)
