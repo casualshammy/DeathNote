@@ -1097,14 +1097,14 @@ function DeathNote.LineDropDownInitialize(self, level)
 			info.notCheckable = 1
 			UIDropDownMenu_AddButton(info, level)
 
-			if GetNumPartyMembers() > 0 then
+			if GetNumGroupMembers() > 0 then
 				info.colorCode = GetChatColor("PARTY")
 				info.text = L["Party"]
 				info.func = function() DeathNote:SendReport("PARTY") end
 				UIDropDownMenu_AddButton(info, level)
 			end
 
-			if GetNumRaidMembers() > 0 then
+			if IsInRaid() then
 				info.colorCode = GetChatColor("RAID")
 				info.text = L["Raid"]
 				info.func = function() DeathNote:SendReport("RAID") end

@@ -27,13 +27,13 @@ end
 
 local function chatmessage(msg, arg)
 	local ispvp = select(2, IsInInstance()) == "pvp"
-	local israid = GetNumRaidMembers() > 0
-	local isparty = GetNumPartyMembers() > 0
+	local israid = IsInRaid()
+	local isparty = GetNumGroupMembers() > 0
 	
 	if (arg == "PARTY" and not isparty) or
 	   (arg == "RAID" and not israid) or		   
 	   (arg == "BATTLEGROUND" and not ispvp) or
-	   (arg == "RAID_WARNING" and not (IsPartyLeader() or UnitIsRaidOfficer("player"))) then
+	   (arg == "RAID_WARNING" and not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player"))) then
 		return
 	end
 	
@@ -41,9 +41,9 @@ local function chatmessage(msg, arg)
 end
 
 local function groupmessage(msg)
-	if GetNumRaidMembers() > 0 then
+	if IsInRaid() > 0 then
 		SendChatMessage(msg, "RAID")
-	elseif GetNumPartyMembers() > 0 then
+	elseif GetNumGroupMembers() > 0 then
 		SendChatMessage(msg, "PARTY")
 	end
 end
