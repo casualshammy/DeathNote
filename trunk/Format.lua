@@ -489,9 +489,10 @@ function DeathNote:CleanForChat(text)
 		gsub("(|c........)", ""):
 		gsub("(|r)", ""):
 		gsub("(|T.-|t", ""):
-		gsub("(|Hunit.-|h(.-)|h)", "%2"):
 		gsub("(|Hicon:(.-):.-|h.-|h)", function(_, iconBit) return iconBitMap[tonumber(iconBit)] or "" end):
-		gsub("(|Hspell:(%d*).-|h.-|h)", function(_, id) return GetSpellLink(id) end)
+		gsub("(|Hspell:(%d*).-|h.-|h)", function(_, id) return GetSpellLink(id) end):
+		gsub("(|Hunit.-|h(.-)|h)", "%2"):
+		gsub("(|Haction.-|h(.-)|h)", "%2")
 end
 
 function DeathNote:FormatCombatLog(entry)
