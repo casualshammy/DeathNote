@@ -55,7 +55,7 @@ function DeathNote:Show()
 		frame:SetMovable(true)
 		frame:SetResizable(true)
 		frame:SetClampedToScreen(true)
-		frame:SetFrameStrata("DIALOG")
+		frame:SetFrameStrata("HIGH")
 
 		-- titlebar
 		local titlebar = frame:CreateTexture(nil, "BACKGROUND")
@@ -927,7 +927,7 @@ function DeathNote:ShowUnit(name)
 		if self.name_items[i]:IsShown() then
 			local userdata = self.name_items[i].userdata
 			if userdata.name == name then
-				self.name_scroll:SetValue((i - 3) * 18)
+				self.name_scroll:SetValue((i - 3) * self:GetNameButtonHeight())
 				self.name_items[i]:Click()
 				return
 			end
@@ -1294,6 +1294,11 @@ end
 -- Name list
 ------------------------------------------------------------------------------
 
+function DeathNote:GetNameButtonHeight()
+	-- return 18;
+	return 18 + 12;
+end
+
 function DeathNote:NameList_SizeChanged()
 	local content_height = self.name_content:GetHeight()
 	local height = self.name_list:GetHeight()
@@ -1352,7 +1357,7 @@ function DeathNote:ScrollNameListToCurrentDeath()
 		if self.name_items[i]:IsShown() then
 			local userdata = self.name_items[i].userdata
 			if userdata == self.current_death then
-				self.name_scroll:SetValue((i - 3) * 18)
+				self.name_scroll:SetValue((i - 3) * self:GetNameButtonHeight())
 				return
 			end
 		end
@@ -1387,6 +1392,8 @@ function DeathNote:CycleNameListDisplay()
 end
 
 function DeathNote:UpdateNameList()
+	local btnh = self:GetNameButtonHeight()
+
 	if not self.frame or not self.frame:IsShown() then
 		return
 	end
@@ -1413,8 +1420,24 @@ function DeathNote:UpdateNameList()
 			button:SetScript("OnLeave", NameList_OnLeave)
 			button:SetScript("OnDoubleClick", nil)
 
-			button:SetPoint("TOPLEFT", 0, -18 * (i - 1))
-			button:SetPoint("RIGHT")
+			button:SetPoint("TOPLEFT", 0, -btnh * (i - 1))
+			button:SetPoint("BOTTOMRIGHT", self.name_content, "TOPRIGHT", 0, -btnh * i)
+
+			-- reason stuff
+			local btnfs = button:GetFontString()
+			btnfs:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -2)
+			btnfs:SetJustifyV("TOP")
+
+			local reasonfs = button:CreateFontString()
+			reasonfs:SetFontObject(SystemFont_Tiny)
+
+			reasonfs:SetPoint("TOPLEFT", 0, -17)
+			reasonfs:SetPoint("BOTTOMRIGHT")
+			reasonfs:SetJustifyH("LEFT")
+
+			button.reasonfs = reasonfs;
+			--
+
 
 			self.name_items[i] = button
 		end
@@ -1422,7 +1445,10 @@ function DeathNote:UpdateNameList()
 		local btn = self.name_items[i]
 
 		btn.userdata = death
-		btn:GetFontString():SetText(self:FormatNameListEntry(death))
+		local name, reason = self:FormatNameListEntry(death)
+		btn:GetFontString():SetText(name)
+		btn.reasonfs:SetText(reason)
+
 		if self.current_death == death then
 			btn:LockHighlight()
 		else
@@ -1432,7 +1458,7 @@ function DeathNote:UpdateNameList()
 		btn:Show()
 	end
 
-	self.name_content:SetHeight(18 * count)
+	self.name_content:SetHeight(btnh * count)
 	self:NameList_SizeChanged()
 end
 

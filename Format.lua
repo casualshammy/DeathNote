@@ -230,8 +230,8 @@ local function SwingMissed(missType)
 	return FormatMiss(missType), FormatSwing()
 end
 
-local function EnvironmentalDamage(environmentalType, amount)
-	return FormatDamage(amount), _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType]
+local function EnvironmentalDamage(environmentalType, amount, overkill, school, resisted, blocked, absorbed, critical)
+	return FormatDamage(amount), _G["STRING_ENVIRONMENTAL_DAMAGE_" .. string.upper(environmentalType)]
 end
 
 local function SpellHeal(spellId, spellName, spellSchool, amount, overhealing, absorbed, critical)
@@ -295,7 +295,7 @@ local function SwingChat()
 end
 
 local function EnvironmentalChat(environmentalType, amount)
-	return _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType]
+	return _G["STRING_ENVIRONMENTAL_DAMAGE_" .. string.upper(environmentalType)]
 end
 
 local function UnitDiedChat()
@@ -458,7 +458,15 @@ end
 ------------------------------------------------------------------------------
 
 function DeathNote:FormatNameListEntry(death)
-	return string.format("[%s] %s", date("%X", death.timestamp), self:FormatUnit(death.GUID, death.name, death.flags, death.raidFlags))
+	local name = string.format("[%s] %s", date("%X", death.timestamp), self:FormatUnit(death.GUID, death.name, death.flags, death.raidFlags))
+	local reason = L["Unknown"]
+
+	local entry = self:GetKillingBlow(death)
+	if entry then
+		reason = self:FormatEntrySpell(entry)
+	end
+
+	return name, reason
 end
 
 ------------------------------------------------------------------------------

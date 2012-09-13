@@ -49,8 +49,8 @@ local function SwingDamageAmount(...)
 	return ...
 end
 
-local function EnvironmentalAmount(environmentalType, amount)
-	return amount
+local function EnvironmentalAmount(environmentalType, ...)
+	return ...
 end
 
 local function SpellInstakillAmount()
@@ -72,7 +72,7 @@ local function SwingSpellId(amount, overkill, school)
 end
 
 local function EnvironmentalSpellId(environmentalType, amount, overkill, school)
-	return _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], _G["STRING_ENVIRONMENTAL_DAMAGE_" .. environmentalType], school
+	return _G["STRING_ENVIRONMENTAL_DAMAGE_" .. string.upper(environmentalType)], _G["STRING_ENVIRONMENTAL_DAMAGE_" .. string.upper(environmentalType)], school
 end
 
 local function ExtraSpellId(spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool)
@@ -204,9 +204,9 @@ function DeathNote:GetEntryAura(entry)
 end
 
 function DeathNote:GetKillingBlow(death)
-	for entry in self:IterateDeath(death, 3) do
+	for entry in self:IterateDeath(death, 16) do
 		local damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = self:GetEntryDamage(entry)
-		if damage and damage > 0 or damage == -1 then
+		if damage and damage > 0 or damage == -1 or absorbed and absorbed > 0 then
 			return entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing
 		end
 	end
