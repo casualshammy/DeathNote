@@ -119,6 +119,13 @@ local function FormatSpell(spellId, spellName, spellSchool)
 	local colorArray = CombatLog_Color_ColorArrayBySchool(spellSchool, DEFAULT_COMBATLOG_FILTER_TEMPLATE)
 	local colorstr = CombatLog_Color_FloatToText(colorArray.r, colorArray.g, colorArray.b, colorArray.a)
 
+	if not name then
+		name = spellName or L["Unknown"]
+	end
+	if not icon then
+		icon = "Interface\\Icons\\Temp"
+	end
+
 	return string.format("%s|c%s|Hspell:%i|h%s|h|r", FormatIcon(icon), colorstr, spellId, name)
 end
 
@@ -498,7 +505,7 @@ function DeathNote:CleanForChat(text)
 		gsub("(|r)", ""):
 		gsub("(|T.-|t", ""):
 		gsub("(|Hicon:(.-):.-|h.-|h)", function(_, iconBit) return iconBitMap[tonumber(iconBit)] or "" end):
-		gsub("(|Hspell:(%d*).-|h.-|h)", function(_, id) return GetSpellLink(id) end):
+		gsub("(|Hspell:(%d*).-|h.-|h)", function(_, id) return GetSpellInfo(id) and GetSpellLink(id) or id end):
 		gsub("(|Hunit.-|h(.-)|h)", "%2"):
 		gsub("(|Haction.-|h(.-)|h)", "%2")
 end
