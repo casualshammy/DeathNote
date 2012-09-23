@@ -204,7 +204,7 @@ function DeathNote:GetEntryAura(entry)
 end
 
 function DeathNote:GetKillingBlow(death)
-	for entry in self:IterateDeath(death, 16) do
+	for entry in self:IterateDeath(death, 20) do
 		local damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = self:GetEntryDamage(entry)
 		if damage and damage > 0 or damage == -1 or absorbed and absorbed > 0 then
 			return entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing

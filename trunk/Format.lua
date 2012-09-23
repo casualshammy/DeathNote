@@ -1,6 +1,7 @@
 local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
 
 local tinsert, tremove = table.insert, table.remove
+local floor = math.floor
 
 local function CommaNumber(num)
 	local found
@@ -149,7 +150,7 @@ end
 
 local function FormatAuraApplied(auraType, amount)
 	if amount and amount > 0 then
-		return string.format("%s<+%s>|r", GetAuraTypeColor(auraType), CommaNumber(amount))
+		return string.format("%s<+%s>|r", GetAuraTypeColor(auraType), CommaNumber(floor(amount)))
 	else
 		return string.format("%s+%s|r", GetAuraTypeColor(auraType), FormatAuraType(auraType))
 	end
@@ -157,7 +158,7 @@ end
 
 local function FormatAuraRemoved(auraType, amount)
 	if amount and amount > 0 then
-		return string.format("%s<-%s>|r", GetInverseAuraTypeColor(auraType), CommaNumber(amount))
+		return string.format("%s<-%s>|r", GetInverseAuraTypeColor(auraType), CommaNumber(floor(amount)))
 	else
 		return string.format("%s-%s|r", GetInverseAuraTypeColor(auraType), FormatAuraType(auraType))
 	end

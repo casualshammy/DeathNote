@@ -942,7 +942,7 @@ function DeathNote:AddToUnitPopup()
 		dist = 0,
 	}
 
-	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET" }
+	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET", "PLAYER" }
 
 	for i, v in ipairs(types) do
 		tinsert(UnitPopupMenus[v], #UnitPopupMenus[v], "SHOW_DEATH_NOTE")
