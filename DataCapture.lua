@@ -55,20 +55,8 @@ local log
 local deaths
 
 local unit_filters = {}
--- local SorSkipTable = {}
 
 local SPELLID_LIFETAP = 1454
--- local SPELLID_SOR = 27827
-
-local function SpellAuraRemovedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, auraType)
-	-- old fix for SoR, no longer needed
-	--[[
-	if spellId == SPELLID_SOR then
-		-- Ignore next UNIT_DIED for sourceGUID
-		SorSkipTable[sourceGUID] = timestamp
-	end
-	]]
-end
 
 local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool)
 	if spellId == SPELLID_LIFETAP then
@@ -98,34 +86,73 @@ local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, 
 	end
 end
 
-local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags)
-	if not destName then
-		return
-	end
-
-	if UnitIsFeignDeath(destName) then
-		return
-	end
-
-	-- old fix for SoR, no longer needed
-	--[[
-	local t = SorSkipTable[destGUID]
-	if t then
-		SorSkipTable[destGUID] = nil
-		if (timestamp - t)  < 2  then
-			return
-		end
-	end
-	]]
-
+function DeathNote:AddDeath(timestamp, destGUID, destName, destFlags, destRaidFlags)
 	local death = { timestamp, destGUID, destName, destFlags, destRaidFlags }
 	setmetatable(death, deathmeta)
 	tinsert(deaths, death)
 
-	DeathNote:AnnounceDeath(death)
+	self:AnnounceDeath(death)
 
 	-- UpdateNameList does nothing when the frame is hidden
-	DeathNote:UpdateNameList()
+	self:UpdateNameList()
+end
+
+local function UnitDiedFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags)
+	if destName and not UnitIsFeignDeath(destName) then
+		DeathNote:AddDeath(timestamp, destGUID, destName, destFlags, destRaidFlags)
+	end
+end
+
+local DUEL_WINNER_KNOCKOUT_PATTERN = string.gsub(DUEL_WINNER_KNOCKOUT, "%%%d$s", "([%%S]*)")
+local DUEL_WINNER_RETREAT_PATTERN = string.gsub(DUEL_WINNER_RETREAT, "%%%d$s", "([%%S]*)")
+
+function FindPlayerInfo(name)
+	local now = floor(time())
+
+	for t = now, now - 30, -1 do
+		local logt = log[t]
+		if logt then
+			for i = #logt, 1, -1 do
+				if logt[i].sourceName and string.gsub(logt[i].sourceName, "-.*", "") == name then
+					return logt[i].sourceGUID, logt[i].sourceName, logt[i].sourceFlags, logt[i].sourceRaidFlags
+				elseif logt[i].destName and string.gsub(logt[i].destName, "-.*", "") == name then
+					return logt[i].destGUID, logt[i].destName, logt[i].destFlags, logt[i].destRaidFlags
+				end
+			end
+		end
+	end
+end
+
+function DeathNote:CHAT_MSG_SYSTEM(_, msg)
+	local found, _, pwin, ploss
+	found, _, pwin, ploss = string.find(msg, DUEL_WINNER_KNOCKOUT_PATTERN)
+	
+	if not found then
+		found, _, ploss, pwin = string.find(msg, DUEL_WINNER_RETREAT_PATTERN)
+	end
+
+	if found then
+		self:Debug(pwin, ">", ploss)
+		local destGUID, destName, destFlags, destRaidFlags = FindPlayerInfo(ploss)
+		if destGUID then
+			-- print("saved")
+			self:COMBAT_LOG_EVENT_UNFILTERED(
+				"COMBAT_LOG_EVENT_UNFILTERED",	-- _
+				time(),							-- timestamp
+				"UNIT_DIED",                 	-- event
+				false,                          -- hideCaster
+				destGUID,                     	-- destGUID
+				destName,                     	-- destName
+				destFlags,                    	-- destFlags
+				destRaidFlags,					-- destRaidFlags
+				destGUID,                     	-- destGUID
+				destName,                     	-- destName
+				destFlags,                    	-- destFlags
+				destRaidFlags)					-- destRaidFlags
+		else
+			self:Debug(ploss, "not found")
+		end
+	end
 end
 
 local event_handler_table = {
@@ -152,7 +179,7 @@ local event_handler_table = {
 	["SPELL_BUILDING_HEAL"] 	= true,
 
 	["SPELL_AURA_APPLIED"]		= true,
-	["SPELL_AURA_REMOVED"]		= SpellAuraRemovedFilter,
+	["SPELL_AURA_REMOVED"]		= true,
 	["SPELL_AURA_APPLIED_DOSE"]	= true,
 	["SPELL_AURA_REMOVED_DOSE"]	= true,
 	["SPELL_AURA_REFRESH"]		= true,
@@ -200,7 +227,6 @@ function DeathNote:DataCapture_Initialize()
 	for i = 1, #deaths do
 		setmetatable(deaths[i], deathmeta)
 	end
-	
 	
 	self:UpdateUnitFilters()
 end
@@ -419,11 +445,36 @@ local function tuple(...)
 	return construct(...)
 end
 
+local function GetUnitHealth(name, guid)
+	if not name then
+		return 0, 0
+	end
+
+	local hpmax = UnitHealthMax(name)
+
+	if hpmax == 0 then
+		local testids = { "target", "focus", "mouseover", "arena1", "arena2", "arena3", "arena4", "arena5" }
+
+		for _, id in ipairs(testids) do
+			local idt = id .. "target"
+			if UnitExists(id) and UnitGUID(id) == guid then
+				return UnitHealth(id), UnitHealthMax(id)
+			elseif UnitExists(idt) and UnitGUID(idt) == guid then
+				return UnitHealth(idt), UnitHealthMax(idt)
+			end
+		end
+
+		return 0, 0
+	else
+		return UnitHealth(name), hpmax
+	end
+end
+
 function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
 	local handler = event_handler_table[event]
 	if handler and IsFiltered(sourceFlags, destFlags) then
-		local hp = destName and UnitHealth(destName) or 0
-		local hpmax = destName and UnitHealthMax(destName) or 0
+		-- local hp, hpmax = destName and UnitHealth(destName) or 0, destName and UnitHealthMax(destName) or 0
+		local hp, hpmax = GetUnitHealth(destName, destGUID)
 		local entry = tuple(hp, hpmax, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
 		
 		setmetatable(entry, entrymeta)

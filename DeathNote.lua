@@ -59,6 +59,7 @@ end
 
 function DeathNote:OnEnable()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:RegisterEvent("CHAT_MSG_SYSTEM")
 	self:RegisterEvent("PLAYER_REGEN_ENABLED")
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
