@@ -206,6 +206,14 @@ end
 function DeathNote:GetKillingBlow(death)
 	for entry in self:IterateDeath(death, 20) do
 		local damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = self:GetEntryDamage(entry)
+		if overkill and overkill > 0 then
+			return entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing
+		end
+	end
+
+	-- if no overkill is found just return the last damage event
+	for entry in self:IterateDeath(death, 20) do
+		local damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = self:GetEntryDamage(entry)
 		if damage and damage > 0 or damage == -1 or absorbed and absorbed > 0 then
 			return entry, damage, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing
 		end
