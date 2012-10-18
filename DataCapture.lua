@@ -56,36 +56,6 @@ local deaths
 
 local unit_filters = {}
 
-local SPELLID_LIFETAP = 1454
-
-local function SpellCastSuccessFilter(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool)
-	if spellId == SPELLID_LIFETAP then
-		-- Generate fake SPELL_DAMAGE with the Life Tap damage
-		local hpmax = UnitHealthMax(sourceName) or 0
-		local amount = floor(hpmax * 0.15 + 0.5)
-
-		DeathNote:COMBAT_LOG_EVENT_UNFILTERED(
-			"COMBAT_LOG_EVENT_UNFILTERED",	-- _
-			timestamp,						-- timestamp
-			"SPELL_DAMAGE",                 -- event
-			false,                          -- hideCaster
-			sourceGUID,                     -- sourceGUID
-			sourceName,                     -- sourceName
-			sourceFlags,                    -- sourceFlags
-			sourceRaidFlags,				-- sourceRaidFlags
-			sourceGUID,                     -- destGUID
-			sourceName,                     -- destName
-			sourceFlags,                    -- destFlags
-			sourceRaidFlags,				-- destRaidFlags
-			spellId,                        -- 
-			spellName,                      -- 
-			spellSchool,                    -- 
-			amount,                         -- 
-			-1,                             -- 
-			spellSchool)                    -- 
-	end
-end
-
 function DeathNote:AddDeath(timestamp, destGUID, destName, destFlags, destRaidFlags)
 	local death = { timestamp, destGUID, destName, destFlags, destRaidFlags }
 	setmetatable(death, deathmeta)
@@ -132,13 +102,11 @@ function DeathNote:CHAT_MSG_SYSTEM(_, msg)
 	end
 
 	if found then
-		self:Debug(pwin, ">", ploss)
 		local destGUID, destName, destFlags, destRaidFlags = FindPlayerInfo(ploss)
 		if destGUID then
-			-- print("saved")
 			self:COMBAT_LOG_EVENT_UNFILTERED(
 				"COMBAT_LOG_EVENT_UNFILTERED",	-- _
-				time(),							-- timestamp
+				time() + 5,						-- timestamp
 				"UNIT_DIED",                 	-- event
 				false,                          -- hideCaster
 				destGUID,                     	-- destGUID
@@ -195,7 +163,7 @@ local event_handler_table = {
 	["SPELL_INSTAKILL"]			= true,
 
 	["SPELL_CAST_START"]		= true,
-	["SPELL_CAST_SUCCESS"]		= SpellCastSuccessFilter,
+	["SPELL_CAST_SUCCESS"]		= true,
 
 	["UNIT_DIED"] 				= UnitDiedFilter,
 }
@@ -445,6 +413,8 @@ local function tuple(...)
 	return construct(...)
 end
 
+local testids = { "target", "focus", "targettarget", "focustarget" }
+
 local function GetUnitHealth(name, guid)
 	if not name then
 		return 0, 0
@@ -453,14 +423,10 @@ local function GetUnitHealth(name, guid)
 	local hpmax = UnitHealthMax(name)
 
 	if hpmax == 0 then
-		local testids = { "target", "focus", "mouseover", "arena1", "arena2", "arena3", "arena4", "arena5" }
-
-		for _, id in ipairs(testids) do
-			local idt = id .. "target"
+		for i = 1, #testids do
+			id = testids[i]
 			if UnitExists(id) and UnitGUID(id) == guid then
 				return UnitHealth(id), UnitHealthMax(id)
-			elseif UnitExists(idt) and UnitGUID(idt) == guid then
-				return UnitHealth(idt), UnitHealthMax(idt)
 			end
 		end
 
