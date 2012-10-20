@@ -41,11 +41,11 @@ FormatTimestamp[2] = function(timestamp)
 end
 
 local FormatHealth = {}
-FormatHealth[1] = function(hp, hpmax)
+FormatHealth[1] = function(hp, hpmax, amount)
 	if hpmax == 0 then
 		return { 0 }
 	else
-		return { hp / hpmax }
+		return { hp / hpmax, (amount or 0) / hpmax }
 	end
 end
 
@@ -720,9 +720,12 @@ function DeathNote:FormatEntry(entry)
 		amount, spell, source = "No handler", event, ""
 	end
 
+	local damage = self:GetEntryDamage(entry)
+	local heal = self:GetEntryHeal(entry)
+
 	return {
 		FormatTimestamp[self.settings.display.timestamp](entry.timestamp),
-		FormatHealth[self.settings.display.health](entry.hp, entry.hpMax),
+		FormatHealth[self.settings.display.health](entry.hp, entry.hpMax, (damage and -damage) or heal),
 		amount,
 		spell,
 		source or self:FormatUnit(entry.sourceGUID, entry.sourceName, entry.sourceFlags, entry.sourceRaidFlags),
