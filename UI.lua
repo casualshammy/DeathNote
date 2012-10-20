@@ -1892,12 +1892,28 @@ end
 
 local function ListBox_Line_Column_OnSizeChanged(frame)
 	if frame.bartex then
-		if frame.value and frame.value > 0 then
-			local width = (frame:GetWidth() - 2) * frame.value
-			frame.bartex:SetWidth(width)
+		if frame.value and frame.value[1] > 0 then
+			local width1 = (frame:GetWidth() - 2) * (frame.value[1] - max(0, frame.value[2]))
+			local width2 = (frame:GetWidth() - 2) * abs(frame.value[2])
+
+			frame.bartex:SetWidth(width1)
 			frame.bartex:Show()
+
+			if width2 > 0 then
+				frame.bartex2:SetWidth(width2)
+				if frame.value[2] > 0 then
+					frame.bartex2:SetTexture(0, 1, 0)
+				else
+					frame.bartex2:SetTexture(1, 0, 0)
+				end
+
+				frame.bartex2:Show()
+			else
+				frame.bartex2:Hide()
+			end
 		else
 			frame.bartex:Hide()
+			frame.bartex2:Hide()
 		end
 	end
 end
@@ -2034,17 +2050,24 @@ local function ListBox_UpdateLine(self, nline, values)
 				line.columns[i].bartex = line.columns[i]:CreateTexture(nil, "BACKGROUND")
 				line.columns[i].bartex:SetPoint("TOPLEFT", line.columns[i], "TOPLEFT", 1, -3)
 				line.columns[i].bartex:SetPoint("BOTTOM", line.columns[i], "BOTTOM", 0, 3)
-				line.columns[i].bartex:SetTexture(1, 0, 0)
+				line.columns[i].bartex:SetTexture(0, 0.7, 0.9)
+
+				line.columns[i].bartex2 = line.columns[i]:CreateTexture(nil, "BACKGROUND")
+				line.columns[i].bartex2:SetPoint("TOPLEFT", line.columns[i].bartex, "TOPRIGHT")
+				line.columns[i].bartex2:SetPoint("BOTTOMLEFT", line.columns[i].bartex, "BOTTOMRIGHT")
+				line.columns[i].bartex2:Show()
 			end
 
 			line.columns[i].bartex:Show()
-			line.columns[i].value = values[i][1]
+			line.columns[i].bartex2:Show()
+			line.columns[i].value = values[i]
 			ListBox_Line_Column_OnSizeChanged(line.columns[i])
 			line.columns[i]:SetScript("OnSizeChanged", ListBox_Line_Column_OnSizeChanged)
 		else
 			if line.columns[i].bartex then
 				line.columns[i]:SetScript("OnSizeChanged", nil)
 				line.columns[i].bartex:Hide()
+				line.columns[i].bartex2:Hide()
 				line.columns[i].value = nil
 			end
 

@@ -413,7 +413,7 @@ local function tuple(...)
 	return construct(...)
 end
 
-local testids = { "target", "focus", "targettarget", "focustarget" }
+local testids = { "target", "focus", "targettarget", "focustarget", "arena1", "arena2", "arena3", "arena4", "arena5" }
 
 local function GetUnitHealth(name, guid)
 	if not name then
