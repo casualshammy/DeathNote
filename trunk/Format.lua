@@ -450,7 +450,7 @@ end
 function DeathNote:FormatEntrySpell(entry)
 	local event = entry.event
 	local formatter = event_formatter_table[event]
-	local spell
+	local _, spell
 
 	if formatter and formatter[1] then
 		_, spell, _ = formatter[1](unpack(entry, DeathNote.EntryIndexInfo.eventArgs))

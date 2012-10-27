@@ -46,9 +46,11 @@ local deathmeta = {
 
 
 local tinsert, tremove = table.insert, table.remove
-local floor = math.floor
+local floor, next, wipe, setmetatable, rawget = math.floor, next, wipe, setmetatable, rawget
 local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax
+local UnitExists, UnitGUID = UnitExists, UnitGUID
 local UnitIsFeignDeath = UnitIsFeignDeath
+local GetTime = GetTime
 local bit_bor, bit_band = bit.bor, bit.band
 
 local log
@@ -76,7 +78,7 @@ end
 local DUEL_WINNER_KNOCKOUT_PATTERN = string.gsub(DUEL_WINNER_KNOCKOUT, "%%%d$s", "([%%S]*)")
 local DUEL_WINNER_RETREAT_PATTERN = string.gsub(DUEL_WINNER_RETREAT, "%%%d$s", "([%%S]*)")
 
-function FindPlayerInfo(name)
+local function FindPlayerInfo(name)
 	local now = floor(time())
 
 	for t = now, now - 30, -1 do
@@ -424,7 +426,7 @@ local function GetUnitHealth(name, guid)
 
 	if hpmax == 0 then
 		for i = 1, #testids do
-			id = testids[i]
+			local id = testids[i]
 			if UnitExists(id) and UnitGUID(id) == guid then
 				return UnitHealth(id), UnitHealthMax(id)
 			end
