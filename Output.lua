@@ -26,25 +26,26 @@ local function printmessage(msg)
 end
 
 local function chatmessage(msg, arg)
-	local ispvp = select(2, IsInInstance()) == "pvp"
-	local israid = IsInRaid()
-	local isparty = GetNumGroupMembers() > 0
-	
-	if (arg == "PARTY" and not isparty) or
-	   (arg == "RAID" and not israid) or		   
-	   (arg == "BATTLEGROUND" and not ispvp) or
-	   (arg == "RAID_WARNING" and not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player"))) then
-		return
+	local inInstance, instanceType = IsInInstance()
+	if arg == "PARTY" and GetNumSubgroupMembers() > 0 then
+		-- send the message to party or instance
+		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "PARTY")
+	elseif arg == "RAID" and GetNumGroupMembers() > 0 then
+		-- send the message to raid or instance
+		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "RAID")
+	elseif arg == "BATTLEGROUND" and instanceType == "pvp" then
+		-- battleground was replaced by instance chat
+		SendChatMessage(msg, "INSTANCE_CHAT")
+	elseif arg == "RAID_WARNING" and (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
+		SendChatMessage(msg, "RAID_WARNING")
 	end
-	
-	SendChatMessage(msg, arg)
 end
 
 local function groupmessage(msg)
-	if IsInRaid() > 0 then
-		SendChatMessage(msg, "RAID")
-	elseif GetNumGroupMembers() > 0 then
-		SendChatMessage(msg, "PARTY")
+	if IsInRaid() and GetNumGroupMembers() > 0 then
+		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "RAID")
+	elseif not IsInRaid() and GetNumSubgroupMembers() > 0 then
+		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "PARTY")
 	end
 end
 
