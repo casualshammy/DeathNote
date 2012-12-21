@@ -1155,7 +1155,7 @@ end
 -- Tools menu
 ------------------------------------------------------------------------------
 
- function DeathNote:ShowToolsMenu()
+function DeathNote:ShowToolsMenu()
 	if not self.tools_dropdownframe then
 		self.tools_dropdownframe = CreateFrame("Frame", nil, nil, "UIDropDownMenuTemplate")
 		self.tools_dropdownframe.displayMode = "MENU"
@@ -1893,11 +1893,23 @@ end
 local function ListBox_Line_Column_OnSizeChanged(frame)
 	if frame.bartex then
 		if frame.value and frame.value[1] > 0 then
-			local width1 = (frame:GetWidth() - 2) * (frame.value[1] - max(0, frame.value[2]))
-			local width2 = (frame:GetWidth() - 2) * abs(frame.value[2])
+
+			local v1 = math.min(1, (frame.value[1] - max(0, frame.value[2])))
+			local v2 = abs(frame.value[2])
+			local width1 = (frame:GetWidth() - 2) * v1
+			local width2 = (frame:GetWidth() - 2) * math.min(1 - v1, v2)
+
+			-- weird stuff happens when setting width = 0
+			if width1 == 0 then 
+				width1 = 1e-10
+			end
+			if width2 == 0 then
+				width2 = 1e-10
+			end
 
 			frame.bartex:SetWidth(width1)
 			frame.bartex:Show()
+
 
 			if width2 > 0 then
 				frame.bartex2:SetWidth(width2)

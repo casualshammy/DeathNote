@@ -43,7 +43,7 @@ end
 local FormatHealth = {}
 FormatHealth[1] = function(hp, hpmax, amount)
 	if hpmax == 0 then
-		return { 0 }
+		return { 0, 0 }
 	else
 		return { hp / hpmax, (amount or 0) / hpmax }
 	end
@@ -512,7 +512,7 @@ function DeathNote:CleanForChat(text)
 end
 
 function DeathNote:FormatCombatLog(entry)
-	return CombatLog_OnEvent(DEFAULT_COMBATLOG_FILTER_TEMPLATE, unpack(entry, DeathNote.EntryIndexInfo.cleArgs))
+	return CombatLog_OnEvent(DEFAULT_COMBATLOG_FILTER_TEMPLATE, unpack(entry, DeathNote.EntryIndexInfo.cleArgs)) or ""
 end
 
 function DeathNote:FormatChatAmount(entry)
@@ -563,8 +563,12 @@ function DeathNote:FormatTooltipAmount(tip, entry)
 	end
 
 	local text, r, g, b = CombatLog_OnEvent(DEFAULT_COMBATLOG_FILTER_TEMPLATE, unpack(entry, DeathNote.EntryIndexInfo.cleArgs))
-	tip:SetText(text, r, g, b)
-	return tip
+	if text then
+		tip:SetText(text, r, g, b)
+		return tip
+	else
+		return false
+	end
 end
 
 function DeathNote:FormatTooltipSpell(tip, entry)
