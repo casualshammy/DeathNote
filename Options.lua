@@ -2,6 +2,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
 
 DeathNote.OptionsDefaults = {
 	profile = {
+		unit_menu = false,
 		debugging = false,
 		keep_data = true,
 		max_deaths = 50,
@@ -70,8 +71,24 @@ DeathNote.OptionsDefaults = {
 DeathNote.Options = {
 	type = "group",
 	args = {
-		data_capture = {
+		general = {
 			order = 1,
+			name = L["General"],
+			type = "group",
+			args = {
+				unit_menu = {
+					order = 1,
+					name = L["Show in the unit popup menu (requires a UI reload)"],
+					desc = L["Enabling this option will taint the unit popup menu and will prevent some options from working (such as setting a focus target)"],
+					type = "toggle",
+					width = "double",
+					get = function() return DeathNote.settings.unit_menu end,
+					set = function(_, v) DeathNote.settings.unit_menu = v end,
+				},
+			},
+		},
+		data_capture = {
+			order = 2,
 			name = L["Data capture"],
 			type = "group",
 			args = {
@@ -216,7 +233,7 @@ DeathNote.Options = {
 		},
 
 		announce = {
-			order = 2,
+			order = 3,
 			name = L["Announce"],
 			type = "group",
 			args = {
