@@ -8,6 +8,9 @@ debug = true
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "enUS", true, not debug)
 
 if L then
+L["General"] = true
+L["Show in the unit popup menu (requires a UI reload)"] = true
+L["Enabling this option will taint the unit popup menu and will prevent some options from working (such as setting a focus target)"] = true
 L["%s|r has died of a heart attack"] = true
 L["You were killed by"] = true
 L["%s|r was killed by"] = true

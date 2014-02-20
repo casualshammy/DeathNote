@@ -67,7 +67,9 @@ function DeathNote:OnEnable()
 	self:RegisterEvent("CHANNEL_UI_UPDATE")
 	self.db.RegisterCallback(self, "OnDatabaseShutdown")
 
-	self:AddToUnitPopup()
+	if (self.settings.unit_menu) then
+		self:AddToUnitPopup()
+	end
 
 	self:ScheduleRepeatingTimer("UpdateLDB", 5)
 
