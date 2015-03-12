@@ -49,6 +49,11 @@ function DeathNote:OnInitialize()
 			tooltip:AddLine(L["|cFFEDA55FClick|r to open Death Note. |cFFEDA55FRight-Click|r to show options. |cFFEDA55FShift-Click|r to optimize data. |cFFEDA55FCtrl-Click|r to reset data."], 0.2, 1, 0.2, 1)
 		end,
 	})
+	
+	-- Take over the Blizzard death recap button
+	OpenDeathRecapUI = function ()
+		DeathNote:ShowUnit(UnitName("player"))
+	end
 
 	self:DataCapture_Initialize()
 	
