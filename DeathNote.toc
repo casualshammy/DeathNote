@@ -1,4 +1,4 @@
-﻿## Interface: 60100
+﻿## Interface: 70200
 ## Title: DeathNote
 ## Notes: Death analysis tool
 ## Author: Slaren

@@ -1,5 +1,13 @@
 package-as: DeathNote
 
+license-output: LICENSE.html
+
+manual-changelog:
+    filename: CHANGELOG.html
+    markup-type: html
+
+enable-nolib-creation: no
+
 externals:
     libs/AceAddon-3.0:
         url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
