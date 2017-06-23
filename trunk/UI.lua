@@ -146,6 +146,7 @@ function DeathNote:Show()
 		filters_frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -30)
 		filters_frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 		filters_frame:SetHeight(30)
+		filters_frame:SetFrameStrata("DIALOG"); -- todo: quick fix
 
 		filters_frame:SetBackdrop(PaneBackdrop)
 		filters_frame:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
