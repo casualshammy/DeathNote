@@ -131,6 +131,7 @@ L["%i deaths"] = true
 L["Scale: %i%%"] = true
 L["Increase scale"] = true
 L["Decrease scale"] = true
+L["ui:quick-spell-search"] = "Quick spell search:"
 end
 
 
@@ -139,6 +140,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "deDE")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i Tode"
 L["%i more deaths were not announced"] = "%i weitere Tode wurden nicht angekündigt"
 L["-%s (%i hits) (%s)"] = "-%s (%i Treffer) (%s)"
@@ -275,6 +277,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "esES")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i muertes"
 L["%i more deaths were not announced"] = "%i muertes más no han sido anunciadas"
 L["-%s (%i hits) (%s)"] = "-%s (%i golpes) (%s)"
@@ -411,6 +414,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "esMX")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
 L["%i deaths"] = "%i deaths"
 --Translation missing 
@@ -667,6 +671,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "frFR")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
 L["%i deaths"] = "%i deaths"
 --Translation missing 
@@ -923,6 +928,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "itIT")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
 L["%i deaths"] = "%i deaths"
 --Translation missing 
@@ -1207,7 +1213,7 @@ L["Amount"] = "수치"
 L["Announce"] = "알리기"
 L["Announce deaths"] = "죽음 알리기"
 L["Announce deaths with an unknown cause"] = "알 수 없는 이유로 인한 죽음 알리기"
-L["Announces/10 seconds limit"] = "알림/10초 제한"
+L["Announces/10 seconds limit"] = "10초 동안 알릴 횟수"
 L["Auras"] = "효과"
 L["Bar"] = "바"
 L["Battleground"] = "전장"
@@ -1215,7 +1221,7 @@ L["Buff fades"] = "강화 효과 사라짐"
 L["Buff gains"] = "강화 효과 획득"
 L["Channel"] = "채널"
 L["Chat frame"] = "대화 창"
-L["Check the units you are interested in. Data for the units not filtered is discarded."] = "관심을 가질 유닛을 선택하세요. 선택하지 않은 유닛의 데이터는 수집하지 않습니다."
+L["Check the units you are interested in. Data for the units not filtered is discarded."] = "데이터를 수집할 유닛을 선택하세요. 선택하지 않은 유닛의 데이터는 수집하지 않습니다."
 L["Combat log lines"] = "전투 기록 형식"
 L["Compact"] = "간편화"
 L["Consolidate consecutive auras"] = "연이은 오라 통합"
@@ -1224,7 +1230,7 @@ L["Consolidate consecutive hits"] = "연이은 적중 통합"
 L["Damage"] = "피해"
 L["Data capture"] = "데이터 수집"
 L["Data has been reset"] = "데이터 초기화됨"
-L["Data optimization done in %.02f ms"] = "데이터 최적화가 %.02fms 후에 완료됩니다"
+L["Data optimization done in %.02f ms"] = "%.02fms 후 데이터 최적화 완료"
 L["Death"] = "죽음"
 L["Death Note"] = "Death Note"
 L["Death Note: Death report for %s at %s"] = "Death Note: %2$s에서 %1$s의 죽음 보고"
@@ -1235,8 +1241,8 @@ L[ [=[Enable this if you want the data to persist after logging out or after a r
 Keep in mind that depending on your options this may generate a very big SavedVariables file and may impact your login/logout and reload ui times.]=] ] = [=[접속 종료나 UI 다시 불러오기 후에도 데이터가 유지되길 원하면 활성화하세요.
 활성화하면 SavedVariables 파일 용량이 커지고 접속/접속 종료하거나 UI를 다시 불러올 때 시간이 더 오래 걸립니다.]=]
 L["Enabling this option will taint the unit popup menu and will prevent some options from working (such as setting a focus target)"] = "이 옵션은 유닛 팝업 메뉴에 오류를 발생시키며 주시 대상 설정같은 몇몇 옵션 작동에 문제가 생깁니다"
-L["Enemy NPCs"] = "적대적 NPC"
-L["Enemy players"] = "적대적 플레이어"
+L["Enemy NPCs"] = "적 NPC"
+L["Enemy players"] = "적 플레이어"
 L[ [=[Enter one or more sources, separated by commas.
 Ctrl+Click on a source column to add that source.]=] ] = [=[콤마로 구분하여 하나 이상의 행위자를 입력하세요.
 행위자 열을 Ctrl+클릭하면 행위자가 추가됩니다.]=]
@@ -1256,9 +1262,9 @@ L["Healing"] = "치유"
 L["Health format"] = "생명력 형식"
 L["Hide misses"] = "빗나감 숨기기"
 L["Highlight survival cooldowns"] = "생존기 지속 시간 강조"
-L["HP"] = "HP"
-L["HP %"] = "HP %"
-L["HP/HPMax"] = "HP/HPMax"
+L["HP"] = "생명력"
+L["HP %"] = "생명력 %"
+L["HP/HPMax"] = "생명력/최대 생명력"
 L["Include amount resisted/blocked/absorbed"] = "저항/방어/흡수량 포함"
 L["Include damage"] = "피해 포함"
 L["Include hit type (critical, crushing, etc)"] = "적중 유형 포함 (치명타, 강타 등등)"
@@ -1276,7 +1282,7 @@ L["Other pets"] = "기타 소환수"
 L["Others"] = "기타"
 L["Output channel"] = "출력 채널"
 L["Party"] = "파티"
-L["Party and raid members, including yourself"] = "자신을 포함한 파티와 공격대원들"
+L["Party and raid members, including yourself"] = "자신을 포함한 파티와 공격대원"
 L["Raid"] = "공격대"
 L["Raid Warning"] = "공격대 경보"
 L["Real time"] = "실시간"
@@ -1304,6 +1310,8 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "임계값"
 L["Time"] = "시간"
 L["Time format"] = "시간 형식"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
 L["Units filters"] = "유닛 필터"
 L["Unknown"] = "알 수 없음"
 L["Whisper"] = "귓속말"
@@ -1316,6 +1324,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "ptBR")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i mortes"
 L["%i more deaths were not announced"] = "Mais %i não foram anunciadas"
 L["-%s (%i hits) (%s)"] = "-%s (%i acerta) (%s)"
@@ -1453,6 +1462,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "ruRU")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
 L["%i deaths"] = "%i deaths"
 --Translation missing 
@@ -1644,6 +1654,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "zhCN")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i 死亡"
 L["%i more deaths were not announced"] = "多于%i的死亡不会被通告"
 L["-%s (%i hits) (%s)"] = "-%s (%i 命中) (%s)"
@@ -1781,6 +1792,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "zhTW")
 if L then
 L = L or {}
+L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i 死亡"
 L["%i more deaths were not announced"] = "多於%i的死亡不會被通告"
 L["-%s (%i hits) (%s)"] = "-%s (%i 命中) (%s)"
