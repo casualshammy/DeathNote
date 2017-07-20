@@ -36,6 +36,30 @@ local source_hilight = { r = 0, g = 0, b = 0.6, a = 0.4 }
 
 local tinsert, tremove = table.insert, table.remove
 
+local function CreateSearchBox(parentFrame)
+	parentFrame.searchLabel = parentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+	parentFrame.searchLabel:SetPoint("TOPLEFT", parentFrame, "BOTTOMLEFT", 5, -10);
+	parentFrame.searchLabel:SetJustifyH("LEFT");
+	parentFrame.searchLabel:SetText(L["ui:quick-spell-search"]);
+	
+	parentFrame.searchBox = CreateFrame("EditBox", nil, parentFrame, "InputBoxTemplate");
+	parentFrame.searchBox:SetAutoFocus(false);
+	parentFrame.searchBox:SetFontObject(GameFontHighlightSmall);
+	parentFrame.searchBox:SetPoint("LEFT", parentFrame.searchLabel, "RIGHT", 10, 0);
+	parentFrame.searchBox:SetPoint("RIGHT", parentFrame, "RIGHT", -10, 0);
+	parentFrame.searchBox:SetHeight(20);
+	parentFrame.searchBox:SetWidth(175);
+	parentFrame.searchBox:SetJustifyH("LEFT");
+	parentFrame.searchBox:EnableMouse(true);
+	parentFrame.searchBox:SetScript("OnEscapePressed", function() parentFrame.searchBox:ClearFocus(); end);
+	parentFrame.searchBox:SetScript("OnTextChanged", function(this)
+		local text = this:GetText();
+		DeathNote.settings.searchbox_text = text;
+		DeathNote:RefreshFilters();
+	end);
+	parentFrame.searchBox:HookScript("OnShow", function(this) this:SetText(""); end);
+end
+
 function DeathNote:Show()
 	if not self.frame then
 		local AceGUI = LibStub("AceGUI-3.0")
@@ -692,7 +716,7 @@ function DeathNote:Show()
 		-- logframe
 		local logframe = self:CreateListBox(frame, self.settings.display.scale)
 		logframe.frame:SetPoint("TOPLEFT", name_list_border, "TOPRIGHT")
-		logframe.frame:SetPoint("BOTTOM", name_list_border, "BOTTOM")
+		logframe.frame:SetPoint("BOTTOM", name_list_border, "BOTTOM", 0, 30)
 		logframe.frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 
 		self.logframe = logframe
@@ -712,6 +736,9 @@ function DeathNote:Show()
 				self.settings.display.scale = scale
 			end)
 
+		-- logframe searchbox
+		CreateSearchBox(logframe.frame);
+			
 		-- lograme tooltip
 		local lftip = CreateFrame("GameTooltip")
 		local prevl
