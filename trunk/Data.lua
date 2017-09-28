@@ -368,18 +368,6 @@ function DeathNote:IsEntryFiltered(entry)
 		end
 	end
 
-	-- SearchBox filtering
-	if (self.settings.searchbox_text ~= nil and self.settings.searchbox_text ~= "") then
-		local _, spellname = self:GetEntrySpell(entry);
-		if (spellname == nil) then
-			return false;
-		else
-			if (not string_find(spellname:lower(), self.settings.searchbox_text:lower())) then
-				return false;
-			end
-		end
-	end
-	
 	-- Survival highlighting
 	local this_survivalid = survival_stack[1]
 
@@ -402,6 +390,22 @@ function DeathNote:IsEntryFiltered(entry)
 	if self.settings.display_filters.survival_buffs then
 		if self.SurvivalIDs[auraSpellId] then
 			return true, this_survivalid
+		end
+	end
+	
+	-- SearchBox filtering
+	if (self.settings.searchbox_text ~= nil and self.settings.searchbox_text ~= "") then
+		local _, spellname = self:GetEntrySpell(entry);
+		if (DeathNote.settings.quick_spell_search.only_hl) then
+			
+		else
+			if (spellname == nil) then
+				return false;
+			else
+				if (not string_find(spellname:lower(), self.settings.searchbox_text:lower())) then
+					return false;
+				end
+			end
 		end
 	end
 

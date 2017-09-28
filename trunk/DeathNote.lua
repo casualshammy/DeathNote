@@ -18,9 +18,18 @@ function DeathNote:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("Death Note", self.Options)
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Death Note", L["Death Note"])
 	
+	local function ChatCommand(msg)
+		if (msg == "reset") then
+			DeathNote:ResetData();
+			DeathNote:UpdateLDB();
+		else
+			DeathNote:Show();
+		end
+	end
+	
 	-- Register slash commands
-	self:RegisterChatCommand("deathnote", "Show")
-	self:RegisterChatCommand("dn", "Show")
+	self:RegisterChatCommand("deathnote", ChatCommand)
+	self:RegisterChatCommand("dn", ChatCommand)
 
 	-- Register LDB object
 	self.ldb = LibStub("LibDataBroker-1.1"):NewDataObject("Death Note", {

@@ -65,6 +65,10 @@ DeathNote.OptionsDefaults = {
 			max_lines = 15,
 			style = "COMBAT_LOG",
 		},
+		
+		quick_spell_search = {
+			only_hl = false,
+		},
 	},
 }
 

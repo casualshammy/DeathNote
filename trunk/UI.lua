@@ -36,6 +36,49 @@ local source_hilight = { r = 0, g = 0, b = 0.6, a = 0.4 }
 
 local tinsert, tremove = table.insert, table.remove
 
+local function table_contains_value(t, v)
+	for _, value in pairs(t) do
+		if (value == v) then
+			return true;
+		end
+	end
+	return false;
+end
+
+local function GUICreateCheckBoxEx(text, func)
+	local checkBox = CreateFrame("CheckButton");
+	checkBox:SetHeight(20);
+	checkBox:SetWidth(20);
+	checkBox:SetNormalTexture("Interface\\Buttons\\UI-CheckBox-Up");
+	checkBox:SetPushedTexture("Interface\\Buttons\\UI-CheckBox-Down");
+	checkBox:SetHighlightTexture("Interface\\Buttons\\UI-CheckBox-Highlight");
+	checkBox:SetDisabledCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check-Disabled");
+	checkBox:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check");
+	checkBox.textFrame = CreateFrame("frame", nil, checkBox);
+	checkBox.textFrame:SetPoint("LEFT", checkBox, "RIGHT", 0, 0);
+	checkBox.textFrame:EnableMouse(true);
+	checkBox.textFrame:HookScript("OnEnter", function(self, ...) checkBox:LockHighlight(); end);
+	checkBox.textFrame:HookScript("OnLeave", function(self, ...) checkBox:UnlockHighlight(); end);
+	checkBox.textFrame:Show();
+	checkBox.textFrame:HookScript("OnMouseDown", function(self) checkBox:SetButtonState("PUSHED"); end);
+	checkBox.textFrame:HookScript("OnMouseUp", function(self) checkBox:SetButtonState("NORMAL"); checkBox:Click(); end);
+	checkBox.Text = checkBox.textFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+	checkBox.Text:SetPoint("LEFT", 0, 0);
+	checkBox.SetText = function(self, _text)
+		checkBox.Text:SetText(_text);
+		checkBox.textFrame:SetWidth(checkBox.Text:GetStringWidth() + checkBox:GetWidth());
+		checkBox.textFrame:SetHeight(max(checkBox.Text:GetStringHeight(), checkBox:GetHeight()));
+	end;
+	local handlersToBeCopied = { "OnEnter", "OnLeave" };
+	hooksecurefunc(checkBox, "HookScript", function(self, script, proc) if (table_contains_value(handlersToBeCopied, script)) then checkBox.textFrame:HookScript(script, proc); end end);
+	hooksecurefunc(checkBox, "SetScript",  function(self, script, proc) if (table_contains_value(handlersToBeCopied, script)) then checkBox.textFrame:SetScript(script, proc); end end);
+	checkBox:SetText(text);
+	checkBox:EnableMouse(true);
+	checkBox:SetScript("OnClick", func);
+	checkBox:Hide();
+	return checkBox;
+end
+
 local function CreateSearchBox(parentFrame)
 	parentFrame.searchLabel = parentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
 	parentFrame.searchLabel:SetPoint("TOPLEFT", parentFrame, "BOTTOMLEFT", 5, -10);
@@ -46,7 +89,7 @@ local function CreateSearchBox(parentFrame)
 	parentFrame.searchBox:SetAutoFocus(false);
 	parentFrame.searchBox:SetFontObject(GameFontHighlightSmall);
 	parentFrame.searchBox:SetPoint("LEFT", parentFrame.searchLabel, "RIGHT", 10, 0);
-	parentFrame.searchBox:SetPoint("RIGHT", parentFrame, "RIGHT", -10, 0);
+	parentFrame.searchBox:SetPoint("RIGHT", parentFrame, "RIGHT", -160, 0);
 	parentFrame.searchBox:SetHeight(20);
 	parentFrame.searchBox:SetWidth(175);
 	parentFrame.searchBox:SetJustifyH("LEFT");
@@ -56,8 +99,31 @@ local function CreateSearchBox(parentFrame)
 		local text = this:GetText();
 		DeathNote.settings.searchbox_text = text;
 		DeathNote:RefreshFilters();
+		DeathNote:RefreshHighlight();
 	end);
 	parentFrame.searchBox:HookScript("OnShow", function(this) this:SetText(""); end);
+	
+	parentFrame.QuickSpellSearchMode = CreateFrame("Frame", "DeathNote:UI:QuickSpellSearchMode", parentFrame.searchBox, "UIDropDownMenuTemplate");
+	UIDropDownMenu_SetWidth(parentFrame.QuickSpellSearchMode, 130);
+	parentFrame.QuickSpellSearchMode:SetPoint("LEFT", parentFrame.searchBox, "RIGHT", -5, -3);
+	local info = {};
+	parentFrame.QuickSpellSearchMode.initialize = function()
+		wipe(info);
+		for _, value in pairs({ L["ui:quick-spell-search:mode:only-found-spells"], L["ui:quick-spell-search:mode:highlight"] }) do
+			info.text = value;
+			info.value = value;
+			info.func = function(self)
+				DeathNote.settings.quick_spell_search.only_hl = (self.value == L["ui:quick-spell-search:mode:highlight"]);
+				DeathNote:RefreshFilters();
+				DeathNote:RefreshHighlight();
+				_G[parentFrame.QuickSpellSearchMode:GetName().."Text"]:SetText(self:GetText());
+			end
+			info.checked = (info.value == (DeathNote.settings.quick_spell_search.only_hl and L["ui:quick-spell-search:mode:highlight"] or L["ui:quick-spell-search:mode:only-found-spells"]));
+			UIDropDownMenu_AddButton(info);
+		end
+	end
+	_G[parentFrame.QuickSpellSearchMode:GetName().."Text"]:SetText(DeathNote.settings.quick_spell_search.only_hl and L["ui:quick-spell-search:mode:highlight"] or L["ui:quick-spell-search:mode:only-found-spells"]);
+	parentFrame.QuickSpellSearchMode:Show();
 end
 
 function DeathNote:Show()
@@ -1749,7 +1815,7 @@ function DeathNote:RefreshHighlight()
 
 		if self:IsEntryGroup(entry) then
 		else
-			local spellid = self:GetEntrySpell(entry)
+			local spellid,spellName = self:GetEntrySpell(entry)
 			local source = entry.sourceGUID
 
 			if self.current_spell_hilight and self.current_spell_hilight == spellid then
@@ -1758,6 +1824,13 @@ function DeathNote:RefreshHighlight()
 				self.logframe:SetLineHighlight(i, source_hilight)
 			else
 				self.logframe:SetLineHighlight(i, line_highlight)
+			end
+			if (DeathNote.settings.quick_spell_search.only_hl) then
+				if (self.settings.searchbox_text ~= nil and self.settings.searchbox_text ~= "") then
+					if (spellName and type(spellName) == "string" and spellName:lower():find(self.settings.searchbox_text:lower())) then
+						self.logframe:SetLineHighlight(i, { r = 0.5, g  = 0.5, b = 0.5, a = 0.4 })
+					end
+				end
 			end
 		end
 	end
