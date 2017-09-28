@@ -8,130 +8,139 @@ debug = true
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "enUS", true, not debug)
 
 if L then
-L["General"] = true
-L["Show in the unit popup menu (requires a UI reload)"] = true
-L["Enabling this option will taint the unit popup menu and will prevent some options from working (such as setting a focus target)"] = true
-L["%s|r has died of a heart attack"] = true
-L["You were killed by"] = true
-L["%s|r was killed by"] = true
-L["%s's|r %s"] = true -- <source>'s <spell>
-L["%i more deaths were not announced"] = true
-L["Data has been reset"] = true
-L["Data optimization done in %.02f ms"] = true
-L["Death Note"] = true
-L["Show target deaths"] = true
-L["|cFFEDA55FClick|r to open Death Note. |cFFEDA55FRight-Click|r to show options. |cFFEDA55FShift-Click|r to optimize data. |cFFEDA55FCtrl-Click|r to reset data."] = true
-L["Death Note: Death report for %s at %s"] = true
-L["Limiting report to %i lines"] = true
-L["<Refresh>"] = true
-L["<Break>"] = true
-L["<Dispel>"] = true
-L["<Dispel failed>"] = true
-L["<Steal>"] = true
-L["<Interrupt>"] = true
-L["Miss"] = true
-L["Death"] = true
-L["None"] = true
-L["Unknown"] = true
-L["(%i more lines not shown)"] = true
-L["-%s (%i hits) (%s)"] = true
-L["+%s (%i heals) (%s)"] = true
-L["(%s overkill)"] = true
-L["<+%i buffs>"] = true
-L["<+%i debuffs>"] = true
-L["<-%i buffs>"] = true
-L["<-%i debuffs>"] = true
-L["Data capture"] = true
-L["Maximum number of deaths"] = true
-L["Seconds to keep before each death (for the unit killed)"] = true
-L["Seconds to keep before each death (for other units)"] = true
-L["This data is used to display actions of other players when a death happened. Set this value to 0 unless you want to use this feature, as it can use a large amount of memory."] = true
-L["Units filters"] = true
-L["Check the units you are interested in. Data for the units not filtered is discarded."] = true
-L["Group players"] = true
-L["Party and raid members, including yourself"] = true
-L["Your pet"] = true
-L["Other pets"] = true
-L["The effect of this filter depends on the other filters. For example, if you have the friendly players filter inactive, their pets deaths won't be recorded either, even with this filter activated."] = true
-L["Friendly players"] = true
-L["All friendly players, including those not in your group"] = true
-L["Enemy players"] = true
-L["Friendly NPCs"] = true
-L["Enemy NPCs"] = true
-L["Keep data between sessions"] = true
-L["Enable this if you want the data to persist after logging out or after a reload ui.\nKeep in mind that depending on your options this may generate a very big SavedVariables file and may impact your login/logout and reload ui times."] = true
-L["Reset data"] = true
-L["Announce"] = true
-L["Announce deaths"] = true
-L["Announce deaths with an unknown cause"] = true
-L["Announces/10 seconds limit"] = true
-L["Output channel"] = true
-L["Chat frame"] = true
-L["Say"] = true
-L["Party"] = true
-L["Raid"] = true
-L["Battleground"] = true
-L["Group (party or raid)"] = true
-L["Raid Warning"] = true
-L["Guild"] = true
-L["Officer"] = true
-L["Whisper"] = true
-L["Combat log lines"] = true
-L["Formatted"] = true
-L["Formatted style options"] = true
-L["Include damage"] = true
-L["Include amount resisted/blocked/absorbed"] = true
-L["Include hit type (critical, crushing, etc)"] = true
-L["Include overkill"] = true
-L["Filters"] = true
-L["Damage"] = true
-L["Threshold"] = true
-L["Consolidate consecutive hits"] = true
-L["Hide misses"] = true
-L["Healing"] = true
-L["Consolidate consecutive heals"] = true
-L["Auras"] = true
-L["Buff gains"] = true
-L["Buff fades"] = true
-L["Debuff gains"] = true
-L["Debuff fades"] = true
-L["Survival cooldowns"] = true
-L["Highlight survival cooldowns"] = true
-L["Consolidate consecutive auras"] = true
-L["Others"] = true
-L["Spell filter"] = true
-L["Enter one or more spells, separated by commas.\nCtrl+Click on a spell column to add that spell."] = true
-L["Source filter"] = true
-L["Enter one or more sources, separated by commas.\nCtrl+Click on a source column to add that source."] = true
-L["Reset"] = true
-L["Time"] = true
-L["HP"] = true
-L["Amount"] = true
-L["Spell"] = true
-L["Source"] = true
-L["Setting scale to %i%%"] = true
-L["Show Death Note"] = true
-L["Report style"] = true
-L["Send report from this line"] = true
-L["Compact"] = true
-L["Whisper target"] = true
-L["Channel"] = true
-L["Sort deaths by"] = true
-L["Time format"] = true
-L["Health format"] = true
-L["Options"] = true
-L["Seconds from death"] = true
-L["Real time"] = true
-L["Bar"] = true
-L["HP %"] = true
-L["HP"] = true
-L["HP/HPMax"] = true
-L["Name"] = true
-L["%i deaths"] = true
-L["Scale: %i%%"] = true
-L["Increase scale"] = true
-L["Decrease scale"] = true
+L = L or {}
+L["%i deaths"] = "%i deaths"
+L["%i more deaths were not announced"] = "%i more deaths were not announced"
+L["-%s (%i hits) (%s)"] = "-%s (%i hits) (%s)"
+L["%s|r has died of a heart attack"] = "%s|r has died of a heart attack"
+L["%s|r was killed by"] = "%s|r was killed by"
+L["%s's|r %s"] = "%s's|r %s"
+L["(%i more lines not shown)"] = "(%i more lines not shown)"
+L["(%s overkill)"] = "(%s overkill)"
+L["|cFFEDA55FClick|r to open Death Note. |cFFEDA55FRight-Click|r to show options. |cFFEDA55FShift-Click|r to optimize data. |cFFEDA55FCtrl-Click|r to reset data."] = "|cFFEDA55FClick|r to open Death Note. |cFFEDA55FRight-Click|r to show options. |cFFEDA55FShift-Click|r to optimize data. |cFFEDA55FCtrl-Click|r to reset data."
+L["+%s (%i heals) (%s)"] = "+%s (%i heals) (%s)"
+L["<-%i buffs>"] = "<-%i buffs>"
+L["<-%i debuffs>"] = "<-%i debuffs>"
+L["<+%i buffs>"] = "<+%i buffs>"
+L["<+%i debuffs>"] = "<+%i debuffs>"
+L["<Break>"] = "<Break>"
+L["<Dispel failed>"] = "<Dispel failed>"
+L["<Dispel>"] = "<Dispel>"
+L["<Interrupt>"] = "<Interrupt>"
+L["<Refresh>"] = "<Refresh>"
+L["<Steal>"] = "<Steal>"
+L["All friendly players, including those not in your group"] = "All friendly players, including those not in your group"
+L["Amount"] = "Amount"
+L["Announce"] = "Announce"
+L["Announce deaths"] = "Announce deaths"
+L["Announce deaths with an unknown cause"] = "Announce deaths with an unknown cause"
+L["Announces/10 seconds limit"] = "Announces/10 seconds limit"
+L["Auras"] = "Auras"
+L["Bar"] = "Bar"
+L["Battleground"] = "Battleground"
+L["Buff fades"] = "Buff fades"
+L["Buff gains"] = "Buff gains"
+L["Channel"] = "Channel"
+L["Chat frame"] = "Chat frame"
+L["Check the units you are interested in. Data for the units not filtered is discarded."] = "Check the units you are interested in. Data for the units not filtered is discarded."
+L["Combat log lines"] = "Combat log lines"
+L["Compact"] = "Compact"
+L["Consolidate consecutive auras"] = "Consolidate consecutive auras"
+L["Consolidate consecutive heals"] = "Consolidate consecutive heals"
+L["Consolidate consecutive hits"] = "Consolidate consecutive hits"
+L["Damage"] = "Damage"
+L["Data capture"] = "Data capture"
+L["Data has been reset"] = "Data has been reset"
+L["Data optimization done in %.02f ms"] = "Data optimization done in %.02f ms"
+L["Death"] = "Death"
+L["Death Note"] = "Death Note"
+L["Death Note: Death report for %s at %s"] = "Death Note: Death report for %s at %s"
+L["Debuff fades"] = "Debuff fades"
+L["Debuff gains"] = "Debuff gains"
+L["Decrease scale"] = "Decrease scale"
+L[ [=[Enable this if you want the data to persist after logging out or after a reload ui.
+Keep in mind that depending on your options this may generate a very big SavedVariables file and may impact your login/logout and reload ui times.]=] ] = [=[Enable this if you want the data to persist after logging out or after a reload ui.
+Keep in mind that depending on your options this may generate a very big SavedVariables file and may impact your login/logout and reload ui times.]=]
+L["Enabling this option will taint the unit popup menu and will prevent some options from working (such as setting a focus target)"] = "Enabling this option will taint the unit popup menu and will prevent some options from working (such as setting a focus target)"
+L["Enemy NPCs"] = "Enemy NPCs"
+L["Enemy players"] = "Enemy players"
+L[ [=[Enter one or more sources, separated by commas.
+Ctrl+Click on a source column to add that source.]=] ] = [=[Enter one or more sources, separated by commas.
+Ctrl+Click on a source column to add that source.]=]
+L[ [=[Enter one or more spells, separated by commas.
+Ctrl+Click on a spell column to add that spell.]=] ] = [=[Enter one or more spells, separated by commas.
+Ctrl+Click on a spell column to add that spell.]=]
+L["Filters"] = "Filters"
+L["Formatted"] = "Formatted"
+L["Formatted style options"] = "Formatted style options"
+L["Friendly NPCs"] = "Friendly NPCs"
+L["Friendly players"] = "Friendly players"
+L["General"] = "General"
+L["Group (party or raid)"] = "Group (party or raid)"
+L["Group players"] = "Group players"
+L["Guild"] = "Guild"
+L["Healing"] = "Healing"
+L["Health format"] = "Health format"
+L["Hide misses"] = "Hide misses"
+L["Highlight survival cooldowns"] = "Highlight survival cooldowns"
+L["HP"] = "HP"
+L["HP %"] = "HP %"
+L["HP/HPMax"] = "HP/HPMax"
+L["Include amount resisted/blocked/absorbed"] = "Include amount resisted/blocked/absorbed"
+L["Include damage"] = "Include damage"
+L["Include hit type (critical, crushing, etc)"] = "Include hit type (critical, crushing, etc)"
+L["Include overkill"] = "Include overkill"
+L["Increase scale"] = "Increase scale"
+L["Keep data between sessions"] = "Keep data between sessions"
+L["Limiting report to %i lines"] = "Limiting report to %i lines"
+L["Maximum number of deaths"] = "Maximum number of deaths"
+L["Miss"] = "Miss"
+L["Name"] = "Name"
+L["None"] = "None"
+L["Officer"] = "Officer"
+L["Options"] = "Options"
+L["Other pets"] = "Other pets"
+L["Others"] = "Others"
+L["Output channel"] = "Output channel"
+L["Party"] = "Party"
+L["Party and raid members, including yourself"] = "Party and raid members, including yourself"
+L["Raid"] = "Raid"
+L["Raid Warning"] = "Raid Warning"
+L["Real time"] = "Real time"
+L["Report style"] = "Report style"
+L["Reset"] = "Reset"
+L["Reset data"] = "Reset data"
+L["Say"] = "Say"
+L["Scale: %i%%"] = "Scale: %i%%"
+L["Seconds from death"] = "Seconds from death"
+L["Seconds to keep before each death (for other units)"] = "Seconds to keep before each death (for other units)"
+L["Seconds to keep before each death (for the unit killed)"] = "Seconds to keep before each death (for the unit killed)"
+L["Send report from this line"] = "Send report from this line"
+L["Setting scale to %i%%"] = "Setting scale to %i%%"
+L["Show Death Note"] = "Show Death Note"
+L["Show in the unit popup menu (requires a UI reload)"] = "Show in the unit popup menu (requires a UI reload)"
+L["Show target deaths"] = "Show target deaths"
+L["Sort deaths by"] = "Sort deaths by"
+L["Source"] = "Source"
+L["Source filter"] = "Source filter"
+L["Spell"] = "Spell"
+L["Spell filter"] = "Spell filter"
+L["Survival cooldowns"] = "Survival cooldowns"
+L["The effect of this filter depends on the other filters. For example, if you have the friendly players filter inactive, their pets deaths won't be recorded either, even with this filter activated."] = "The effect of this filter depends on the other filters. For example, if you have the friendly players filter inactive, their pets deaths won't be recorded either, even with this filter activated."
+L["This data is used to display actions of other players when a death happened. Set this value to 0 unless you want to use this feature, as it can use a large amount of memory."] = "This data is used to display actions of other players when a death happened. Set this value to 0 unless you want to use this feature, as it can use a large amount of memory."
+L["Threshold"] = "Threshold"
+L["Time"] = "Time"
+L["Time format"] = "Time format"
 L["ui:quick-spell-search"] = "Quick spell search:"
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
+L["Units filters"] = "Units filters"
+L["Unknown"] = "Unknown"
+L["Whisper"] = "Whisper"
+L["Whisper target"] = "Whisper target"
+L["You were killed by"] = "You were killed by"
+L["Your pet"] = "Your pet"
+
 end
 
 
@@ -140,7 +149,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "deDE")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i Tode"
 L["%i more deaths were not announced"] = "%i weitere Tode wurden nicht angekündigt"
 L["-%s (%i hits) (%s)"] = "-%s (%i Treffer) (%s)"
@@ -265,6 +273,12 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Grenzwert"
 L["Time"] = "Zeit"
 L["Time format"] = "Zeitformat"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 L["Units filters"] = "Einheitenfilter"
 L["Unknown"] = "Unbekannt"
 L["Whisper"] = "Flüstern"
@@ -277,7 +291,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "esES")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i muertes"
 L["%i more deaths were not announced"] = "%i muertes más no han sido anunciadas"
 L["-%s (%i hits) (%s)"] = "-%s (%i golpes) (%s)"
@@ -402,6 +415,12 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Umbral"
 L["Time"] = "Tiempo"
 L["Time format"] = "Formato del tiempo"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 L["Units filters"] = "Filtros de unidades"
 L["Unknown"] = "Desconocido"
 L["Whisper"] = "Susurro"
@@ -414,7 +433,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "esMX")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
 L["%i deaths"] = "%i deaths"
 --Translation missing 
@@ -653,6 +671,12 @@ L["Threshold"] = "Threshold"
 L["Time"] = "Time"
 --Translation missing 
 L["Time format"] = "Time format"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 --Translation missing 
 L["Units filters"] = "Units filters"
 --Translation missing 
@@ -671,7 +695,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "frFR")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
 L["%i deaths"] = "%i deaths"
 --Translation missing 
@@ -910,6 +933,12 @@ L["Threshold"] = "Threshold"
 L["Time"] = "Time"
 --Translation missing 
 L["Time format"] = "Time format"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 --Translation missing 
 L["Units filters"] = "Units filters"
 --Translation missing 
@@ -928,7 +957,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "itIT")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
 L["%i deaths"] = "%i deaths"
 --Translation missing 
@@ -1167,6 +1195,12 @@ L["Threshold"] = "Threshold"
 L["Time"] = "Time"
 --Translation missing 
 L["Time format"] = "Time format"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 --Translation missing 
 L["Units filters"] = "Units filters"
 --Translation missing 
@@ -1229,7 +1263,7 @@ L["Consolidate consecutive heals"] = "연이은 치유 통합"
 L["Consolidate consecutive hits"] = "연이은 적중 통합"
 L["Damage"] = "피해"
 L["Data capture"] = "데이터 수집"
-L["Data has been reset"] = "데이터 초기화됨"
+L["Data has been reset"] = "데이터가 초기화되었습니다"
 L["Data optimization done in %.02f ms"] = "%.02fms 후 데이터 최적화 완료"
 L["Death"] = "죽음"
 L["Death Note"] = "Death Note"
@@ -1310,8 +1344,11 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "임계값"
 L["Time"] = "시간"
 L["Time format"] = "시간 형식"
+L["ui:quick-spell-search"] = "빠른 주문 검색:"
 --Translation missing 
-L["ui:quick-spell-search"] = "Quick spell search:"
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 L["Units filters"] = "유닛 필터"
 L["Unknown"] = "알 수 없음"
 L["Whisper"] = "귓속말"
@@ -1324,7 +1361,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "ptBR")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i mortes"
 L["%i more deaths were not announced"] = "Mais %i não foram anunciadas"
 L["-%s (%i hits) (%s)"] = "-%s (%i acerta) (%s)"
@@ -1450,6 +1486,12 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Limite"
 L["Time"] = "Tempo"
 L["Time format"] = "Formatação do tempo"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 L["Units filters"] = "Filtros de unidades"
 L["Unknown"] = "Desconhecido"
 L["Whisper"] = "Sussuro"
@@ -1462,9 +1504,7 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "ruRU")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
---Translation missing 
-L["%i deaths"] = "%i deaths"
+L["%i deaths"] = "%i смертей"
 --Translation missing 
 L["%i more deaths were not announced"] = "%i more deaths were not announced"
 --Translation missing 
@@ -1512,17 +1552,14 @@ L["Announce deaths with an unknown cause"] = "Объявлять смерти п
 L["Announces/10 seconds limit"] = "Лимит объявлений за период в 10 секунд"
 L["Auras"] = "Ауры"
 L["Bar"] = "Полоски"
---Translation missing 
-L["Battleground"] = "Battleground"
+L["Battleground"] = "Поле боя"
 L["Buff fades"] = "Окончание баффа"
 L["Buff gains"] = "Получение баффа"
---Translation missing 
-L["Channel"] = "Channel"
+L["Channel"] = "Канал"
 --Translation missing 
 L["Chat frame"] = "Chat frame"
---Translation missing 
-L["Check the units you are interested in. Data for the units not filtered is discarded."] = "Check the units you are interested in. Data for the units not filtered is discarded."
-L["Combat log lines"] = "Как в логе боя"
+L["Check the units you are interested in. Data for the units not filtered is discarded."] = "Отметьте те группы, которые вам интересны. Данные по остальным группам записаны не будут."
+L["Combat log lines"] = "Как в журнале боя"
 --Translation missing 
 L["Compact"] = "Compact"
 L["Consolidate consecutive auras"] = "Объединить последовательные ауры"
@@ -1530,12 +1567,9 @@ L["Consolidate consecutive heals"] = "Объединить последоват�
 L["Consolidate consecutive hits"] = "Объединить последовательный урон"
 L["Damage"] = "Урон"
 L["Data capture"] = "Запись данных"
---Translation missing 
-L["Data has been reset"] = "Data has been reset"
---Translation missing 
-L["Data optimization done in %.02f ms"] = "Data optimization done in %.02f ms"
---Translation missing 
-L["Death"] = "Death"
+L["Data has been reset"] = "Данные будут сброшены"
+L["Data optimization done in %.02f ms"] = "Данные оптимизируются через %.02f мс"
+L["Death"] = "Смерть"
 L["Death Note"] = "Death Note"
 --Translation missing 
 L["Death Note: Death report for %s at %s"] = "Death Note: Death report for %s at %s"
@@ -1567,8 +1601,7 @@ L["General"] = "Общее"
 --Translation missing 
 L["Group (party or raid)"] = "Group (party or raid)"
 L["Group players"] = "Игроки в группе (рейде)"
---Translation missing 
-L["Guild"] = "Guild"
+L["Guild"] = "Гильдия"
 L["Healing"] = "Исцеление"
 L["Health format"] = "Вид ХП"
 L["Hide misses"] = "Скрыть промахи"
@@ -1585,13 +1618,10 @@ L["Keep data between sessions"] = "Сохранять данные между с
 --Translation missing 
 L["Limiting report to %i lines"] = "Limiting report to %i lines"
 L["Maximum number of deaths"] = "Макс. количество смертей"
---Translation missing 
-L["Miss"] = "Miss"
+L["Miss"] = "Промах"
 L["Name"] = "Имя"
---Translation missing 
-L["None"] = "None"
---Translation missing 
-L["Officer"] = "Officer"
+L["None"] = "Пусто"
+L["Officer"] = "Офицер"
 L["Options"] = "Настройки"
 L["Other pets"] = "Другие питомцы"
 L["Others"] = "Другое"
@@ -1600,28 +1630,22 @@ L["Output channel"] = "Канал вывода"
 L["Party"] = "Party"
 --Translation missing 
 L["Party and raid members, including yourself"] = "Party and raid members, including yourself"
---Translation missing 
-L["Raid"] = "Raid"
+L["Raid"] = "Рейд"
 --Translation missing 
 L["Raid Warning"] = "Raid Warning"
 L["Real time"] = "Реальное время"
---Translation missing 
-L["Report style"] = "Report style"
+L["Report style"] = "Формат отчета"
 L["Reset"] = "Сбросить"
 L["Reset data"] = "Сбросить данные"
---Translation missing 
-L["Say"] = "Say"
+L["Say"] = "Сказать"
 L["Scale: %i%%"] = "Масштаб: %i%%"
 L["Seconds from death"] = "Секунды до смерти"
 --Translation missing 
 L["Seconds to keep before each death (for other units)"] = "Seconds to keep before each death (for other units)"
 L["Seconds to keep before each death (for the unit killed)"] = "Сколько секунд записывать перед каждой смертью (для убитого существа)"
---Translation missing 
-L["Send report from this line"] = "Send report from this line"
---Translation missing 
-L["Setting scale to %i%%"] = "Setting scale to %i%%"
---Translation missing 
-L["Show Death Note"] = "Show Death Note"
+L["Send report from this line"] = "Послать отчет из этой строки"
+L["Setting scale to %i%%"] = "Установить шкалу в %i%%"
+L["Show Death Note"] = "Показать Посмертную Заметку"
 L["Show in the unit popup menu (requires a UI reload)"] = "Показывать в выпадающем меню игроков (требуется перезагрузка UI)"
 --Translation missing 
 L["Show target deaths"] = "Show target deaths"
@@ -1638,15 +1662,14 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Порог"
 L["Time"] = "Время"
 L["Time format"] = "Формат времени"
+L["ui:quick-spell-search"] = "Поиск заклинания:"
+L["ui:quick-spell-search:mode:highlight"] = "подсвечивать найденные заклинания"
+L["ui:quick-spell-search:mode:only-found-spells"] = "показывать только найденные заклинания + КД"
 L["Units filters"] = "Фильтр существ"
---Translation missing 
-L["Unknown"] = "Unknown"
---Translation missing 
-L["Whisper"] = "Whisper"
---Translation missing 
-L["Whisper target"] = "Whisper target"
---Translation missing 
-L["You were killed by"] = "You were killed by"
+L["Unknown"] = "Неизвестно"
+L["Whisper"] = "Шепот"
+L["Whisper target"] = "Шепнуть цели"
+L["You were killed by"] = "Вы были убиты "
 L["Your pet"] = "Ваш питомец"
 
 end
@@ -1654,7 +1677,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "zhCN")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i 死亡"
 L["%i more deaths were not announced"] = "多于%i的死亡不会被通告"
 L["-%s (%i hits) (%s)"] = "-%s (%i 命中) (%s)"
@@ -1780,6 +1802,12 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "阀值"
 L["Time"] = "时间"
 L["Time format"] = "时间格式"
+--Translation missing 
+L["ui:quick-spell-search"] = "Quick spell search:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 L["Units filters"] = "单位过滤器"
 L["Unknown"] = "未知"
 L["Whisper"] = "悄悄话"
@@ -1792,7 +1820,6 @@ end
 L = LibStub("AceLocale-3.0"):NewLocale("DeathNote", "zhTW")
 if L then
 L = L or {}
-L["ui:quick-spell-search"] = "Quick spell search:"
 L["%i deaths"] = "%i 死亡"
 L["%i more deaths were not announced"] = "多於%i的死亡不會被通告"
 L["-%s (%i hits) (%s)"] = "-%s (%i 命中) (%s)"
@@ -1915,6 +1942,11 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "門閥"
 L["Time"] = "時間"
 L["Time format"] = "時間格式"
+L["ui:quick-spell-search"] = "快速法術搜尋:"
+--Translation missing 
+L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
+--Translation missing 
+L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
 L["Units filters"] = "單位過濾器"
 L["Unknown"] = "未知"
 L["Whisper"] = "悄悄話"
