@@ -1143,9 +1143,10 @@ local function GetGuildRankFlag(nflag)
 	if not GetGuildInfo("player") then
 		return false
 	end
-	local rank = select(3, GetGuildInfo("player")) + 1
-	GuildControlSetRank(rank)
-	return select(nflag, GuildControlGetRankFlags())
+	return true; -- // this is temporary workaround because now we cannot get the list of privilegies programmatically
+	-- local rank = select(3, GetGuildInfo("player")) + 1
+	-- GuildControlSetRank(rank)
+	-- return select(nflag, GuildControlGetRankFlags())
 end
 
 local function CanSpeakGuildChat()
