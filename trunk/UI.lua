@@ -34,7 +34,10 @@ local normal_hilight = { r = 0.5, g = 0.5, b = 0.5, a = 0.4 }
 local spell_hilight = { r = 0.25, g = 0.25, b = 0.5, a = 0.4 }
 local source_hilight = { r = 0, g = 0, b = 0.6, a = 0.4 }
 
-local tinsert, tremove = table.insert, table.remove
+local tinsert, tremove, string_find, string_format = table.insert, table.remove, string.find, format;
+
+local LocalizedClassList = { };
+FillLocalizedClassList(LocalizedClassList);
 
 local function table_contains_value(t, v)
 	for _, value in pairs(t) do
@@ -124,6 +127,182 @@ local function CreateSearchBox(parentFrame)
 	end
 	_G[parentFrame.QuickSpellSearchMode:GetName().."Text"]:SetText(DeathNote.settings.quick_spell_search.only_hl and L["ui:quick-spell-search:mode:highlight"] or L["ui:quick-spell-search:mode:only-found-spells"]);
 	parentFrame.QuickSpellSearchMode:Show();
+end
+
+local function GUICreateButton(parentFrame, text)
+		-- After creation we need to set up :SetWidth, :SetHeight, :SetPoint, :SetScript
+		local button = CreateFrame("Button", nil, parentFrame);
+		button.Background = button:CreateTexture(nil, "BORDER");
+		button.Background:SetPoint("TOPLEFT", 1, -1);
+		button.Background:SetPoint("BOTTOMRIGHT", -1, 1);
+		button.Background:SetColorTexture(0, 0, 0, 1);
+
+		button.Border = button:CreateTexture(nil, "BACKGROUND");
+		button.Border:SetPoint("TOPLEFT", 0, 0);
+		button.Border:SetPoint("BOTTOMRIGHT", 0, 0);
+		button.Border:SetColorTexture(unpack({0.73, 0.26, 0.21, 1}));
+
+		button.Normal = button:CreateTexture(nil, "ARTWORK");
+		button.Normal:SetPoint("TOPLEFT", 2, -2);
+		button.Normal:SetPoint("BOTTOMRIGHT", -2, 2);
+		button.Normal:SetColorTexture(unpack({0.38, 0, 0, 1}));
+		button:SetNormalTexture(button.Normal);
+
+		button.Disabled = button:CreateTexture(nil, "OVERLAY");
+		button.Disabled:SetPoint("TOPLEFT", 3, -3);
+		button.Disabled:SetPoint("BOTTOMRIGHT", -3, 3);
+		button.Disabled:SetColorTexture(0.6, 0.6, 0.6, 0.2);
+		button:SetDisabledTexture(button.Disabled);
+
+		button.Highlight = button:CreateTexture(nil, "OVERLAY");
+		button.Highlight:SetPoint("TOPLEFT", 3, -3);
+		button.Highlight:SetPoint("BOTTOMRIGHT", -3, 3);
+		button.Highlight:SetColorTexture(0.6, 0.6, 0.6, 0.2);
+		button:SetHighlightTexture(button.Highlight);
+
+		button.Text = button:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+		button.Text:SetPoint("CENTER", 0, 0);
+		button.Text:SetJustifyH("CENTER");
+		button.Text:SetTextColor(1, 0.82, 0, 1);
+		button.Text:SetText(text);
+
+		button:SetScript("OnMouseDown", function(self) self.Text:SetPoint("CENTER", 1, -1) end);
+		button:SetScript("OnMouseUp", function(self) self.Text:SetPoint("CENTER", 0, 0) end);
+		
+		button.SetGray = function(self, gray)
+			button.Normal:SetColorTexture(unpack(gray and {0, 0, 0, 1} or {0.38, 0, 0, 1}));
+		end
+		
+		return button;
+	end
+
+local selectorEx;
+local function GetSelectorEx()
+	if (not selectorEx) then
+		selectorEx = CreateFrame("Frame", nil, UIParent);
+		selectorEx:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+		selectorEx:SetSize(350, 300);
+		selectorEx.texture = selectorEx:CreateTexture();
+		selectorEx.texture:SetAllPoints(selectorEx);
+		selectorEx.texture:SetColorTexture(0, 0, 0, 1);
+		
+		selectorEx.searchLabel = selectorEx:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+		selectorEx.searchLabel:SetPoint("TOPLEFT", 5, -10);
+		selectorEx.searchLabel:SetJustifyH("LEFT");
+		selectorEx.searchLabel:SetText(L["selector:search"]);
+		
+		selectorEx.searchBox = CreateFrame("EditBox", nil, selectorEx, "InputBoxTemplate");
+		selectorEx.searchBox:SetAutoFocus(false);
+		selectorEx.searchBox:SetFontObject(GameFontHighlightSmall);
+		selectorEx.searchBox:SetPoint("LEFT", selectorEx.searchLabel, "RIGHT", 10, 0);
+		selectorEx.searchBox:SetPoint("RIGHT", selectorEx, "RIGHT", -10, 0);
+		selectorEx.searchBox:SetHeight(20);
+		selectorEx.searchBox:SetWidth(175);
+		selectorEx.searchBox:SetJustifyH("LEFT");
+		selectorEx.searchBox:EnableMouse(true);
+		selectorEx.searchBox:SetScript("OnEscapePressed", function() selectorEx.searchBox:ClearFocus(); end);
+		selectorEx.searchBox:SetScript("OnTextChanged", function(self)
+			local text = self:GetText();
+			if (text == "") then
+				selectorEx.SetList(selectorEx.list);
+			else
+				local t = { };
+				for _, value in pairs(selectorEx.list) do
+					if (string_find(value.text:lower(), text:lower())) then
+						tinsert(t, value);
+					end
+				end
+				selectorEx.SetList(t, true);
+				selectorEx.scrollArea:SetVerticalScroll(0);
+			end
+		end);
+		selectorEx:HookScript("OnHide", function() selectorEx.searchBox:SetText(""); end);
+		
+		selectorEx.scrollArea = CreateFrame("ScrollFrame", nil, selectorEx, "UIPanelScrollFrameTemplate");
+		selectorEx.scrollArea:SetPoint("TOPLEFT", selectorEx, "TOPLEFT", 5, -30);
+		selectorEx.scrollArea:SetPoint("BOTTOMRIGHT", selectorEx, "BOTTOMRIGHT", -25, 5);
+		selectorEx.scrollArea:Show();
+		
+		local scrollAreaChildFrame = CreateFrame("Frame", nil, selectorEx.scrollArea);
+		selectorEx.scrollArea:SetScrollChild(scrollAreaChildFrame);
+		--scrollAreaChildFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 1);
+		scrollAreaChildFrame:SetWidth(288);
+		scrollAreaChildFrame:SetHeight(288);
+		
+		selectorEx.buttons = { };
+		selectorEx.list = { };
+		
+		local function GetButton(counter)
+			if (selectorEx.buttons[counter] == nil) then
+				local button = GUICreateButton(scrollAreaChildFrame, "");
+				button.font, button.fontSize, button.fontFlags = button.Text:GetFont();
+				button:SetWidth(295);
+				button:SetHeight(20);
+				button:SetPoint("TOPLEFT", 23, -counter * 22 + 20);
+				button.Icon = button:CreateTexture();
+				button.Icon:SetPoint("RIGHT", button, "LEFT", -3, 0);
+				button.Icon:SetWidth(20);
+				button.Icon:SetHeight(20);
+				button.Icon:SetTexCoord(0.07, 0.93, 0.07, 0.93);
+				button:Hide();
+				selectorEx.buttons[counter] = button;
+				return button;
+			else
+				return selectorEx.buttons[counter];
+			end
+		end
+		
+		-- value.text, value.font, value.icon, value.func, value.onEnter, value.onLeave, value.disabled, value.dontCloseOnClick
+		selectorEx.SetList = function(t, dontUpdateInternalList)
+			for _, button in pairs(selectorEx.buttons) do
+				button:SetGray(false);
+				button:Hide();
+				button.Icon:SetTexture();
+				button.Text:SetFont(button.font, button.fontSize, button.fontFlags);
+				button:SetScript("OnClick", nil);
+			end
+			local counter = 1;
+			for _, value in pairs(t) do
+				local button = GetButton(counter);
+				button.Text:SetText(value.text);
+				if (value.font ~= nil) then
+					button.Text:SetFont(value.font, button.fontSize, button.fontFlags);
+				end
+				if (value.disabled) then
+					button:SetGray(true);
+				end
+				button.Icon:SetTexture(value.icon);
+				button:SetScript("OnClick", function()
+					value:func();
+					if (not value.dontCloseOnClick) then
+						selectorEx:Hide();
+					end
+				end);
+				button:SetScript("OnEnter", value.onEnter);
+				button:SetScript("OnLeave", value.onLeave);
+				button:Show();
+				counter = counter + 1;
+			end
+			if (not dontUpdateInternalList) then
+				selectorEx.list = t;
+			end
+		end
+		
+		selectorEx.GetButtonByText = function(text)
+			for _, button in pairs(selectorEx.buttons) do
+				if (button.Text:GetText() == text) then
+					return button;
+				end
+			end
+			return nil;
+		end
+		
+		selectorEx.SetList({});
+		selectorEx:Hide();
+		selectorEx:HookScript("OnShow", function(self) self:SetFrameStrata("TOOLTIP"); self.scrollArea:SetVerticalScroll(0); end);
+	end
+	
+	return selectorEx;
 end
 
 function DeathNote:Show()
@@ -528,6 +707,51 @@ function DeathNote:Show()
 							-- width = "double",
 							get = function() return DeathNote.settings.display_filters.highlight_survival end,
 							set = function(_, v) DeathNote:SetDisplayFilter("highlight_survival", v) end,
+						},
+						highlight_survival_selection = {
+							order = 7,
+							name = L["ui:filters:select-cds"],
+							type = "execute",
+							func = function()
+								local selector = GetSelectorEx();
+								if (selector:IsVisible()) then
+									selector:Hide();
+								else
+									selector:SetParent(GetMouseFocus());
+									selector:SetPoint("TOP", GetMouseFocus(), "BOTTOM", 0, 0);
+									-- value.text, value.font, value.icon, value.func, value.onEnter, value.onLeave
+									local t = { };
+									for spellID, spellInfo in pairs(DeathNote.SurvivalIDs) do
+										tinsert(t, {
+											text = string_format("[%s] %s", LocalizedClassList[spellInfo.class], GetSpellInfo(spellID)),
+											font = nil,
+											icon = GetSpellTexture(spellID),
+											dontCloseOnClick = true,
+											disabled = DeathNote.settings.display_filters.ignored_highlight_survival[spellID],
+											func = function(buttonInfo)
+												local btn = selector.GetButtonByText(string_format("[%s] %s", LocalizedClassList[buttonInfo.class], GetSpellInfo(buttonInfo.spellID)));
+												if (btn) then
+													buttonInfo.disabled = not buttonInfo.disabled;
+													btn:SetGray(buttonInfo.disabled);
+													DeathNote.settings.display_filters.ignored_highlight_survival[buttonInfo.spellID] = buttonInfo.disabled and true or nil; -- // because we don't need a lot of false values in this table
+													DeathNote:RefreshHighlight();
+												end
+											end,
+											onEnter = function(self)
+												GameTooltip:SetOwner(selector, "ANCHOR_RIGHT");
+												GameTooltip:SetSpellByID(spellID);
+												GameTooltip:Show();
+											end,
+											onLeave = function() GameTooltip:Hide(); end,
+											spellID = spellID,
+											class = spellInfo.class,
+										});
+									end
+									table.sort(t, function(first, second) return first.text < second.text end);
+									selector.SetList(t);
+									selector:Show();
+								end
+							end,
 						},
 					},
 				},
@@ -1811,7 +2035,9 @@ function DeathNote:RefreshHighlight()
 		local entry = self.logframe:GetLineUserdata(i)
 		local line_highlight = nil
 		if entry.highlight_spellid then
-			line_highlight = self.SurvivalColors[self.SurvivalIDs[entry.highlight_spellid].class]
+			if (not DeathNote.settings.display_filters.ignored_highlight_survival[entry.highlight_spellid]) then
+				line_highlight = self.SurvivalColors[self.SurvivalIDs[entry.highlight_spellid].class];
+			end
 		end
 
 		if self:IsEntryGroup(entry) then
