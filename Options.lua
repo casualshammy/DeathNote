@@ -43,6 +43,9 @@ DeathNote.OptionsDefaults = {
 			debuff_fades = true,
 			survival_buffs = true,
 			highlight_survival = true,
+			ignored_highlight_survival = {
+				
+			},
 			consolidate_auras = false,
 
 			spell_filter = {},

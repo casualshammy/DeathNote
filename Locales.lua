@@ -115,6 +115,7 @@ L["Scale: %i%%"] = "Scale: %i%%"
 L["Seconds from death"] = "Seconds from death"
 L["Seconds to keep before each death (for other units)"] = "Seconds to keep before each death (for other units)"
 L["Seconds to keep before each death (for the unit killed)"] = "Seconds to keep before each death (for the unit killed)"
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "Send report from this line"
 L["Setting scale to %i%%"] = "Setting scale to %i%%"
 L["Show Death Note"] = "Show Death Note"
@@ -131,6 +132,7 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Threshold"
 L["Time"] = "Time"
 L["Time format"] = "Time format"
+L["ui:filters:select-cds"] = "Select CDs..."
 L["ui:quick-spell-search"] = "Quick spell search:"
 L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
 L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
@@ -256,6 +258,8 @@ L["Scale: %i%%"] = "Skalierung: %i%%"
 L["Seconds from death"] = "Sekunden vor Tod"
 L["Seconds to keep before each death (for other units)"] = "Zu speichernde Sekunden vor dem Tod (für andere Einheiten)"
 L["Seconds to keep before each death (for the unit killed)"] = "Zu speichernde Sekunden vor dem Tod (für die getötete Einheit)"
+--Translation missing 
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "Sende Bericht ab dieser Zeile"
 L["Setting scale to %i%%"] = "Setze Skalierung auf %i%%"
 L["Show Death Note"] = "Zeige Death Note"
@@ -273,6 +277,8 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Grenzwert"
 L["Time"] = "Zeit"
 L["Time format"] = "Zeitformat"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 --Translation missing 
 L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
@@ -398,6 +404,8 @@ L["Scale: %i%%"] = "Escala: %i%%"
 L["Seconds from death"] = "Segundos desde la muerte"
 L["Seconds to keep before each death (for other units)"] = "Segundos a mantener antes de cada muerte (para otras unidades)"
 L["Seconds to keep before each death (for the unit killed)"] = "Segundos a mantener antes de cada muerte (para la unidad muerta)"
+--Translation missing 
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "Enviar reporte desde esta línea"
 L["Setting scale to %i%%"] = "Estableciendo escala a %i%%"
 L["Show Death Note"] = "Mostrar Death Note"
@@ -415,6 +423,8 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Umbral"
 L["Time"] = "Tiempo"
 L["Time format"] = "Formato del tiempo"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 --Translation missing 
 L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
@@ -640,6 +650,8 @@ L["Seconds to keep before each death (for other units)"] = "Seconds to keep befo
 --Translation missing 
 L["Seconds to keep before each death (for the unit killed)"] = "Seconds to keep before each death (for the unit killed)"
 --Translation missing 
+L["selector:search"] = "Search:"
+--Translation missing 
 L["Send report from this line"] = "Send report from this line"
 --Translation missing 
 L["Setting scale to %i%%"] = "Setting scale to %i%%"
@@ -671,6 +683,8 @@ L["Threshold"] = "Threshold"
 L["Time"] = "Time"
 --Translation missing 
 L["Time format"] = "Time format"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 --Translation missing 
 L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
@@ -902,6 +916,8 @@ L["Seconds to keep before each death (for other units)"] = "Seconds to keep befo
 --Translation missing 
 L["Seconds to keep before each death (for the unit killed)"] = "Seconds to keep before each death (for the unit killed)"
 --Translation missing 
+L["selector:search"] = "Search:"
+--Translation missing 
 L["Send report from this line"] = "Send report from this line"
 --Translation missing 
 L["Setting scale to %i%%"] = "Setting scale to %i%%"
@@ -933,6 +949,8 @@ L["Threshold"] = "Threshold"
 L["Time"] = "Time"
 --Translation missing 
 L["Time format"] = "Time format"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 --Translation missing 
 L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
@@ -1164,6 +1182,8 @@ L["Seconds to keep before each death (for other units)"] = "Seconds to keep befo
 --Translation missing 
 L["Seconds to keep before each death (for the unit killed)"] = "Seconds to keep before each death (for the unit killed)"
 --Translation missing 
+L["selector:search"] = "Search:"
+--Translation missing 
 L["Send report from this line"] = "Send report from this line"
 --Translation missing 
 L["Setting scale to %i%%"] = "Setting scale to %i%%"
@@ -1195,6 +1215,8 @@ L["Threshold"] = "Threshold"
 L["Time"] = "Time"
 --Translation missing 
 L["Time format"] = "Time format"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 --Translation missing 
 L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
@@ -1328,6 +1350,8 @@ L["Scale: %i%%"] = "크기 비율: %i%%"
 L["Seconds from death"] = "죽음으로 부터 시간 표시 (초)"
 L["Seconds to keep before each death (for other units)"] = "죽기 직전 상황을 기록할 시간 (다른 유닛)"
 L["Seconds to keep before each death (for the unit killed)"] = "죽기 직전 상황을 기록할 시간 (죽은 유닛)"
+--Translation missing 
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "이 줄의 보고서 전송하기"
 L["Setting scale to %i%%"] = "크기 비율을 %i%%로 설정"
 L["Show Death Note"] = "Death Note 표시"
@@ -1344,11 +1368,11 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "임계값"
 L["Time"] = "시간"
 L["Time format"] = "시간 형식"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 L["ui:quick-spell-search"] = "빠른 주문 검색:"
---Translation missing 
-L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
---Translation missing 
-L["ui:quick-spell-search:mode:only-found-spells"] = "display only found spells + CDs"
+L["ui:quick-spell-search:mode:highlight"] = "검색된 주문 강조"
+L["ui:quick-spell-search:mode:only-found-spells"] = "검색된 주문 + 생존기만 표시"
 L["Units filters"] = "유닛 필터"
 L["Unknown"] = "알 수 없음"
 L["Whisper"] = "귓속말"
@@ -1469,6 +1493,8 @@ L["Scale: %i%%"] = "Escala: %i%%"
 L["Seconds from death"] = "Segundos antes da morte"
 L["Seconds to keep before each death (for other units)"] = "Segundos a manter antes de cada morte (para outras unidades)"
 L["Seconds to keep before each death (for the unit killed)"] = "Segundos a manter antes de cada morte (para a unidade morta)"
+--Translation missing 
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "Mandar relatório a partir dessa linha"
 L["Setting scale to %i%%"] = "Definir escala para %i%%"
 L["Show Death Note"] = "Mostrar Death Note"
@@ -1486,6 +1512,8 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Limite"
 L["Time"] = "Tempo"
 L["Time format"] = "Formatação do tempo"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 --Translation missing 
 L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
@@ -1643,6 +1671,8 @@ L["Seconds from death"] = "Секунды до смерти"
 --Translation missing 
 L["Seconds to keep before each death (for other units)"] = "Seconds to keep before each death (for other units)"
 L["Seconds to keep before each death (for the unit killed)"] = "Сколько секунд записывать перед каждой смертью (для убитого существа)"
+--Translation missing 
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "Послать отчет из этой строки"
 L["Setting scale to %i%%"] = "Установить шкалу в %i%%"
 L["Show Death Note"] = "Показать Посмертную Заметку"
@@ -1662,6 +1692,8 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "Порог"
 L["Time"] = "Время"
 L["Time format"] = "Формат времени"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 L["ui:quick-spell-search"] = "Поиск заклинания:"
 L["ui:quick-spell-search:mode:highlight"] = "подсвечивать найденные заклинания"
 L["ui:quick-spell-search:mode:only-found-spells"] = "показывать только найденные заклинания + КД"
@@ -1785,6 +1817,8 @@ L["Scale: %i%%"] = "比例：%i%%"
 L["Seconds from death"] = "秒内死亡"
 L["Seconds to keep before each death (for other units)"] = "每个死前纪录的秒数(其他单位)"
 L["Seconds to keep before each death (for the unit killed)"] = "每个死前纪录的秒数 (已死的单位)"
+--Translation missing 
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "发送这行死亡报告"
 L["Setting scale to %i%%"] = "设置比例为%i%%"
 L["Show Death Note"] = "显示死亡记录"
@@ -1802,6 +1836,8 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "阀值"
 L["Time"] = "时间"
 L["Time format"] = "时间格式"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 --Translation missing 
 L["ui:quick-spell-search"] = "Quick spell search:"
 --Translation missing 
@@ -1926,6 +1962,8 @@ L["Scale: %i%%"] = "比例：%i%%"
 L["Seconds from death"] = "秒內死亡"
 L["Seconds to keep before each death (for other units)"] = "每個死前紀錄的秒數(其他單位)"
 L["Seconds to keep before each death (for the unit killed)"] = "每個死前紀錄的秒數 (已死的單位)"
+--Translation missing 
+L["selector:search"] = "Search:"
 L["Send report from this line"] = "將這行發送報告"
 L["Setting scale to %i%%"] = "設定比例為%i%%"
 L["Show Death Note"] = "顯示死亡記錄"
@@ -1942,6 +1980,8 @@ L["This data is used to display actions of other players when a death happened. 
 L["Threshold"] = "門閥"
 L["Time"] = "時間"
 L["Time format"] = "時間格式"
+--Translation missing 
+L["ui:filters:select-cds"] = "Select CDs..."
 L["ui:quick-spell-search"] = "快速法術搜尋:"
 --Translation missing 
 L["ui:quick-spell-search:mode:highlight"] = "highlight found spells"
