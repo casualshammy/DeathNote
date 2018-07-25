@@ -106,8 +106,7 @@ function DeathNote:CHAT_MSG_SYSTEM(_, msg)
 	if found then
 		local destGUID, destName, destFlags, destRaidFlags = FindPlayerInfo(ploss)
 		if destGUID then
-			self:COMBAT_LOG_EVENT_UNFILTERED(
-				"COMBAT_LOG_EVENT_UNFILTERED",	-- _
+			DeathNote:CombatLogHandler(
 				time() + 5,						-- timestamp
 				"UNIT_DIED",                 	-- event
 				false,                          -- hideCaster
@@ -438,12 +437,12 @@ local function GetUnitHealth(name, guid)
 	end
 end
 
-function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
+function DeathNote:CombatLogHandler(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24)
 	local handler = event_handler_table[event]
 	if handler and IsFiltered(sourceFlags, destFlags) then
 		-- local hp, hpmax = destName and UnitHealth(destName) or 0, destName and UnitHealthMax(destName) or 0
 		local hp, hpmax = GetUnitHealth(destName, destGUID)
-		local entry = tuple(hp, hpmax, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
+		local entry = tuple(hp, hpmax, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24);
 		
 		setmetatable(entry, entrymeta)
 
@@ -456,7 +455,11 @@ function DeathNote:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, event, hideCaster, 
 		tinsert(log[t], entry)
 
 		if handler ~= true then
-			handler(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
+			handler(timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24);
 		end
 	end
+end
+
+function DeathNote:COMBAT_LOG_EVENT_UNFILTERED()
+	DeathNote:CombatLogHandler(CombatLogGetCurrentEventInfo());
 end
