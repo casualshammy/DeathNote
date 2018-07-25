@@ -27,6 +27,8 @@ externals:
         url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
     libs/AceHook-3.0:
         url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceHook-3.0
+    libs/AceComm-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceComm-3.0
     libs/CallbackHandler-1.0:
         url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
     libs/LibStub:
