@@ -1257,7 +1257,7 @@ function DeathNote:AddToUnitPopup()
 	UnitPopupButtons["SHOW_DEATH_NOTE"] = {
 		text = L["Show Death Note"],
 		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
-		dist = 0,
+		--dist = 0,
 	}
 
 	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET", "PLAYER" }
