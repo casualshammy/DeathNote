@@ -7,7 +7,6 @@ DeathNote.SurvivalIDs = {
 	[194679] =	{ class = "DEATHKNIGHT", priority = 1  },
 	[207319] =	{ class = "DEATHKNIGHT", priority = 1  },
 	
-	[218256] =	{ class = "DEMONHUNTER", priority = 1 },
 	[196555] =	{ class = "DEMONHUNTER", priority = 1 },
 	[198589] =	{ class = "DEMONHUNTER", priority = 1 },
 	[196718] =	{ class = "DEMONHUNTER", priority = 2 },
