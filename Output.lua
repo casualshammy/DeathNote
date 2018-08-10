@@ -73,7 +73,7 @@ function DeathNote:O_GetPlayerChannels()
 	local channels = { GetChannelList() }
 	local result = {}
 
-	for i = 1, #channels, 2 do
+	for i = 1, #channels, 3 do
 	   local id = channels[i]
 	   local name = channels[i+1]
 	   if not server_channels[name] then
