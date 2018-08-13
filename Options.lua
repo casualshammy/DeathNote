@@ -55,6 +55,7 @@ DeathNote.OptionsDefaults = {
 		announce = {
 			enable = false,
 			announce_unknown = false,
+			lfr = false,
 			limit = 3,
 			channel = "CHATFRAME",
 			style = "FORMATTED",
@@ -245,7 +246,7 @@ DeathNote.Options = {
 			type = "group",
 			args = {
 				announce = {
-					order = 10,
+					order = 9,
 					name = L["Announce deaths"],
 					type = "toggle",
 					width = "full",
@@ -254,13 +255,23 @@ DeathNote.Options = {
 				},
 
 				announce_unknown = {
-					order = 11,
+					order = 10,
 					name = L["Announce deaths with an unknown cause"],
 					type = "toggle",
 					width = "full",
 					disabled = function() return not DeathNote.settings.announce.enable end,
 					get = function() return DeathNote.settings.announce.announce_unknown end,
 					set = function(_, v) DeathNote.settings.announce.announce_unknown = v end,
+				},
+				
+				announce_lfr = {
+					order = 11,
+					name = L["Announce deaths in LFR"],
+					type = "toggle",
+					width = "full",
+					disabled = function() return not DeathNote.settings.announce.enable end,
+					get = function() return DeathNote.settings.announce.lfr end,
+					set = function(_, v) DeathNote.settings.announce.lfr = v end,
 				},
 
 				announce_limit = {
