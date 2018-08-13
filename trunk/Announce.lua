@@ -5,9 +5,9 @@ local skipped_deaths = 0
 local skip_timer
 
 function DeathNote:AnnounceDeath(death)
-	if not self.settings.announce.enable then
-		return
-	end
+	if not self.settings.announce.enable then return end
+	local difficultyID = GetRaidDifficultyID();
+	if (difficultyID ~= nil and difficultyID == 17 and not self.settings.announce.lfr) then return end
 
 	local now = GetTime()
 	local tensecs = now - 10
