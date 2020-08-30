@@ -29,7 +29,7 @@ libs\AceLocale-3.0\AceLocale-3.0.xml
 libs\AceTimer-3.0\AceTimer-3.0.xml
 #@end-no-lib-strip@
 
-Locales.lua
+locales\localizations.xml
 DeathNote.lua
 DataCapture.lua
 UI.lua
