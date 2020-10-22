@@ -311,7 +311,7 @@ function DeathNote:Show()
 		local AceConfig = LibStub("AceConfig-3.0")
 		local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
-		local frame = CreateFrame("Frame", "DeathNoteFrame", UIParent)
+		local frame = CreateFrame("Frame", "DeathNoteFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 
 		frame:SetWidth(self.settings.display.w)
 		frame:SetHeight(self.settings.display.h)
@@ -411,7 +411,7 @@ function DeathNote:Show()
 		end)
 
 		-- filters
-		local filters_frame = CreateFrame("Frame", nil, frame)
+		local filters_frame = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 		filters_frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -30)
 		filters_frame:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 		filters_frame:SetHeight(30)
@@ -914,7 +914,7 @@ function DeathNote:Show()
 		tools_frame:SetScript("OnMouseUp", function() self:ShowToolsMenu() end)
 
 		-- name list
-		local name_list_border = CreateFrame("Frame", nil, frame)
+		local name_list_border = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 		name_list_border:SetPoint("TOPLEFT", filters_frame, "BOTTOMLEFT", 0, 0)
 		name_list_border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", self.settings.display.namelist_width, 10)
 
@@ -969,7 +969,7 @@ function DeathNote:Show()
 		name_list:SetScript("OnSizeChanged", function() self:NameList_SizeChanged() end)
 
 		-- dragger
-		local dragger = CreateFrame("Frame", nil, name_list_border)
+		local dragger = CreateFrame("Frame", nil, name_list_border, BackdropTemplateMixin and "BackdropTemplate")
 		dragger:SetWidth(8)
 		dragger:SetPoint("TOP", name_list_border, "TOPRIGHT")
 		dragger:SetPoint("BOTTOM", name_list_border, "BOTTOMRIGHT")
@@ -1032,7 +1032,7 @@ function DeathNote:Show()
 		CreateSearchBox(logframe.frame);
 			
 		-- lograme tooltip
-		local lftip = CreateFrame("GameTooltip")
+		local lftip = CreateFrame("GameTooltip", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
 		local prevl
 		for i = 1, 1 do
 			local l, r = lftip:CreateFontString(nil, "ARTWORK", "GameTooltipText"),
@@ -2489,7 +2489,7 @@ end
 function DeathNote:CreateListBox(parent, scale)
 	local frame = CreateFrame("ScrollFrame", nil, parent)
 
-	local iframe = CreateFrame("Frame", nil, frame)
+	local iframe = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate")
 	iframe:SetBackdrop(PaneBackdrop)
 	iframe:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
 	iframe:SetBackdropBorderColor(0.4, 0.4, 0.4)
@@ -2524,7 +2524,7 @@ function DeathNote:CreateListBox(parent, scale)
 	content:SetPoint("TOPRIGHT", -16, 0)
 	content:SetScale(scale)
 
-	local headersep = CreateFrame("Frame", nil, iframe)
+	local headersep = CreateFrame("Frame", nil, iframe, BackdropTemplateMixin and "BackdropTemplate")
 	headersep:SetHeight(16)
 	headersep:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -22)
 	headersep:SetPoint("RIGHT")
