@@ -2,6 +2,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
 
 local tinsert, tremove = table.insert, table.remove
 local floor = math.floor
+local SCHOOL_MASK_PHYSICAL = 1;
 
 local function CommaNumber(num)
 	local found

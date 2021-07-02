@@ -1,4 +1,4 @@
-﻿## Interface: 90005
+﻿## Interface: 90100
 ## Title: DeathNote
 ## Notes: Death analysis tool
 ## Author: Slaren

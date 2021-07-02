@@ -38,7 +38,6 @@ DeathNote.SurvivalIDs = {
 	[1022] =  	{ class = "PALADIN", priority = 1 },
 	[6940] =  	{ class = "PALADIN", priority = 1 },
 	[205191] =	{ class = "PALADIN", priority = 2 },
-	[204150] =	{ class = "PALADIN", priority = 3 },
 	[204018] =	{ class = "PALADIN", priority = 1 },
 
 	[47585] = 	{ class = "PRIEST", priority = 2 },
