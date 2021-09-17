@@ -1,5 +1,5 @@
-﻿## Interface: 90100
-## Title: DeathNote
+﻿## Interface: 20501
+## Title: DeathNote [TBC]
 ## Notes: Death analysis tool
 ## Author: Slaren
 ## Version: @project-version@
@@ -8,6 +8,8 @@
 ## SavedVariablesPerCharacter: DeathNoteData
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
+## X-Curse-Project-ID: 28314
+## X-Wago-ID: VBNBxLKx
 
 #@no-lib-strip@
 libs\LibStub\LibStub.lua
