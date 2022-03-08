@@ -162,7 +162,7 @@ local event_reader_table = {
 	["SPELL_AURA_BROKEN_SPELL"]	= { TypeAura, nil, nil, SpellSpellId, AuraBrokenSpell },
 
 	["SPELL_DISPEL"]			= { TypeAura, nil, nil, ExtraSpellId, AuraDispel },
-	-- ["SPELL_DISPEL_FAILED"]		= true,
+	["SPELL_DISPEL_FAILED"]		= { TypeAura, nil, nil, ExtraSpellId, AuraDispel },
 	["SPELL_STOLEN"]			= { TypeAura, nil, nil, ExtraSpellId, AuraDispel },
 
 	["SPELL_INTERRUPT"] 		= { TypeInterrupt, nil, nil, ExtraSpellId },

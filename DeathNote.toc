@@ -1,4 +1,4 @@
-﻿## Interface: 20501
+﻿## Interface: 20503
 ## Title: DeathNote [TBC]
 ## Notes: Death analysis tool
 ## Author: Slaren
