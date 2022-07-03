@@ -1,4 +1,5 @@
 local L = LibStub("AceLocale-3.0"):GetLocale("DeathNote")
+local LibDDE = LibStub("LibDropDownExtension-1.0", true);
 
 local WindowBackdrop = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -1240,6 +1241,34 @@ end
 -- UnitPopup support
 ------------------------------------------------------------------------------
 
+local selectedDropdownUnit = nil;
+
+local function UnitPopupClick()
+	if (selectedDropdownUnit == nil) then
+		return;
+	end
+	local name, server = UnitName(selectedDropdownUnit)
+
+	if not name then
+		return
+	end
+
+	if server and server ~= "" then
+		name = name .. "-" .. server
+	end
+
+	DeathNote:Debug("unit:", selectedDropdownUnit, "name:", selectedDropdownUnit, "result:", name)
+
+	DeathNote:ShowUnit(name)
+end
+
+local dropdownOptions = {
+	{
+		text = L["Show Death Note"],
+		func = UnitPopupClick,
+	},
+}
+
 function DeathNote:ShowUnit(name)
 	self:Show()
 
@@ -1255,62 +1284,26 @@ function DeathNote:ShowUnit(name)
 	end
 end
 
-function DeathNote:AddToUnitPopup()
-	UnitPopupButtons["SHOW_DEATH_NOTE"] = {
-		text = L["Show Death Note"],
-		icon = [[Interface\AddOns\DeathNote\Textures\icon.tga]],
-		--dist = 0,
-	}
-
-	local types = { "PET", "RAID_PLAYER", "PARTY", "SELF", "TARGET", "PLAYER" }
-
-	for i, v in ipairs(types) do
-		tinsert(UnitPopupMenus[v], #UnitPopupMenus[v], "SHOW_DEATH_NOTE")
-	end
-
-	self:SecureHook("UnitPopup_ShowMenu")
-end
-
-function DeathNote:RemoveFromUnitPopup()
-	self:Unhook("UnitPopup_ShowMenu")
-
-	for mtype in pairs(UnitPopupMenus) do
-		for i = #UnitPopupMenus[mtype], 1, -1 do
-			if UnitPopupMenus[mtype][i] == "SHOW_DEATH_NOTE" then
-				tremove(UnitPopupMenus[mtype], i)
-				break
+local function OnEvent(dropdown, event, options)
+	if (event == "OnShow") then
+		selectedDropdownUnit = dropdown.unit;
+		if (DeathNote.settings.unit_menu) then
+			for index, value in pairs(options) do
+				print(index, value);
+			end
+			for i = 1, #dropdownOptions do
+				options[i] = dropdownOptions[i]
 			end
 		end
-	end
-
-	UnitPopupButtons["SHOW_DEATH_NOTE"] = nil
-end
-
-function DeathNote.UnitPopupClick()
-	local name, server = UnitName(UIDROPDOWNMENU_INIT_MENU.unit or UIDROPDOWNMENU_INIT_MENU.name)
-
-	if not name then
-		return
-	end
-
-	if server and server ~= "" then
-		name = name .. "-" .. server
-	end
-
-	DeathNote:Debug("unit:", UIDROPDOWNMENU_INIT_MENU.unit, "name:", UIDROPDOWNMENU_INIT_MENU.name, "result:", name)
-
-	DeathNote:ShowUnit(name)
-end
-
-function DeathNote:UnitPopup_ShowMenu(dropdownMenu, which, unit, name, userData, ...)
-	local button
-	for i=1, UIDROPDOWNMENU_MAXBUTTONS do
-		button = _G["DropDownList"..UIDROPDOWNMENU_MENU_LEVEL.."Button"..i]
-		if button.value == "SHOW_DEATH_NOTE" then
-		    button.func = DeathNote.UnitPopupClick
+		return true
+	elseif (event == "OnHide") then
+		for i = #options, 1, -1 do
+			options[i] = nil
 		end
 	end
 end
+
+LibDDE:RegisterEvent("OnShow OnHide", OnEvent, 1);
 
 ------------------------------------------------------------------------------
 -- Display stuff
