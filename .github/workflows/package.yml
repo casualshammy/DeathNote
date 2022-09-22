@@ -17,6 +17,4 @@ jobs:
           submodules: 'true'
         
       - name: Package and release
-        uses: BigWigsMods/packager@v1
-        with:
-          args: -g "wrath"
+        run: build.sh
