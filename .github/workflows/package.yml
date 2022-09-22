@@ -19,7 +19,11 @@ jobs:
           submodules: 'true'
         
       - name: Get packager
-        run: git clone -b "master" "https://github.com/BigWigsMods/packager.git"
+        run: |
+          git clone -b "master" "https://github.com/BigWigsMods/packager.git"
+          mv packager/release.sh ./
+          rm -rf packager
+          chmod +x release.sh
 
       - name: Package and release
         run: release.sh -g wrath
