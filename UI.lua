@@ -718,8 +718,8 @@ function DeathNote:Show()
 								if (selector:IsVisible()) then
 									selector:Hide();
 								else
-									selector:SetParent(GetMouseFocus());
-									selector:SetPoint("TOP", GetMouseFocus(), "BOTTOM", 0, 0);
+									selector:SetParent(DeathNoteFrame);
+									selector:SetPoint("TOPLEFT", DeathNoteFrame, "TOPRIGHT", 0, 0);
 									-- value.text, value.font, value.icon, value.func, value.onEnter, value.onLeave
 									local t = { };
 									for spellID, spellInfo in pairs(DeathNote.SurvivalIDs) do
