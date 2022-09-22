@@ -1,9 +1,7 @@
 name: Package
 
 on:
-  push:
-    tags:
-      - '**'
+  [push]
 
 jobs:
   release:
@@ -19,10 +17,14 @@ jobs:
           submodules: 'true'
         
       - name: Get packager
-        run: |
+        run: | 
+          echo "Cloning packager..."
           git clone -b "master" "https://github.com/BigWigsMods/packager.git"
+          echo "Moving executable..."
           mv packager/release.sh ./
+          echo "Deleting packager folder..."
           rm -rf packager
+          echo "Settings X bit on executable..."
           chmod +x release.sh
 
       - name: Package and release
