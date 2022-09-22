@@ -16,16 +16,14 @@ jobs:
         with:
           submodules: 'true'
         
-      - name: Get packager
-        run: | 
-          echo "Cloning packager..."
-          git clone -b "master" "https://github.com/BigWigsMods/packager.git"
-          echo "Moving executable..."
-          mv packager/release.sh ./
-          echo "Deleting packager folder..."
-          rm -rf packager
-          echo "Settings X bit on executable..."
-          chmod +x release.sh
+      - run: echo "Cloning packager..."
+      - run: git clone -b "master" "https://github.com/BigWigsMods/packager.git"
+      - run: echo "Moving executable..."
+      - run: mv packager/release.sh ./
+      - run: echo "Deleting packager folder..."
+      - run: rm -rf packager
+      - run: echo "Settings X bit on executable..."
+      - run: chmod +x release.sh
 
       - name: Package and release
         run: release.sh -g wrath
