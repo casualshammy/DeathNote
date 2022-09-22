@@ -1,7 +1,9 @@
 name: Package
 
 on:
-  [push]
+  push:
+    tags:
+      - '**'
 
 jobs:
   release:
@@ -11,19 +13,12 @@ jobs:
       GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
       WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v1
         with:
           submodules: 'true'
         
-      - run: echo "Cloning packager..."
-      - run: git clone -b "master" "https://github.com/BigWigsMods/packager.git"
-      - run: echo "Moving executable..."
-      - run: mv packager/release.sh ./
-      - run: echo "Deleting packager folder..."
-      - run: rm -rf packager
-      - run: echo "Settings X bit on executable..."
-      - run: chmod +x release.sh
-
       - name: Package and release
-        run: release.sh -g wrath
+        uses: BigWigsMods/packager@v1
+        with:
+          args: -g wrath
