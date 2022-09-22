@@ -1,7 +1,9 @@
 name: Package
 
 on:
-  [push]
+  push:
+    tags:
+      - '**'
 
 jobs:
   release:
