@@ -29,10 +29,10 @@ local function chatmessage(msg, arg)
 	local inInstance, instanceType = IsInInstance()
 	if arg == "PARTY" and GetNumSubgroupMembers() > 0 then
 		-- send the message to party or instance
-		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "PARTY")
+		SendChatMessage(msg, "PARTY")
 	elseif arg == "RAID" and GetNumGroupMembers() > 0 then
 		-- send the message to raid or instance
-		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "RAID")
+		SendChatMessage(msg, "RAID")
 	elseif arg == "BATTLEGROUND" and instanceType == "pvp" then
 		-- battleground was replaced by instance chat
 		SendChatMessage(msg, "INSTANCE_CHAT")
@@ -43,9 +43,9 @@ end
 
 local function groupmessage(msg)
 	if IsInRaid() and GetNumGroupMembers() > 0 then
-		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "RAID")
+		SendChatMessage(msg, "RAID")
 	elseif not IsInRaid() and GetNumSubgroupMembers() > 0 then
-		SendChatMessage(msg, IsPartyLFG() and "INSTANCE_CHAT" or "PARTY")
+		SendChatMessage(msg, "PARTY")
 	end
 end
 
