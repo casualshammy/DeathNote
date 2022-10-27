@@ -330,7 +330,7 @@ function DeathNote:Show()
 		-- titlebar
 		local titlebar = frame:CreateTexture(nil, "BACKGROUND")
 		titlebar:SetColorTexture(0.5, 0.5, 0.5)
-		titlebar:SetGradient("HORIZONTAL", 0.6, 0.6, 0.6, 0.3, 0.3, 0.3)
+		--titlebar:SetGradient("HORIZONTAL", CreateColor(0.6, 0.6, 0.6), CreateColor(0.3, 0.3, 0.3))
 		titlebar:SetPoint("TOPLEFT", 4, -4)
 		titlebar:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -4, -28)
 
@@ -399,8 +399,7 @@ function DeathNote:Show()
 		end)
 
 		sizer_se:SetScript("OnMouseDown", function()
-			frame:SetMinResize(600, 270)
-			frame:SetMaxResize(2000, 2000)
+			frame:SetResizeBounds(600, 270, 2000, 2000)
 
 			frame:StartSizing()
 		end)
@@ -923,8 +922,7 @@ function DeathNote:Show()
 		name_list_border:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
 		name_list_border:SetBackdropBorderColor(0.4, 0.4, 0.4)
 		name_list_border:SetResizable(true)
-		name_list_border:SetMinResize(50, 50)
-		name_list_border:SetMaxResize(2000, 2000)
+		name_list_border:SetResizeBounds(400, 200, 2000, 2000);
 
 		local name_list = CreateFrame("ScrollFrame", nil, name_list_border)
 		name_list:SetPoint("TOPLEFT", 8, -8)
@@ -1156,7 +1154,7 @@ end
 -- Filters UI
 function DeathNote:SetFiltersTab(ntab)
 	self.filters_tab.selectedTab = ntab
-	PanelTemplates_UpdateTabs(self.filters_tab)
+	--PanelTemplates_UpdateTabs(self.filters_tab)
 
 	-- this shouldn't be hardcoded
 	if ntab == 1 then
@@ -2095,7 +2093,7 @@ end
 local function ListBox_Column_Dragger_OnMouseDown(frame)
 	local lastcol = frame.obj.columns[#frame.obj.columns]
 
-	frame.prev:SetMaxResize(frame.prev:GetWidth() + lastcol:GetWidth(), 1)
+	frame.prev:SetResizeBounds(0, 0, frame.prev:GetWidth() + lastcol:GetWidth(), 1)
 
 	frame.prev:StartSizing("RIGHT")
 end
@@ -2141,7 +2139,7 @@ local function ListBox_AddColumn(self, label, align, width)
 	local column = CreateFrame("Frame", nil, self.iframe)
 	column.align = align
 	column:SetResizable(true)
-	column:SetMinResize(10, 1)
+	column:SetResizeBounds(10, 1)
 
 	local prev = self.columns[#self.columns]
 
