@@ -593,7 +593,8 @@ function DeathNote:FormatTooltipSource(tip, entry)
 	end
 
 	if entry.sourceGUID and entry.sourceName and entry.sourceRaidFlags then
-		tip:SetHyperlink(format(TEXT_MODE_A_STRING_SOURCE_UNIT, "", entry.sourceGUID, entry.sourceName, entry.sourceName))
+		local text = format(TEXT_MODE_A_STRING_SOURCE_UNIT, "", entry.sourceGUID, entry.sourceName, entry.sourceName);
+		tip:SetText(text);
 		return tip
 	else
 		return false
