@@ -1029,31 +1029,6 @@ function DeathNote:Show()
 
 		-- logframe searchbox
 		CreateSearchBox(logframe.frame);
-			
-		-- lograme tooltip
-		local lftip = CreateFrame("GameTooltip", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
-		local prevl
-		for i = 1, 1 do
-			local l, r = lftip:CreateFontString(nil, "ARTWORK", "GameTooltipText"),
-						 lftip:CreateFontString(nil, "ARTWORK", "GameTooltipText")
-			l:SetFontObject(GameFontNormal)
-			r:SetFontObject(GameFontNormal)
-
-			if not prevl then
-				l:SetPoint("TOPLEFT", 10, -10)
-			else
-				l:SetPoint("TOPLEFT", prevl, "BOTTOMLEFT", 0, -2)
-			end
-			r:SetPoint("RIGHT", l, "LEFT", 40, 0)
-			lftip:AddFontStrings(l, r)
-
-			prevl = l
-		end
-		lftip:SetFrameStrata("TOOLTIP")
-		lftip:SetClampedToScreen(true)
-		lftip:SetBackdrop(TooltipBackdrop)
-		lftip:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
-		lftip:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
 
 		logframe:SetMouseCallbacks(
 			function(button, nline, column, userdata)
@@ -1101,33 +1076,28 @@ function DeathNote:Show()
 				end
 			end,
 			function(column, userdata)
-				-- GameTooltip is used for spells, lftip for everything else
-				-- we take both but show only the appropiate one
-				lftip:SetOwner(logframe.frame, "ANCHOR_NONE")
-				lftip:SetPoint("BOTTOMLEFT", logframe.frame, "BOTTOMRIGHT")
 				GameTooltip:SetOwner(logframe.frame, "ANCHOR_NONE")
 				GameTooltip:SetPoint("BOTTOMLEFT", logframe.frame, "BOTTOMRIGHT")
 
 				local have_tip = false
 
 				if column == 1 then -- Time
-					have_tip = self:FormatTooltipTimestamp(lftip, userdata)
+					have_tip = self:FormatTooltipTimestamp(GameTooltip, userdata)
 				elseif column == 2 then -- HP
-					have_tip = self:FormatTooltipHealth(lftip, userdata)
+					have_tip = self:FormatTooltipHealth(GameTooltip, userdata)
 				elseif column == 3 then -- Amount
-					have_tip = self:FormatTooltipAmount(lftip, userdata)
+					have_tip = self:FormatTooltipAmount(GameTooltip, userdata)
 				elseif column == 4 then -- Spell
-					have_tip = self:FormatTooltipSpell(lftip, userdata)
+					have_tip = self:FormatTooltipSpell(GameTooltip, userdata)
 				elseif column == 5 then -- Source
-					have_tip = self:FormatTooltipSource(lftip, userdata)
+					have_tip = self:FormatTooltipSource(GameTooltip, userdata)
 				end
 
-				if have_tip then
+				if (have_tip) then
 					have_tip:Show()
 				end
 			end,
 			function(column, userdata)
-				lftip:Hide()
 				GameTooltip:Hide()
 			end)
 
