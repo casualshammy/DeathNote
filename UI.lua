@@ -330,7 +330,7 @@ function DeathNote:Show()
 		-- titlebar
 		local titlebar = frame:CreateTexture(nil, "BACKGROUND")
 		titlebar:SetColorTexture(0.5, 0.5, 0.5)
-		titlebar:SetGradient("HORIZONTAL", 0.6, 0.6, 0.6, 0.3, 0.3, 0.3)
+		--titlebar:SetGradient("HORIZONTAL", CreateColor(0.6, 0.6, 0.6), CreateColor(0.3, 0.3, 0.3))
 		titlebar:SetPoint("TOPLEFT", 4, -4)
 		titlebar:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", -4, -28)
 
@@ -399,8 +399,7 @@ function DeathNote:Show()
 		end)
 
 		sizer_se:SetScript("OnMouseDown", function()
-			frame:SetMinResize(600, 270)
-			frame:SetMaxResize(2000, 2000)
+			frame:SetResizeBounds(600, 270, 2000, 2000)
 
 			frame:StartSizing()
 		end)
@@ -923,8 +922,7 @@ function DeathNote:Show()
 		name_list_border:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
 		name_list_border:SetBackdropBorderColor(0.4, 0.4, 0.4)
 		name_list_border:SetResizable(true)
-		name_list_border:SetMinResize(50, 50)
-		name_list_border:SetMaxResize(2000, 2000)
+		name_list_border:SetResizeBounds(400, 200, 2000, 2000);
 
 		local name_list = CreateFrame("ScrollFrame", nil, name_list_border)
 		name_list:SetPoint("TOPLEFT", 8, -8)
@@ -1031,31 +1029,6 @@ function DeathNote:Show()
 
 		-- logframe searchbox
 		CreateSearchBox(logframe.frame);
-			
-		-- lograme tooltip
-		local lftip = CreateFrame("GameTooltip", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
-		local prevl
-		for i = 1, 1 do
-			local l, r = lftip:CreateFontString(nil, "ARTWORK", "GameTooltipText"),
-						 lftip:CreateFontString(nil, "ARTWORK", "GameTooltipText")
-			l:SetFontObject(GameFontNormal)
-			r:SetFontObject(GameFontNormal)
-
-			if not prevl then
-				l:SetPoint("TOPLEFT", 10, -10)
-			else
-				l:SetPoint("TOPLEFT", prevl, "BOTTOMLEFT", 0, -2)
-			end
-			r:SetPoint("RIGHT", l, "LEFT", 40, 0)
-			lftip:AddFontStrings(l, r)
-
-			prevl = l
-		end
-		lftip:SetFrameStrata("TOOLTIP")
-		lftip:SetClampedToScreen(true)
-		lftip:SetBackdrop(TooltipBackdrop)
-		lftip:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
-		lftip:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
 
 		logframe:SetMouseCallbacks(
 			function(button, nline, column, userdata)
@@ -1103,33 +1076,28 @@ function DeathNote:Show()
 				end
 			end,
 			function(column, userdata)
-				-- GameTooltip is used for spells, lftip for everything else
-				-- we take both but show only the appropiate one
-				lftip:SetOwner(logframe.frame, "ANCHOR_NONE")
-				lftip:SetPoint("BOTTOMLEFT", logframe.frame, "BOTTOMRIGHT")
 				GameTooltip:SetOwner(logframe.frame, "ANCHOR_NONE")
 				GameTooltip:SetPoint("BOTTOMLEFT", logframe.frame, "BOTTOMRIGHT")
 
 				local have_tip = false
 
 				if column == 1 then -- Time
-					have_tip = self:FormatTooltipTimestamp(lftip, userdata)
+					have_tip = self:FormatTooltipTimestamp(GameTooltip, userdata)
 				elseif column == 2 then -- HP
-					have_tip = self:FormatTooltipHealth(lftip, userdata)
+					have_tip = self:FormatTooltipHealth(GameTooltip, userdata)
 				elseif column == 3 then -- Amount
-					have_tip = self:FormatTooltipAmount(lftip, userdata)
+					have_tip = self:FormatTooltipAmount(GameTooltip, userdata)
 				elseif column == 4 then -- Spell
-					have_tip = self:FormatTooltipSpell(lftip, userdata)
+					have_tip = self:FormatTooltipSpell(GameTooltip, userdata)
 				elseif column == 5 then -- Source
-					have_tip = self:FormatTooltipSource(lftip, userdata)
+					have_tip = self:FormatTooltipSource(GameTooltip, userdata)
 				end
 
-				if have_tip then
+				if (have_tip) then
 					have_tip:Show()
 				end
 			end,
 			function(column, userdata)
-				lftip:Hide()
 				GameTooltip:Hide()
 			end)
 
@@ -1156,7 +1124,7 @@ end
 -- Filters UI
 function DeathNote:SetFiltersTab(ntab)
 	self.filters_tab.selectedTab = ntab
-	PanelTemplates_UpdateTabs(self.filters_tab)
+	--PanelTemplates_UpdateTabs(self.filters_tab)
 
 	-- this shouldn't be hardcoded
 	if ntab == 1 then
@@ -2095,7 +2063,7 @@ end
 local function ListBox_Column_Dragger_OnMouseDown(frame)
 	local lastcol = frame.obj.columns[#frame.obj.columns]
 
-	frame.prev:SetMaxResize(frame.prev:GetWidth() + lastcol:GetWidth(), 1)
+	frame.prev:SetResizeBounds(0, 0, frame.prev:GetWidth() + lastcol:GetWidth(), 1)
 
 	frame.prev:StartSizing("RIGHT")
 end
@@ -2141,7 +2109,7 @@ local function ListBox_AddColumn(self, label, align, width)
 	local column = CreateFrame("Frame", nil, self.iframe)
 	column.align = align
 	column:SetResizable(true)
-	column:SetMinResize(10, 1)
+	column:SetResizeBounds(10, 1)
 
 	local prev = self.columns[#self.columns]
 

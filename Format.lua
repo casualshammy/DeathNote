@@ -593,7 +593,7 @@ function DeathNote:FormatTooltipSource(tip, entry)
 	end
 
 	if entry.sourceGUID and entry.sourceName and entry.sourceRaidFlags then
-		tip:SetHyperlink(format(TEXT_MODE_A_STRING_SOURCE_UNIT, "", entry.sourceGUID, entry.sourceName, entry.sourceName))
+		tip:SetHyperlink("unit:" .. entry.sourceGUID)
 		return tip
 	else
 		return false
@@ -620,7 +620,6 @@ function DeathNote:FormatTooltipTimestampGroup(tip, group)
 				first.timestamp - last.timestamp)
 
 	tip:SetText(text, 1, .82, 0, 1)
-
 	return tip
 end
 
