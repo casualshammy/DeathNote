@@ -1,8 +1,10 @@
-﻿## Interface: 100002
+## Interface: 100100
 ## Title: DeathNote
 ## Notes: Death analysis tool
+## Notes-ruRU: Аддон для разбора смертей
 ## Author: Slaren
 ## Version: @project-version@
+## IconTexture: Interface\AddOns\DeathNote\Textures\icon
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3
 ## SavedVariables: DeathNoteDB
 ## SavedVariablesPerCharacter: DeathNoteData
