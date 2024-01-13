@@ -1777,8 +1777,14 @@ function DeathNote:ShowDeath(death)
 
 	self:ResetFiltering()
 
+	local entriesCount = 0;
 	for entry in self:IterateDeath(death, self.settings.death_time) do
-		self:ProcessDeathEntry(entry)
+		self:ProcessDeathEntry(entry);
+
+		entriesCount = entriesCount + 1;
+		if (entriesCount >= self.settings.death_log_entries) then
+			break;
+		end
 	end
 
 	self:ProcessDeathEntry(nil)

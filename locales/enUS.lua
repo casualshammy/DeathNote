@@ -139,5 +139,6 @@ L["Whisper"] = "Whisper"
 L["Whisper target"] = "Whisper target"
 L["You were killed by"] = "You were killed by"
 L["Your pet"] = "Your pet"
+L["Log entries to show in death log (reduce if game crashes)"] = "Log entries to show in death log (reduce if game crashes)"
 
 --@end-debug@

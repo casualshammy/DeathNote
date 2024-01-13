@@ -7,6 +7,7 @@ DeathNote.OptionsDefaults = {
 		keep_data = true,
 		max_deaths = 50,
 		death_time = 30,
+		death_log_entries = 1000,
 		others_death_time = 0,
 
 		unit_filters = {
@@ -125,6 +126,18 @@ DeathNote.Options = {
 						DeathNote.settings.death_time = v
 						DeathNote.settings.others_death_time = math.min(v, DeathNote.settings.others_death_time)
 					end,
+				},
+
+				death_log_entries = {
+					order = 3,
+					name = L["Log entries to show in death log (reduce if game crashes)"],
+					type = "range",
+					min = 100,
+					max = 10000,
+					step = 10,
+					width = "full",
+					get = function() return DeathNote.settings.death_log_entries; end,
+					set = function(_, v) DeathNote.settings.death_log_entries = v; end,
 				},
 
 				--[[
