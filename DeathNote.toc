@@ -1,6 +1,7 @@
-﻿## Interface: 100200
+﻿## Interface: 100205
 ## Title: DeathNote
 ## Notes: Death analysis tool
+## Notes-ruRU: Аддон для анализа смертей
 ## Author: Slaren
 ## Version: @project-version@
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3
@@ -10,6 +11,7 @@
 ## X-LoadOn-Always: delayed
 ## X-Curse-Project-ID: 28314
 ## X-Wago-ID: VBNBxLKx
+## IconTexture: Interface\AddOns\DeathNote\Textures\icon
 
 #@no-lib-strip@
 libs\LibStub\LibStub.lua
