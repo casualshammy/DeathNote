@@ -1,7 +1,7 @@
 ﻿## Interface: 100205
 ## Title: DeathNote
 ## Notes: Death analysis tool
-## Notes-ruRU: Аддон для анализа смертей
+## Notes-ruRU: Аддон, позволяющий анализировать смерти членов Вашей группы или рейда
 ## Author: Slaren
 ## Version: @project-version@
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3
